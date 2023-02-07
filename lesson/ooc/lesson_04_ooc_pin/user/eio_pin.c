@@ -35,6 +35,8 @@ static void _translate_pin_name(const char *name, eio_pin_data_t *data);
   */
 void eio_pin_init(eio_pin_t * const me, const char *name, enum pin_mode mode)
 {
+    elab_assert(me != NULL);
+    elab_assert(name != NULL);
     bool valid = _check_pin_name_valid(name);
     elab_assert(valid);
 
@@ -83,6 +85,8 @@ void eio_pin_init(eio_pin_t * const me, const char *name, enum pin_mode mode)
   */
 bool eio_pin_get_status(eio_pin_t * const me)
 {
+    elab_assert(me != NULL);
+
     GPIO_PinState status = HAL_GPIO_ReadPin(me->data.gpio_x, me->data.pin);
     me->status = (status == GPIO_PIN_SET) ? true : false;
 
@@ -97,6 +101,7 @@ bool eio_pin_get_status(eio_pin_t * const me)
   */
 void eio_pin_set_status(eio_pin_t * const me, bool status)
 {
+    elab_assert(me != NULL);
     elab_assert(me->mode == PIN_MODE_OUTPUT || me->mode == PIN_MODE_OUTPUT_OD);
     
     if (status != me->status)
@@ -153,6 +158,8 @@ exit:
   */
 static void _translate_pin_name(const char *name, eio_pin_data_t *data)
 {
+    elab_assert(data != NULL);
+
     data->gpio_x = (GPIO_TypeDef *)gpio_table[name[0] - 'A'];
     data->pin = (1 << ((uint8_t)((name[2] - '0') * 10 + (name[3] - '0'))));
 
