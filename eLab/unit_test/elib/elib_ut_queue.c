@@ -145,6 +145,7 @@ TEST(elib_queue, pull_and_pop)
         TEST_ASSERT_EQUAL_UINT16(i, elib_queue_free_size(&queue));
         ret = elib_queue_pull_pop(&queue, &byte, 1);
         TEST_ASSERT_EQUAL_INT32(1, ret);
+        TEST_ASSERT_EQUAL_UINT8((i + 1), byte);
         TEST_ASSERT_EQUAL_UINT16((i + 1), elib_queue_free_size(&queue));
 
         if (i < (ELIB_QUEUE_CAPACITY - 1))
