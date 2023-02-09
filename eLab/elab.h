@@ -7,6 +7,7 @@
 #define ELAB_H
 
 /* includes ----------------------------------------------------------------- */
+#include "elab_def.h"
 #include "elab_export.h"
 #include "elab_common.h"
 
