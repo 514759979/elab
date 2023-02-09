@@ -8,27 +8,11 @@
 
 /* include ------------------------------------------------------------------ */
 #include <stdint.h>
+#include "elab_def.h"
 
 /* public define ------------------------------------------------------------ */
-#ifndef EXPORT_SECTION
-    #if defined(__CC_ARM) || defined(__CLANG_ARM) || defined(__GNUC__)
-        #define EXPORT_SECTION(x)               __attribute__((section(x)))
-    #elif defined (__IAR_SYSTEMS_ICC__)
-        #define EXPORT_SECTION(x)               @ x
-    #else
-        #error The compiler is not supported!
-    #endif
-#endif
-
-#ifndef EXPORT_USED
-    #if defined(__CC_ARM) || defined(__CLANG_ARM) || defined(__GNUC__)
-        #define EXPORT_USED                     __attribute__((used))
-    #elif defined (__IAR_SYSTEMS_ICC__)
-        #define EXPORT_USED                     __root
-    #else
-        #error The compiler is not supported!
-    #endif
-#endif
+#define EXPORT_ID_INIT                  (0xa5a5a5a5)
+#define EXPORT_ID_POLL                  (0xbeefbeef)
 
 /* public define ------------------------------------------------------------ */
 enum elab_export_level
@@ -44,43 +28,48 @@ enum elab_export_level
 };
 
 /* public typedef ----------------------------------------------------------- */
-typedef struct elab_export_init
+typedef struct elab_export_data
+{
+    uint32_t timeout_ms;
+} elab_export_poll_data_t;
+
+typedef struct elab_export
 {
     uint32_t magic_head;
+    void *data;
+    uint32_t period_ms;
     uint8_t level;
     void (* func)(void);
     uint32_t magic_tail;
-} elab_export_init_t;
-
-typedef struct elab_export_poll_func
-{
-    uint32_t magic_head;
-    void (* func)(void);
-    uint32_t magic_tail;
-} elab_export_poll_t;
+} elab_export_t;
 
 /* private function --------------------------------------------------------- */
-void elab_init(uint8_t level);
 void elab_unit_test(void);
 void elab_run(void);
 
 /* public export ------------------------------------------------------------ */
-#define INIT_EXPORT(_func, _level)                                                      \
-    EXPORT_USED const elab_export_init_t init_##_func EXPORT_SECTION("elab_export") =   \
-    {                                                                                   \
-        .func = &_func,                                                                 \
-        .level = _level,                                                                \
-        .magic_head = 0xa5a5a5a5,                                                       \
-        .magic_tail = 0xa5a5a5a5,                                                       \
+#define INIT_EXPORT(_func, _level)                                             \
+    ELAB_USED const elab_export_t init_##_func ELAB_SECTION("elab_export") =   \
+    {                                                                          \
+        .func = &_func,                                                        \
+        .level = _level,                                                       \
+        .magic_head = EXPORT_ID_INIT,                                          \
+        .magic_tail = EXPORT_ID_INIT,                                          \
     }
 
-/* TODO Add the polling period setting function. */
-#define POLL_EXPORT(_func)                                                              \
-    EXPORT_USED const elab_export_poll_t poll_##_func EXPORT_SECTION("expoll") =        \
-    {                                                                                   \
-        .func = &_func,                                                                 \
-        .magic_head = 0xbeefbeef,                                                       \
-        .magic_tail = 0xbeefbeef,                                                       \
+#define POLL_EXPORT(_func, _period_ms)                                         \
+    static elab_export_poll_data_t poll_##_data =                              \
+    {                                                                          \
+        .timeout_ms = 0,                                                       \
+    };                                                                         \
+    ELAB_USED const elab_export_t poll_##_func ELAB_SECTION("expoll") =        \
+    {                                                                          \
+        .func = &_func,                                                        \
+        .data = (void *)&poll_##_data,                                         \
+        .level = EXPORT_MAX,                                                   \
+        .period_ms = (uint32_t)(_period_ms),                                   \
+        .magic_head = EXPORT_ID_POLL,                                          \
+        .magic_tail = EXPORT_ID_POLL,                                          \
     }
 
 /* public function ---------------------------------------------------------- */
