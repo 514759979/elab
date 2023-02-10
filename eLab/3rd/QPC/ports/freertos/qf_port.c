@@ -84,6 +84,8 @@ void QF_stop(void) {
     QF_onCleanup(); /* cleanup callback */
 }
 /*..........................................................................*/
+static uint32_t qpc_actor_id = 1;
+
 void QActive_start_(QActive * const me, uint_fast8_t prio,
                     QEvt const * * const qSto, uint_fast16_t const qLen,
                     void * const stkSto, uint_fast16_t const stkSize,
@@ -95,8 +97,8 @@ void QActive_start_(QActive * const me, uint_fast8_t prio,
                              ? (char_t const *)me->thread.pxDummy1
                              : (char_t const *)"AO";
 
-    Q_REQUIRE_ID(200, (0U < prio)
-        && (prio <= QF_MAX_ACTIVE) /* in range */
+    Q_REQUIRE_ID(200, (0U < qpc_actor_id)
+        && (qpc_actor_id <= QF_MAX_ACTIVE) /* in range */
         && (qSto != (QEvt const **)0) /* queue storage must be provided */
         && (qLen > 0U)             /* queue size must be provided */
         && (stkSto != (void *)0)   /* stack storage must be provided */
@@ -105,7 +107,7 @@ void QActive_start_(QActive * const me, uint_fast8_t prio,
     /* create the event queue for the AO */
     QEQueue_init(&me->eQueue, qSto, qLen);
 
-    me->prio = prio;  /* save the QF priority */
+    me->prio = qpc_actor_id ++;  /* save the QF priority */
     QF_add_(me);      /* make QF aware of this active object */
     QHSM_INIT(&me->super, par, me->prio); /* the top-most initial tran. */
     QS_FLUSH(); /* flush the QS trace buffer to the host */
