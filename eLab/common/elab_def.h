@@ -8,6 +8,11 @@
 
 /* includes ----------------------------------------------------------------- */
 #include <stdint.h>
+#include "elab_config.h"
+
+#if (ELAB_QPC_EN != 0)
+#include "qpc.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,6 +34,16 @@ typedef enum elab_err
     ELAB_ERR_MALLOC                     = -10,
     ELAB_ERR_NOT_ENOUGH                 = -11,
 } elab_err_t;
+
+#if (ELAB_QPC_EN != 0)
+
+typedef struct elab_event
+{
+    QEvt super;
+    uint8_t data[ELAB_EVENT_DATA_SIZE];
+} elab_event_t;
+
+#endif
 
 /**
  * Cast a member of a structure out to the containing structure.

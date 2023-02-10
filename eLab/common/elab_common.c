@@ -8,16 +8,6 @@
 
 /* public function ---------------------------------------------------------- */
 /**
-  * @brief  eLab initialization exporting function.
-  * @param  level       init level.
-  * @retval None
-  */
-ELAB_WEAK uint32_t elab_time_ms(void)
-{
-    return 0;
-}
-
-/**
   * @brief  eLab debug uart weak initialization function.
   * @param  baudrate    The uart port baudrate.
   * @retval None
