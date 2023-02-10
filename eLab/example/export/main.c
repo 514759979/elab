@@ -4,7 +4,9 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
-#include "elab_export.h"
+#include "elab.h"
+
+const elab_export_t ex[2];
 
 /* public functions --------------------------------------------------------- */
 /**
@@ -13,6 +15,7 @@
   */
 int main(void)
 {
+    printf("address: %u.\n", (uint32_t)((uint32_t)&ex[1] - (uint32_t)&ex[0]));
     elab_run();
 }
 

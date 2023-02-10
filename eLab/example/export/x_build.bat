@@ -4,6 +4,7 @@ gcc -std=c99 -g ^
 main.c ^
 elab_common_win32.c ^
 ..\..\common\elab_export.c ^
+-I ..\..\port\Metal ^
 -I ..\.. ^
 -I ..\..\common ^
 -I . ^
