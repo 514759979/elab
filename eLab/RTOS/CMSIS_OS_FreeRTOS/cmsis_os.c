@@ -1236,4 +1236,4 @@ void os_assert_handler(const char *ex_string, const char *func, uint32_t line)
 }
 
 
-/**************** (C) COPYRIGHT Philips Healthcare Suzhou ******END OF FILE****/
+/* ----------------------------- end of file -------------------------------- */
