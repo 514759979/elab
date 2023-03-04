@@ -88,9 +88,8 @@ static const char *shellText[] =
     [SHELL_TEXT_INFO] =
         "\r\n"
         "eLab project\r\n"
-        "Build:       "__DATE__" "__TIME__"\r\n"
         "Version:     "SHELL_VERSION"\r\n"
-        "Copyright:   (c) 2023 eLab Team\r\n",
+        "Copyright:   (c) 2023 eLab Team & GouGe\r\n",
 #endif
     [SHELL_TEXT_CMD_TOO_LONG] = 
         "\r\nWarning: Command is too long\r\n",
