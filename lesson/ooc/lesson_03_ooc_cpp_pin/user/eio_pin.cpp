@@ -48,7 +48,7 @@ void eio_pin_t::init(const char *name, enum pin_mode mode)
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
         GPIO_InitStruct.Pull = GPIO_PULLUP;
     }
-    else if (mode == PIN_MODE_INPUT_PULLUP)
+    else if (mode == PIN_MODE_INPUT_PULLDOWN)
     {
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
         GPIO_InitStruct.Pull = GPIO_PULLDOWN;
@@ -146,6 +146,7 @@ exit:
   * @param  data    The pin data output.
   * @retval None.
   */
+// A.14 C.02
 static void _translate_pin_name(const char *name, eio_pin_data_t *data)
 {
     data->gpio_x = (GPIO_TypeDef *)gpio_table[name[0] - 'A'];
