@@ -33,8 +33,10 @@ typedef struct eio_pin_data
     uint16_t pin;
 } eio_pin_data_t;
 
+// Class
 typedef struct eio_pin
 {
+    /* private */
     eio_pin_data_t data;
     enum pin_mode mode;
     bool status;

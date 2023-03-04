@@ -9,7 +9,7 @@
 #include "elab_common.h"
 
 /* private variables -------------------------------------------------------- */
-static eio_pin_t pin_led;
+eio_pin_t pin_led;
 
 /* public functions --------------------------------------------------------- */
 /**
