@@ -16,9 +16,6 @@ int main(void)
 {
     bsp_init();
     
-    elab_init(EXPORT_BSP);
-    elab_init(EXPORT_IO_DRIVER);
-
     elab_run();
 }
 

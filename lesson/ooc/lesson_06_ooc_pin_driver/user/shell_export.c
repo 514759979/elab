@@ -51,6 +51,6 @@ static void shell_poll(void)
         }
     }
 }
-POLL_EXPORT(shell_poll);
+POLL_EXPORT(shell_poll, 10);
 
 /* ----------------------------- end of file -------------------------------- */

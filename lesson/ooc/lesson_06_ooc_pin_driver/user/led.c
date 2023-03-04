@@ -51,7 +51,7 @@ void led_poll(void)
         }
     }
 }
-POLL_EXPORT(led_poll);
+POLL_EXPORT(led_poll, 50);
 
 #ifdef __cplusplus
 }
