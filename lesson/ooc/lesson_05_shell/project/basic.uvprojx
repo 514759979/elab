@@ -466,6 +466,16 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>eLab.Test</GroupName>
+          <Files>
+            <File>
+              <FileName>test_led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\test_led.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>MCU</GroupName>
           <Files>
             <File>

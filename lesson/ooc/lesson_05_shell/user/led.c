@@ -16,6 +16,7 @@ extern "C" {
 #define LED_POLL_PERIOD_MS                  (100)
 
 /* private variables -------------------------------------------------------- */
+extern eio_pin_t *led = NULL;
 static eio_pin_t pin_led;
 
 /* includes ----------------------------------------------------------------- */
@@ -26,6 +27,7 @@ static eio_pin_t pin_led;
 void led_init(void)
 {
     eio_pin_init(&pin_led, "C.08", PIN_MODE_OUTPUT);
+    led = &pin_led;
 }
 INIT_IO_DRIVER_EXPORT(led_init);
 

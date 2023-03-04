@@ -17,6 +17,7 @@ static elib_queue_t queue_rx;
 static uint8_t buffer_rx[ELAB_DEBUG_UART_BUFFER_RX];
 static elib_queue_t queue_tx;
 static uint8_t buffer_tx[ELAB_DEBUG_UART_BUFFER_TX];
+static uint8_t byte_recv;
 
 /* public functions --------------------------------------------------------- */
 /**
@@ -26,8 +27,6 @@ static uint8_t buffer_tx[ELAB_DEBUG_UART_BUFFER_TX];
   */
 void elab_debug_uart_init(uint32_t baudrate)
 {
-    uint8_t byte = 0;
-    
     huart4.Instance = USART4;
     huart4.Init.BaudRate = baudrate;
     huart4.Init.WordLength = UART_WORDLENGTH_8B;
@@ -41,7 +40,7 @@ void elab_debug_uart_init(uint32_t baudrate)
     huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
 
     HAL_UART_Init(&huart4);
-    HAL_UART_Receive_IT(&huart4, &byte, 1);
+    HAL_UART_Receive_IT(&huart4, &byte_recv, 1);
     
     elib_queue_init(&queue_rx, buffer_rx, ELAB_DEBUG_UART_BUFFER_RX);
     elib_queue_init(&queue_tx, buffer_tx, ELAB_DEBUG_UART_BUFFER_TX);
@@ -135,9 +134,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
     if (UartHandle->Instance == USART4)
     {
-        uint8_t byte = 0;
-        HAL_UART_Receive_IT(&huart4, &byte, 1);
-        elib_queue_push(&queue_rx, &byte, 1);
+        HAL_UART_Receive_IT(&huart4, &byte_recv, 1);
+        elib_queue_push(&queue_rx, &byte_recv, 1);
     }
 }
 
