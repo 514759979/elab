@@ -15,7 +15,7 @@
 int main(void)
 {
     bsp_init();
-    
+
     elab_run();
 }
 

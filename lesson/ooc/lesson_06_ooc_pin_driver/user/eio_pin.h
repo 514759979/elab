@@ -8,7 +8,7 @@
 
 /* includes ----------------------------------------------------------------- */
 #include <stdbool.h>
-#include "stm32g0xx_hal.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,28 +20,42 @@ enum pin_mode
     PIN_MODE_INPUT = 0,
     PIN_MODE_INPUT_PULLUP,
     PIN_MODE_INPUT_PULLDOWN,
-    PIN_MODE_OUTPUT,
+    PIN_MODE_OUTPUT_PP,
     PIN_MODE_OUTPUT_OD,
 
     PIN_MODE_MAX
 };
 
 /* public typedef ----------------------------------------------------------- */
-typedef struct eio_pin_data
-{
-    GPIO_TypeDef *gpio_x;
-    uint16_t pin;
-} eio_pin_data_t;
-
 typedef struct eio_pin
 {
-    eio_pin_data_t data;
-    enum pin_mode mode;
+    struct eio_pin *next;
+    const struct eio_pin_ops *ops;
+    void *user_data;
+
+    const char *name;
+    uint8_t mode;
     bool status;
 } eio_pin_t;
 
+typedef struct eio_pin_ops
+{
+    void (* init)(eio_pin_t * const me);
+    void (* set_mode)(eio_pin_t * const me, uint8_t mode);
+    bool (* get_status)(eio_pin_t * const me);
+    void (* set_status)(eio_pin_t * const me, bool status);
+} eio_pin_ops_t;
+
 /* public functions --------------------------------------------------------- */
-void eio_pin_init(eio_pin_t * const me, const char *name, enum pin_mode mode);
+/* For low-level driver. */
+void eio_pin_register(eio_pin_t * const me,
+                        const char *name,
+                        const eio_pin_ops_t *ops,
+                        void *user_data);
+
+/* For high-level code. */
+eio_pin_t *eio_pin_find(const char *name);
+void eio_pin_set_mode(eio_pin_t * const me, uint8_t mode);
 bool eio_pin_get_status(eio_pin_t * const me);
 void eio_pin_set_status(eio_pin_t * const me, bool status);
 

@@ -15,7 +15,6 @@
 /* private variables -------------------------------------------------------- */
 static Shell shell_uart;
 static char shell_uart_buffer[SHELL_BUFFER_SIZE];
-static uint32_t time_ms = 0;
 
 /* private functions -------------------------------------------------------- */
 /**
@@ -29,8 +28,6 @@ static void shell_uart_init(void)
     shell_uart.read = (int16_t (*)(char *, uint16_t))elab_debug_uart_receive;
     shell_uart.write = (int16_t (*)(char *, uint16_t))elab_debug_uart_send;
     shellInit(&shell_uart, shell_uart_buffer, SHELL_BUFFER_SIZE);
-
-    time_ms = elab_time_ms();
 }
 INIT_BSP_EXPORT(shell_uart_init);
 
@@ -41,16 +38,11 @@ INIT_BSP_EXPORT(shell_uart_init);
 static void shell_poll(void)
 {
     char byte;
-    while (elab_time_ms() - time_ms >= SHELL_POLL_PERIOD_MS)
+    while (shell_uart.read && shell_uart.read(&byte, 1) == 1)
     {
-        time_ms += SHELL_POLL_PERIOD_MS;
-
-        while (shell_uart.read && shell_uart.read(&byte, 1) == 1)
-        {
-            shellHandler(&shell_uart, byte);
-        }
+        shellHandler(&shell_uart, byte);
     }
 }
-POLL_EXPORT(shell_poll, 10);
+POLL_EXPORT(shell_poll, SHELL_POLL_PERIOD_MS);
 
 /* ----------------------------- end of file -------------------------------- */

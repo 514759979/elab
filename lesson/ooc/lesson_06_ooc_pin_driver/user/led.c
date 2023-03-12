@@ -5,6 +5,7 @@
  */
 
 /* includes ----------------------------------------------------------------- */
+#include <stdlib.h>
 #include "eio_pin.h"
 #include "elab.h"
 
@@ -16,8 +17,7 @@ extern "C" {
 #define LED_POLL_PERIOD_MS                  (100)
 
 /* private variables -------------------------------------------------------- */
-static uint32_t time_ms = 0;
-static eio_pin_t pin_led;
+eio_pin_t *led = NULL;
 
 /* includes ----------------------------------------------------------------- */
 /**
@@ -26,10 +26,9 @@ static eio_pin_t pin_led;
   */
 void led_init(void)
 {
-    eio_pin_init(&pin_led, "C.08", PIN_MODE_OUTPUT);
-    time_ms = elab_time_ms();
+    led = eio_pin_find("LED1");
 }
-INIT_IO_DRIVER_EXPORT(led_init);
+INIT_COMPONENT_EXPORT(led_init);
 
 /**
   * @brief  LED polling function.
@@ -37,21 +36,16 @@ INIT_IO_DRIVER_EXPORT(led_init);
   */
 void led_poll(void)
 {
-    while (elab_time_ms() - time_ms >= LED_POLL_PERIOD_MS)
+    if ((elab_time_ms() % 1000) < 500)
     {
-        time_ms += LED_POLL_PERIOD_MS;
-
-        if ((elab_time_ms() % 1000) < 500)
-        {
-            eio_pin_set_status(&pin_led, true);
-        }
-        else
-        {
-            eio_pin_set_status(&pin_led, false);
-        }
+        eio_pin_set_status(led, true);
+    }
+    else
+    {
+        eio_pin_set_status(led, false);
     }
 }
-POLL_EXPORT(led_poll, 50);
+POLL_EXPORT(led_poll, LED_POLL_PERIOD_MS);
 
 #ifdef __cplusplus
 }

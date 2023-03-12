@@ -24,7 +24,7 @@ static void _translate_pin_name(const char *name, eio_pin_data_t *data);
 /* public functions --------------------------------------------------------- */
 /**
   * @brief  EIO pin initialization.
-  * @param  name    pin's name, just lick "A.01" or "B.14" and so on.
+  * @param  name    pin's name, just like "A.01" or "B.14" and so on.
   * @param  mode    pin's mode.
   * @retval None
   */

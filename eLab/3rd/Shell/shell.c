@@ -1567,7 +1567,7 @@ void shellTab(Shell *shell)
     {
         if (matchNum == 1
             && shell->status.tabFlag
-            && SHELL_GET_TICK() - shell->info.activeTime < SHELL_DOUBLE_CLICK_TIME)
+            && SHELL_GET_TICK() - shell->info.activeTime < SHELL_DOUBLE_Clike_TIME)
         {
         #if SHELL_QUICK_HELP == 1
             shellWriteString(shell, "\r\n");
