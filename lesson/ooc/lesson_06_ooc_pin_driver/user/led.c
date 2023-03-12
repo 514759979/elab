@@ -27,6 +27,7 @@ eio_pin_t *led = NULL;
 void led_init(void)
 {
     led = eio_pin_find("LED1");
+    elab_assert(led != NULL);
 }
 INIT_COMPONENT_EXPORT(led_init);
 
