@@ -98,7 +98,7 @@
  * @brief 双击间隔(ms)
  *        使能宏`SHELL_LONG_HELP`后此宏生效，定义双击tab补全help的时间间隔
  */
-#define     SHELL_DOUBLE_CLICK_TIME     200
+#define     SHELL_DOUBLE_Clike_TIME     200
 
 /**
  * @brief 快速帮助

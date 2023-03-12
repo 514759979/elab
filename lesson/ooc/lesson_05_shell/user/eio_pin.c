@@ -29,7 +29,7 @@ static void _translate_pin_name(const char *name, eio_pin_data_t *data);
 /**
   * @brief  EIO pin initialization.
   * @param  me      this pointer
-  * @param  name    pin's name, just lick "A.01" or "B.14" and so on.
+  * @param  name    pin's name, just like "A.01" or "B.14" and so on.
   * @param  mode    pin's mode.
   * @retval None
   */
@@ -60,7 +60,7 @@ void eio_pin_init(eio_pin_t * const me, const char *name, enum pin_mode mode)
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
         GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     }
-    else if (mode == PIN_MODE_OUTPUT)
+    else if (mode == PIN_MODE_OUTPUT_PP)
     {
         GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;

@@ -408,6 +408,11 @@
               <FileType>1</FileType>
               <FilePath>..\user\led.c</FilePath>
             </File>
+            <File>
+              <FileName>driver_pin.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver_pin.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -433,6 +438,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\eLab\common\elab_export.c</FilePath>
             </File>
+            <File>
+              <FileName>elab_common.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\common\elab_common.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -457,6 +467,16 @@
               <FileName>shell_ext.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\eLab\3rd\Shell\shell_ext.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>eLab.Test</GroupName>
+          <Files>
+            <File>
+              <FileName>test_led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\test_led.c</FilePath>
             </File>
           </Files>
         </Group>
