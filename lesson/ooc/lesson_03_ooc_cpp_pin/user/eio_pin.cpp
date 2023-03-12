@@ -113,28 +113,29 @@ bool eio_pin_t::get_status(void)
   */
 static bool _check_pin_name_valid(const char *name)
 {
-    bool ret = false;
+    bool ret = true;
     uint8_t pin_number;
 
-    if (strlen(name) == 4 && (name[1] == '.'))
+    if (!(strlen(name) == 4 && (name[1] == '.')))
     {
+        ret = false;
         goto exit;
     }
     
-    if ((name[0] < 'A' && name[0] > 'D') &&
-        (name[2] < '0' && name[2] > '1') &&
-        (name[3] < '0' && name[3] > '9'))
+    if (!((name[0] < 'A' && name[0] > 'D') &&
+            (name[2] < '0' && name[2] > '1') &&
+            (name[3] < '0' && name[3] > '9')))
     {
+        ret = false;
         goto exit;
     }
 
     pin_number = (name[2] - '0') * 10 + (name[3] - '0');
     if (pin_number >= 16)
     {
+        ret = false;
         goto exit;
     }
-
-    ret = true;
 
 exit:
     return ret;
