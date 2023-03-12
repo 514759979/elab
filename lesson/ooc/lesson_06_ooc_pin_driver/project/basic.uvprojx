@@ -394,6 +394,11 @@
               <FilePath>..\user\eio_pin.c</FilePath>
             </File>
             <File>
+              <FileName>driver_pin.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver_pin.c</FilePath>
+            </File>
+            <File>
               <FileName>bsp.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\bsp.c</FilePath>
@@ -407,11 +412,6 @@
               <FileName>led.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\led.c</FilePath>
-            </File>
-            <File>
-              <FileName>driver_pin.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\driver_pin.c</FilePath>
             </File>
           </Files>
         </Group>
