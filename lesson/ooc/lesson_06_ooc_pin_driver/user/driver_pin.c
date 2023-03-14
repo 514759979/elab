@@ -131,7 +131,7 @@ static void _set_mode(eio_pin_t * const me, uint8_t mode)
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
         GPIO_InitStruct.Pull = GPIO_PULLUP;
     }
-    else if (mode == PIN_MODE_INPUT_PULLUP)
+    else if (mode == PIN_MODE_INPUT_PULLDOWN)
     {
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
         GPIO_InitStruct.Pull = GPIO_PULLDOWN;
