@@ -6,6 +6,9 @@
 /* includes ----------------------------------------------------------------- */
 #include "stm32g0xx_hal.h"
 
+
+extern UART_HandleTypeDef huart4;
+
 /* public functions --------------------------------------------------------- */
 /**
   * @brief This function handles Non maskable interrupt.
@@ -25,6 +28,14 @@ void HardFault_Handler(void)
     while (1)
     {
     }
+}
+
+/**
+  * @brief This function handles USART3 and USART4 interrupts.
+  */
+void USART3_4_IRQHandler(void)
+{
+    HAL_UART_IRQHandler(&huart4);
 }
 
 /* ----------------------------- end of file -------------------------------- */

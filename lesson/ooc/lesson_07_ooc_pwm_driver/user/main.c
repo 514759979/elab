@@ -5,11 +5,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "bsp.h"
-#include "eio_pin.h"
-#include "elab_common.h"
-
-/* private variables -------------------------------------------------------- */
-static eio_pin_t pin_led;
+#include "elab_export.h"
 
 /* public functions --------------------------------------------------------- */
 /**
@@ -20,19 +16,7 @@ int main(void)
 {
     bsp_init();
 
-    eio_pin_init(&pin_led, "C.08", PIN_MODE_OUTPUT);
-    
-    while (1)
-    {
-        if ((elab_time_ms() % 1000) < 500)
-        {
-            eio_pin_set_status(&pin_led, true);
-        }
-        else
-        {
-            eio_pin_set_status(&pin_led, false);
-        }
-    }
+    elab_run();
 }
 
 /* ----------------------------- end of file -------------------------------- */
