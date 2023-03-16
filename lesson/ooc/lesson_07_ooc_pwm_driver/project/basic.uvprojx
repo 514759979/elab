@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32G070xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\eLab\common</IncludePath>
+              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\eLab\common;..\..\..\..\eLab\elib;..\..\..\..\eLab\3rd\Shell;..\..\..\..\eLab;..\..\..\..\eLab\port\Metal</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -389,19 +389,94 @@
               <FilePath>..\user\main.c</FilePath>
             </File>
             <File>
-              <FileName>eio_pin.c</FileName>
+              <FileName>bsp.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\eio_pin.c</FilePath>
+              <FilePath>..\user\bsp.c</FilePath>
             </File>
+            <File>
+              <FileName>shell_export.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\shell_export.c</FilePath>
+            </File>
+            <File>
+              <FileName>driver_pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver_pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>eio_pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\eio_pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\app_pwm.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>eLab.common</GroupName>
+          <Files>
             <File>
               <FileName>elab_time.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\user\elab_time.c</FilePath>
             </File>
             <File>
-              <FileName>bsp.c</FileName>
+              <FileName>elab_uart_debug.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\bsp.c</FilePath>
+              <FilePath>..\user\elab_uart_debug.c</FilePath>
+            </File>
+            <File>
+              <FileName>elib_queue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\elib\elib_queue.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_export.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\common\elab_export.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_common.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\common\elab_common.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>eLab.Midware.3rd.Shell</GroupName>
+          <Files>
+            <File>
+              <FileName>shell.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\3rd\Shell\shell.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell_cmd_list.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\3rd\Shell\shell_cmd_list.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell_companion.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\3rd\Shell\shell_companion.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell_ext.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\3rd\Shell\shell_ext.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>eLab.Test</GroupName>
+          <Files>
+            <File>
+              <FileName>test_pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\test_pwm.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -462,6 +537,46 @@
               <FileName>stm32g0xx_hal_gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_uart_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_uart_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_usart_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_usart_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_dma_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_dma_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_tim_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_tim_ex.c</FilePath>
             </File>
           </Files>
         </Group>
