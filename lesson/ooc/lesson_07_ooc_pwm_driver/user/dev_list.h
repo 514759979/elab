@@ -8,7 +8,8 @@
 
 #include "eio_pwm.h"
 
-extern eio_pwm_t *led;
+extern eio_pwm_t *led3;
+extern eio_pwm_t *led4;
 
 #endif /* __DEV_LIST_H__ */
 
