@@ -38,7 +38,7 @@ static int32_t test_func_pwm(int32_t argc, char *argv[])
         goto exit;
     }
     
-    eio_pwm_set_duty(led, duty_ratio);
+    eio_pwm_set_duty(led3, duty_ratio);
 
 exit:
     return ret;

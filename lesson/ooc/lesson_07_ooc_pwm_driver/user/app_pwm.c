@@ -17,7 +17,8 @@ extern "C" {
 #define LED_POLL_PERIOD_MS                  (5)
 
 /* private variables -------------------------------------------------------- */
-eio_pwm_t *led = NULL;
+eio_pwm_t *led3 = NULL;
+eio_pwm_t *led4 = NULL;
 
 /* includes ----------------------------------------------------------------- */
 /**
@@ -26,8 +27,11 @@ eio_pwm_t *led = NULL;
   */
 void led_init(void)
 {
-    led = eio_pwm_find("pwmled3");
-    elab_assert(led != NULL);
+    led3 = eio_pwm_find("pwmled3");
+    elab_assert(led3 != NULL);
+    
+    led4 = eio_pwm_find("pwmled4");
+    elab_assert(led4 != NULL);
 }
 INIT_COMPONENT_EXPORT(led_init);
 
@@ -48,7 +52,8 @@ void led_poll(void)
         duty_ratio = (1000 - ms) / 5;
     }
 
-    eio_pwm_set_duty(led, duty_ratio);
+    eio_pwm_set_duty(led3, duty_ratio);
+    eio_pwm_set_duty(led4, duty_ratio);
 }
 POLL_EXPORT(led_poll, LED_POLL_PERIOD_MS);
 
