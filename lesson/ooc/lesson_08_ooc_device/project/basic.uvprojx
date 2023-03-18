@@ -418,6 +418,21 @@
               <FileType>1</FileType>
               <FilePath>..\user\eio_object.c</FilePath>
             </File>
+            <File>
+              <FileName>app_led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\app_led.c</FilePath>
+            </File>
+            <File>
+              <FileName>driver_pin.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver_pin.c</FilePath>
+            </File>
+            <File>
+              <FileName>eio_pin.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\eio_pin.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

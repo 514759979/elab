@@ -17,7 +17,7 @@ extern "C" {
 #define LED_POLL_PERIOD_MS                  (100)
 
 /* private variables -------------------------------------------------------- */
-eio_pin_t *led = NULL;
+eio_object_t *led = NULL;
 
 /* includes ----------------------------------------------------------------- */
 /**
@@ -26,7 +26,7 @@ eio_pin_t *led = NULL;
   */
 void led_init(void)
 {
-    led = eio_pin_find("LED1");
+    led = eio_find("LED1");
     elab_assert(led != NULL);
 }
 INIT_COMPONENT_EXPORT(led_init);
