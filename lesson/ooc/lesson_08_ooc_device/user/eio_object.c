@@ -67,6 +67,8 @@ eio_object_t *eio_find(const char *name)
   */
 elab_err_t eio_open(eio_object_t * const me)
 {
+    elab_assert(me->ops->open != NULL);
+
     elab_err_t ret = ELAB_OK;
 
     if (me->attr.standlone)
@@ -95,6 +97,8 @@ exit:
   */
 elab_err_t eio_close(eio_object_t * const me)
 {
+    elab_assert(me->ops->close != NULL);
+
     elab_err_t ret = ELAB_OK;
 
     if (me->count_open > 0)

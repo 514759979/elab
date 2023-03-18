@@ -65,6 +65,7 @@ void eio_pwm_set_duty(eio_object_t * const me, uint8_t duty_ratio)
 {
     elab_assert(me != NULL);
     elab_assert(duty_ratio <= 100);
+    elab_assert(me->attr.type == EIO_OBJ_PWM);
     
     eio_pwm_t *pwm = (eio_pwm_t *)me;
     if (duty_ratio != pwm->duty_ratio)

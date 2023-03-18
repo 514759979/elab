@@ -21,9 +21,11 @@ enum eio_obect_type
     EIO_OBJ_PIN = 0,
     EIO_OBJ_PWM,
     EIO_OBJ_ADC,
+    EIO_OBJ_DAC,
     EIO_OBJ_UART,
     EIO_OBJ_SPI,
     EIO_OBJ_I2C,
+    EIO_OBJ_CAN,
 
     EIO_OBJ_MAX
 };
@@ -54,7 +56,7 @@ typedef struct eio_ops
 } eio_ops_t;
 
 /* public functions --------------------------------------------------------- */
-/* For low-level driver. */
+/* For io-level driver. */
 void eio_register(eio_object_t * const me, const char *name,
                     const eio_ops_t *ops,
                     eio_obj_attr_t *attr);
