@@ -67,7 +67,7 @@ void eio_pin_set_mode(eio_object_t * const me, uint8_t mode)
     eio_pin_t *pin = (eio_pin_t *)me;
     if (pin->mode != mode)
     {
-        pin->ops->set_mode(me, mode);
+        pin->ops->set_mode(pin, mode);
         pin->mode = mode;
     }
 }
@@ -82,7 +82,7 @@ bool eio_pin_get_status(eio_object_t * const me)
     elab_assert(me != NULL);
     eio_pin_t *pin = (eio_pin_t *)me;
 
-    pin->status = pin->ops->get_status(me);
+    pin->status = pin->ops->get_status(pin);
 
     return pin->status;
 }
@@ -103,7 +103,7 @@ void eio_pin_set_status(eio_object_t * const me, bool status)
     if (status != pin->status)
     {
         pin->ops->set_status(pin, status);
-        eio_pin_get_status(pin);
+        eio_pin_get_status(me);
         elab_assert(pin->status == status);
     }
 }
