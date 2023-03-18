@@ -35,7 +35,6 @@ static void _set_status(eio_pin_t * const me, bool status);
 
 /* private variables -------------------------------------------------------- */
 static eio_pin_t pin_c_08;
-static eio_pin_t pin_c_09;
 
 static const eio_pin_ops_t pin_driver_ops =
 {
