@@ -16,11 +16,9 @@ extern "C" {
 ELAB_TAG("EIO_PIN")
 
 /* private variables -------------------------------------------------------- */
-static elab_err_t _open(eio_object_t * const me);
-
 static eio_ops_t _obj_ops =
 {
-    .open = _open,
+    .open = NULL,
     .close = NULL,
     .read = NULL,
     .write = NULL,
@@ -109,15 +107,6 @@ void eio_pin_set_status(eio_object_t * const me, bool status)
         eio_pin_get_status(me);
         elab_assert(pin->status == status);
     }
-}
-
-static elab_err_t _open(eio_object_t * const me)
-{
-    elab_assert(me != NULL);
-
-    eio_pin_set_status(me, true);
-
-    return ELAB_OK;
 }
 
 #ifdef __cplusplus
