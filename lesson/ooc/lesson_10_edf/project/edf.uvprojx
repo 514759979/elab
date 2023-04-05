@@ -398,11 +398,6 @@
               <FileType>1</FileType>
               <FilePath>..\user\shell_export.c</FilePath>
             </File>
-            <File>
-              <FileName>test_led.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\board\GoldenBoard\test\test_led.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -412,6 +407,11 @@
               <FileName>drv_pin.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\board\GoldenBoard\driver\drv_pin.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\board\GoldenBoard\driver\drv_pwm.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -487,6 +487,26 @@
               <FileName>elab_pin.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\eLab\edf\normal\elab_pin.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\edf\normal\elab_pwm.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>eLab.test</GroupName>
+          <Files>
+            <File>
+              <FileName>test_led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\board\GoldenBoard\test\test_led.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\board\GoldenBoard\test\test_pwm.c</FilePath>
             </File>
           </Files>
         </Group>
