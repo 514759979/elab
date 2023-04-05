@@ -13,6 +13,7 @@ extern "C" {
 /* public define ------------------------------------------------------------ */
 #define ELAB_TAG(tag)
 #define elab_assert(ex)                     ((void)0)
+#define elab_assert_name(ex, name)          ((void)0)
 
 #ifdef __cplusplus
 }
