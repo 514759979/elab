@@ -82,7 +82,7 @@ static void eio_pin_dirver_init(void)
                             &eio_pin_driver_data[i]);
     }
 }
-INIT_IO_DRIVER_EXPORT(eio_pin_dirver_init);
+//INIT_IO_DRIVER_EXPORT(eio_pin_dirver_init);
 
 /* private functions -------------------------------------------------------- */
 /**
