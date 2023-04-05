@@ -42,10 +42,10 @@ void spi_init(void)
     hspi1.Init.Mode = SPI_MODE_MASTER;
     hspi1.Init.Direction = SPI_DIRECTION_2LINES;
     hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-    hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
-    hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
+    hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+    hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi1.Init.NSS = SPI_NSS_SOFT;
-    hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+    hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
     hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
     hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -53,7 +53,6 @@ void spi_init(void)
     hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
     hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
     HAL_SPI_Init(&hspi1);
-
 
     /**SPI1 GPIO Configuration
     PA5     ------> SPI1_SCK
@@ -113,11 +112,22 @@ enum
     TRANSFER_COMPLETE,
     TRANSFER_ERROR,
 };
-
+uint32_t count_callback = 0;
 static uint32_t wTransferState = TRANSFER_WAIT;
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
     wTransferState = TRANSFER_COMPLETE;
+}
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+    wTransferState = TRANSFER_COMPLETE;
+}
+
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+    wTransferState = TRANSFER_COMPLETE;
+    count_callback++;
 }
 
 void driver_spi_send(uint8_t *buffer, uint32_t size)
@@ -127,13 +137,27 @@ void driver_spi_send(uint8_t *buffer, uint32_t size)
     while (wTransferState == TRANSFER_WAIT);
 }
 
+void driver_spi_send_recv(uint8_t *buffer_tx, uint8_t *buffer_rx, uint32_t size)
+{
+    wTransferState = TRANSFER_WAIT;
+    HAL_SPI_TransmitReceive_DMA(&hspi1, buffer_tx, buffer_rx, size);
+    while (wTransferState == TRANSFER_WAIT);
+}
+
+void driver_spi_recv(uint8_t *buffer_rx, uint32_t size)
+{
+    wTransferState = TRANSFER_WAIT;
+    HAL_SPI_Receive_DMA(&hspi1, buffer_rx, size);
+    while (wTransferState == TRANSFER_WAIT);
+}
+
 uint8_t byte = 0x88;
 void driver_spi_init(void)
 {
     spi_init();
     driver_spi_send(&byte, 1);
 }
-INIT_IO_DRIVER_EXPORT(driver_spi_init);
+//INIT_IO_DRIVER_EXPORT(driver_spi_init);
 
 uint32_t HAL_GetTick(void)
 {
