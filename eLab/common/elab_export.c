@@ -81,6 +81,7 @@ void elab_run(void)
     /* Start polling function in metal eLab, or start the RTOS kernel in RTOS 
        eLab. */
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
+    osKernelInitialize();
     osThreadNew(_entry_start_poll, NULL, &thread_attr_start_poll);
     osKernelStart();
 #else
