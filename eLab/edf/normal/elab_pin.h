@@ -3,8 +3,8 @@
  * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
  */
 
-#ifndef EIO_PIN_H
-#define EIO_PIN_H
+#ifndef ELAB_PIN_H
+#define ELAB_PIN_H
 
 /* includes ----------------------------------------------------------------- */
 #include "elab_device.h"
@@ -26,39 +26,39 @@ enum pin_mode
 };
 
 /* public typedef ----------------------------------------------------------- */
-typedef struct eio_pin
+typedef struct elab_pin
 {
     elab_device_t super;
 
-    const struct eio_pin_ops *ops;
+    const struct elab_pin_ops *ops;
     uint8_t mode;
     bool status;
 } elab_pin_t;
 
-typedef struct eio_pin_ops
+typedef struct elab_pin_ops
 {
     void (* init)(elab_pin_t * const me);
     void (* set_mode)(elab_pin_t * const me, uint8_t mode);
     bool (* get_status)(elab_pin_t * const me);
     void (* set_status)(elab_pin_t * const me, bool status);
-} eio_pin_ops_t;
+} elab_pin_ops_t;
 
 /* public functions --------------------------------------------------------- */
 /* For low-level driver. */
-void eio_pin_register(elab_pin_t * const me,
+void elab_pin_register(elab_pin_t * const me,
                         const char *name,
-                        const eio_pin_ops_t *ops,
+                        const elab_pin_ops_t *ops,
                         void *user_data);
 
 /* For high-level code. */
-void eio_pin_set_mode(elab_device_t * const me, uint8_t mode);
-bool eio_pin_get_status(elab_device_t * const me);
-void eio_pin_set_status(elab_device_t * const me, bool status);
+void elab_pin_set_mode(elab_device_t * const me, uint8_t mode);
+bool elab_pin_get_status(elab_device_t * const me);
+void elab_pin_set_status(elab_device_t * const me, bool status);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif  /* ELAB_PIN_H */
 
 /* ----------------------------- end of file -------------------------------- */

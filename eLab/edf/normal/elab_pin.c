@@ -17,15 +17,15 @@ ELAB_TAG("EDF_PIN")
 
 /* public functions --------------------------------------------------------- */
 /**
-  * @brief  EIO pin initialization.
+  * @brief  eLab pin initialization.
   * @param  me      this pointer
   * @param  name    pin's name.
   * @param  mode    pin's mode.
   * @retval None
   */
-void eio_pin_register(elab_pin_t * const me,
+void elab_pin_register(elab_pin_t * const me,
                         const char *name,
-                        const eio_pin_ops_t *ops,
+                        const elab_pin_ops_t *ops,
                         void *user_data)
 {
     elab_assert(me != NULL);
@@ -48,11 +48,11 @@ void eio_pin_register(elab_pin_t * const me,
 }
 
 /**
-  * @brief  EIO pin's status getting function.
+  * @brief  eLab pin's status getting function.
   * @param  me      this pointer
   * @retval The pin's status.
   */
-void eio_pin_set_mode(elab_device_t * const me, uint8_t mode)
+void elab_pin_set_mode(elab_device_t * const me, uint8_t mode)
 {
     elab_assert(me != NULL);
 
@@ -66,11 +66,11 @@ void eio_pin_set_mode(elab_device_t * const me, uint8_t mode)
 
 
 /**
-  * @brief  EIO pin's status getting function.
+  * @brief  eLab pin's status getting function.
   * @param  me      this pointer
   * @retval The pin's status.
   */
-bool eio_pin_get_status(elab_device_t *const me)
+bool elab_pin_get_status(elab_device_t *const me)
 {
     elab_assert(me != NULL);
     elab_pin_t *pin = (elab_pin_t *)me;
@@ -81,12 +81,12 @@ bool eio_pin_get_status(elab_device_t *const me)
 }
 
 /**
-  * @brief  EIO pin's status turning on function.
+  * @brief  eLab pin's status turning on function.
   * @param  me      this pointer
   * @param  status  the input pin status.
   * @retval None.
   */
-void eio_pin_set_status(elab_device_t *const me, bool status)
+void elab_pin_set_status(elab_device_t *const me, bool status)
 {
     elab_assert(me != NULL);
 
@@ -96,7 +96,7 @@ void eio_pin_set_status(elab_device_t *const me, bool status)
     if (status != pin->status)
     {
         pin->ops->set_status(pin, status);
-        eio_pin_get_status(me);
+        elab_pin_get_status(me);
         elab_assert(pin->status == status);
     }
 }
