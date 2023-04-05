@@ -13,7 +13,6 @@ static eio_object_t *oled_rst = NULL;
 
 static void _write_byte(uint8_t byte, bool cmd);
 
-
 void oled_init(void)
 {
     oled_dc = eio_find("OLedDc");
@@ -60,7 +59,7 @@ void oled_init(void)
     oled_open();
 }
 
-INIT_DEV_EXPORT(oled_init);
+// INIT_DEV_EXPORT(oled_init);
 
 void oled_open(void)
 {
@@ -92,7 +91,7 @@ void oled_clear(void)
         _write_byte(0x10, true);      //设置显示位置—列高地址   
         for (uint8_t n = 0; n < 128; n ++)
         {
-            _write_byte(1, false);
+            _write_byte(0xff, false);
         }
     }
 }
@@ -100,7 +99,7 @@ void oled_clear(void)
 
 static void _write_byte(uint8_t byte, bool cmd)
 {
-    eio_pin_set_status(oled_dc, cmd ? true : false);
+    eio_pin_set_status(oled_dc, cmd ? false : true);
     eio_pin_set_status(oled_cs, false);
     driver_spi_send(&byte, 1);
     eio_pin_set_status(oled_dc, true);

@@ -9,7 +9,7 @@
 #include "stm32g0xx_hal.h"
 
 /* private config ----------------------------------------------------------- */
-#define ELAB_DEBUG_UART_ID                      (3)
+#define ELAB_DEBUG_UART_ID                      (4)
 
 #define ELAB_DEBUG_UART_BUFFER_TX               (256)
 #define ELAB_DEBUG_UART_BUFFER_RX               (16)
