@@ -92,13 +92,19 @@ typedef struct eos_tag
 
 eos_t eos;
 
+/* private variables -------------------------------------------------------- */
+static uint8_t memory_target[32];
+static uint8_t memory_source[32];
+uint32_t addr_target = 0;
+uint32_t addr_source = 0;
+uint32_t copy_size = 16;
+
 /* macro -------------------------------------------------------------------- */
 #define EOS_MS_NUM_30DAY                (2592000000U)
 #define EOS_MS_NUM_15DAY                (1296000000U)
 
 /* private function --------------------------------------------------------- */
 static void eos_sheduler(void);
-static void task_entry_idle(void *parameter);
 static void eos_critical_enter(void);
 static void eos_critical_exit(void);
 
@@ -112,6 +118,14 @@ static void eos_task_start(eos_task_t * const me,
 /* public function ---------------------------------------------------------- */
 void eos_init(void *stack, uint32_t size)
 {
+    for (uint32_t i = 0; i < 32; i ++)
+    {
+        memory_source[i] = (uint8_t)i;
+        memory_target[i] = 0;
+    }
+    addr_target = (uint32_t)&memory_target;
+    addr_source = (uint32_t)&memory_source;
+    
     eos_critical_enter();
 
     /* Set PendSV to be the lowest priority. */
@@ -138,13 +152,23 @@ void eos_init(void *stack, uint32_t size)
         eos.task_table = task_temp;
     }
     eos.task_count = 0;
+    uint32_t task_id_high_prio = 0;
+    uint8_t priority = 0;
     for (uint32_t i = 0; ; i ++)
     {
         if (eos.task_table[i].magic_head == EXPORT_ID_TASK &&
             eos.task_table[i].magic_tail == EXPORT_ID_TASK)
         {
+            if (eos.task_table[i].priority > priority)
+            {
+                task_id_high_prio = i;
+                priority = eos.task_table[i].priority;
+            }
+            
             // TODO Check the tasks' data is not repeated.
             eos.task_count ++;
+            
+
         }
         else
         {
@@ -168,6 +192,7 @@ void eos_init(void *stack, uint32_t size)
         eos.timer_table = timer_temp;
     }
     eos.timer_count = 0;
+    
     for (uint32_t i = 0; ; i ++)
     {
         if (eos.timer_table[i].magic_head == EXPORT_ID_TIMER &&
@@ -192,9 +217,8 @@ void eos_init(void *stack, uint32_t size)
     eos_current = NULL;
     eos_next = (eos_task_t *)eos.task_table[eos.task_count - 1].data;
 
-    /* 给所有的任务分配RAM，并启动任务。 */
     /* Set the stack RAM for every task. */
-    uint32_t remaining = eos.stack_size / 4;
+    uint32_t remaining = eos.stack_size / 4 - 16 * (eos.task_count - 1);
     void *stack_current = eos.stack;
     eos_task_t *task_data = NULL;
     eos_task_rom_t *task_info = NULL;
@@ -203,7 +227,8 @@ void eos_init(void *stack, uint32_t size)
         task_data = (eos_task_t *)eos.task_table[i].data;
         task_info = (eos_task_rom_t *)&eos.task_table[i];
         task_data->stack = (void *)((uint32_t)stack_current + eos.stack_size - remaining);
-        task_data->stack_size = i < (eos.task_count - 1) ? 512 : remaining;
+        task_data->stack_size = i == task_id_high_prio ? 16 : remaining;
+        task_data->task_id = i;
         remaining -= task_data->stack_size;
 
         eos_task_start(task_data,
@@ -317,7 +342,6 @@ exit:
     eos_sheduler();
 }
 
-
 static bool eos_check_timer(bool task_idle)
 {
     bool ret = false;
@@ -428,8 +452,6 @@ void eos_task_yield(void)
     eos_critical_enter();
     
     /* Find the next task in the same priority with the current task. */
-    bool next_same_prio_found = false;
-    uint16_t next_task_same_prio_id = UINT16_MAX;
     uint8_t priority_current = eos.task_table[eos_current->task_id].priority;
     for (uint32_t i = 0; i < eos.task_count; i ++)
     {
@@ -440,8 +462,6 @@ void eos_task_yield(void)
         {
             task_data->state = EosTaskState_Ready;
             eos_current->state = EosTaskState_Suspended;
-            next_same_prio_found = true;
-            next_task_same_prio_id = i;
             break;
         }
     }
@@ -454,7 +474,6 @@ eos_task_t *eos_get_task(void)
     return eos_current;
 }
 
-uint32_t register_ld = 0;
 static void eos_sheduler(void)
 {
     eos_task_t *task_data = NULL;
@@ -471,8 +490,37 @@ static void eos_sheduler(void)
             eos_next = task_data;
         }
     }
+    
     if (eos_next != eos_current)
     {
+        if (eos_current != NULL)
+        {
+            /* Calculate the data related with shared-stack. */
+            if (eos_next->task_id < eos_current->task_id)
+            {
+                copy_size = 0;
+                addr_target = (uint32_t)eos_current->sp;
+                addr_source = (uint32_t)eos_current->stack;
+                for (uint32_t i = eos_next->task_id; i < eos_current->task_id; i ++)
+                {
+                    task_data = (eos_task_t *)eos.task_table[i].data;
+                    copy_size += task_data->stack_size;
+                }
+            }
+            else
+            {
+                copy_size = eos_current->stack_size + (uint32_t)eos_current->sp - (uint32_t)eos_current->stack;
+                addr_target = (uint32_t)eos_current->stack;
+                addr_source = (uint32_t)eos_current->sp;
+                for (uint32_t i = eos_current->task_id + 1; i < eos_next->task_id; i ++)
+                {
+                    task_data = (eos_task_t *)eos.task_table[i].data;
+                    copy_size += task_data->stack_size;
+                }
+            }
+        }
+        
+        /* Trig task switching. */
         *(uint32_t volatile *)0xE000ED04 = (1U << 28);
     }
     eos_critical_exit();
@@ -609,73 +657,6 @@ void func_test(void)
 {
     count ++;
 }
-
-///* Interrupt service function ----------------------------------------------- */
-//#if (defined __CC_ARM)
-//__asm void PendSV_Handler(void)
-//{
-//    IMPORT        eos_current           /* extern variable */
-//    IMPORT        eos_next              /* extern variable */
-//    IMPORT        func_test              /* extern variable */
-
-//    CPSID         i                     /* disable interrupts (set PRIMASK) */
-
-//    LDR           r1,=eos_current       /* if (eos_current != 0)
-//    { */
-//    LDR           r1,[r1,#0x00]
-//#if (__TARGET_ARCH_THUMB == 3)          /* Cortex-M0/M0+/M1 (v6-M, v6S-M)? */
-//    CMP           r1, #0
-//    BEQ           PendSV_restore
-//    NOP
-//    PUSH          {r4-r7}              /*     push r4-r11 into stack */
-//    MOV           r4, r8
-//    MOV           r5, r9
-//    MOV           r6, r10
-//    MOV           r7, r11
-//    PUSH          {r4-r7}
-//#else
-//    CBZ           r1,PendSV_restore
-//    PUSH          {r4-r11}              /*     push r4-r11 into stack */
-//#endif
-//  
-//    LDR           r1,=eos_current       /*     eos_current->sp = sp; */
-//    LDR           r1,[r1,#0x00]
-//#if (__TARGET_ARCH_THUMB == 3)          /* Cortex-M0/M0+/M1 (v6-M, v6S-M)? */
-//    MOV           r2, SP
-//    STR           r2,[r1,#0x00]         /* } */
-//#else
-//    STR           SP,[r1,#0x00]
-//#endif
-
-//    
-//PendSV_restore
-//    BL              func_test
-//    LDR           r1,=eos_next          /* sp = eos_next->sp; */
-//    LDR           r1,[r1,#0x00]
-//#if (__TARGET_ARCH_THUMB == 3)          /* Cortex-M0/M0+/M1 (v6-M, v6S-M)? */
-//    LDR           r0,[r1,#0x00]
-//    MOV           SP, r0
-//#else
-//    LDR           sp,[r1,#0x00]
-//#endif
-//    LDR           r1,=eos_next          /* eos_current = eos_next; */
-//    LDR           r1,[r1,#0x00]
-//    LDR           r2,=eos_current
-//    STR           r1,[r2,#0x00]
-//#if (__TARGET_ARCH_THUMB == 3)          /* Cortex-M0/M0+/M1 (v6-M, v6S-M)? */
-//    POP           {r4-r7}
-//    MOV           r8, r4
-//    MOV           r9, r5
-//    MOV           r10,r6
-//    MOV           r11,r7
-//    POP           {r4-r7}
-//#else
-//    POP           {r4-r11}              /* pop registers r4-r11 */
-//#endif
-//    CPSIE         i                     /* enable interrupts (clear PRIMASK) */
-//    BX            lr                    /* return to the next task */
-//}
-//#endif
 
 /*******************************************************************************
 * NOTE:

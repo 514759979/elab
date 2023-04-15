@@ -235,7 +235,7 @@ static void _entry_start_poll(void *para)
 }
 
 #if (ELAB_RTOS_BASIC_OS_EN != 0)
-task_export(poll, _entry_start_poll, 1, NULL);
+//task_export(poll, _entry_start_poll, 1, NULL);
 #endif
 
 /**
