@@ -11,13 +11,8 @@
 
 /* public config ------------------------------------------------------------ */
 #define ELOG_COLOR_ENABLE                           (1)
-#define ELOG_OS_ENABLE                              (1)
 
 /* public defines ----------------------------------------------------------- */
-#ifndef TAG
-#define TAG                                         "eLog"
-#endif
-
 /* debug level */
 enum elog_level_enum
 {
@@ -30,28 +25,18 @@ enum elog_level_enum
 };
 
 /* public functions --------------------------------------------------------- */
+#define ELOG_TAG(_tag)                  static const char *TAG = _tag
+
 void elog_level_set(uint8_t level);
 
 #ifndef ELOG_DISABLE
-void _printf(const char *tag, uint8_t level, const char * s_format, ...);
+void _elog_printf(const char *tag, uint8_t level, const char * s_format, ...);
 
 /* Enable error level debug message */
-#define elog_error(...)     _printf(TAG, ELOG_LEVEL_ERROR, __VA_ARGS__)
-#define elog_warn(...)      _printf(TAG, ELOG_LEVEL_WARNING, __VA_ARGS__)
-
-/* Enable info level debug message */
-#if ELOG_INFO_ENABLE
-#define elog_info(...)      _printf(TAG, ELOG_LEVEL_INFO, __VA_ARGS__)
-#else
-#define elog_info(...)
-#endif
-
-/* Enable debug level debug message */
-#if ELOG_DEBUG_ENABLE
-#define elog_debug(...)     _printf(TAG, ELOG_LEVEL_DEBUG, __VA_ARGS__)
-#else
-#define elog_debug(...)
-#endif
+#define elog_error(...)     _elog_printf(TAG, ELOG_LEVEL_ERROR, __VA_ARGS__)
+#define elog_warn(...)      _elog_printf(TAG, ELOG_LEVEL_WARNING, __VA_ARGS__)
+#define elog_info(...)      _elog_printf(TAG, ELOG_LEVEL_INFO, __VA_ARGS__)
+#define elog_debug(...)     _elog_printf(TAG, ELOG_LEVEL_DEBUG, __VA_ARGS__)
 
 #else
 
