@@ -103,6 +103,7 @@ static int32_t _null_write(elab_device_t *me,
     return size;
 }
 
+#if (ELAB_DEV_PALTFORM == 1)
 /**
  * The null function for the device poll interface.
  */
@@ -110,5 +111,6 @@ static void _null_poll(elab_device_t *me)
 {
     (void)me;
 }
+#endif
 
 /********** (C) COPYRIGHT Philips Healthcare Suzhou ***** END OF FILE *********/
