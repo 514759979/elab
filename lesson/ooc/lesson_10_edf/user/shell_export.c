@@ -4,9 +4,13 @@
  */
 
 /* include ------------------------------------------------------------------ */
+#include <stdio.h>
 #include "elab_common.h"
 #include "elab_export.h"
 #include "shell.h"
+#include "elab_log.h"
+
+ELOG_TAG("ShellExport");
 
 /* private config ----------------------------------------------------------- */
 #define SHELL_POLL_PERIOD_MS                (10)
@@ -28,6 +32,8 @@ static void shell_uart_init(void)
     shell_uart.read = (int16_t (*)(char *, uint16_t))elab_debug_uart_receive;
     shell_uart.write = (int16_t (*)(char *, uint16_t))elab_debug_uart_send;
     shellInit(&shell_uart, shell_uart_buffer, SHELL_BUFFER_SIZE);
+    
+    elog_debug("Shell uart init end.\r\n");
 }
 INIT_BSP_EXPORT(shell_uart_init);
 

@@ -1,29 +1,32 @@
-
-
 #include "oled.h"
-#include "eio_object.h"
-#include "eio_pin.h"
-#include "driver_spi.h"
+#include "elab_spi.h"
+#include "elab_pin.h"
+#include "cmsis_os.h"
+#include "elab_assert.h"
 #include "elab_export.h"
-#include "stm32g0xx_hal.h"
-
-static eio_object_t *oled_dc = NULL;
-static eio_object_t *oled_cs = NULL;
-static eio_object_t *oled_rst = NULL;
 
 static void _write_byte(uint8_t byte, bool cmd);
 
+static elab_device_t *spi = NULL;
+static elab_device_t *oled_dc = NULL;
+static elab_device_t *oled_rst = NULL;
+
 void oled_init(void)
 {
-    oled_dc = eio_find("OLedDc");
-    oled_cs = eio_find("OLedCs");
-    oled_rst = eio_find("OLedRst");
-    
-    HAL_Delay(100);
-    
-    eio_pin_set_status(oled_rst, false);
-    HAL_Delay(10);
-    eio_pin_set_status(oled_rst, true);
+    spi = elab_device_find("SPI_OLED");
+    elab_assert(spi != NULL);
+
+    oled_dc = elab_device_find("OLED_DC");
+    elab_assert(spi != NULL);
+
+    oled_rst = elab_device_find("OLED_RST");
+    elab_assert(spi != NULL);
+
+    osDelay(100);
+
+    elab_pin_set_status(oled_rst, false);
+    osDelay(10);
+    elab_pin_set_status(oled_rst, true);
 
     _write_byte(0xAE, true);
     _write_byte(0x00, true);    //---set low column address
@@ -55,11 +58,9 @@ void oled_init(void)
     _write_byte(0xAF, true);    // --turn on oled panel
     
     oled_clear();
-    oled_set_pos(4, 4, true);
-    oled_open();
 }
 
-// INIT_DEV_EXPORT(oled_init);
+INIT_APP_EXPORT(oled_init);
 
 void oled_open(void)
 {
@@ -75,21 +76,13 @@ void oled_close(void)
     _write_byte(0XAE, true);    // DISPLAY OFF
 }
 
-void oled_set_pos(uint8_t x, uint8_t y, uint8_t byte)
-{
-    _write_byte((0xb0 + y), true);
-    _write_byte(((x & 0xf0) >> 4) | 0x10, true);
-    _write_byte((x & 0x0f) | 0x01, true);
-    _write_byte(byte, false);
-}
-
 void oled_clear(void)
 {
     for (uint8_t i = 0; i < 8; i ++)
     {  
-        _write_byte(0xb0 + i, true);    //设置页地址（0~7）
-        _write_byte(0x00, true);      //设置显示位置—列低地址
-        _write_byte(0x10, true);      //设置显示位置—列高地址   
+        _write_byte(0xb0 + i, true);        // 设置页地址（0~7）
+        _write_byte(0x00, true);            // 设置显示位置—列低地址
+        _write_byte(0x10, true);            // 设置显示位置—列高地址
         for (uint8_t n = 0; n < 128; n ++)
         {
             _write_byte(0, false);
@@ -97,11 +90,17 @@ void oled_clear(void)
     }
 }
 
+void oled_set_value(uint8_t x, uint8_t y, uint8_t value)
+{
+    _write_byte((0xb0 + y), true);
+    _write_byte(((x & 0xf0) >> 4) | 0x10, true);
+    _write_byte((x & 0x0f) | 0x01, true);
+    _write_byte(value, false);
+}
+
 static void _write_byte(uint8_t byte, bool cmd)
 {
-    eio_pin_set_status(oled_dc, cmd ? false : true);
-    eio_pin_set_status(oled_cs, false);
-    driver_spi_send(&byte, 1);
-    eio_pin_set_status(oled_dc, true);
-    eio_pin_set_status(oled_cs, true);
+    elab_pin_set_status(oled_dc, cmd ? false : true);
+    elab_spi_send(spi, &byte, 1);
+    elab_pin_set_status(oled_dc, true);
 }

@@ -398,6 +398,11 @@
               <FileType>1</FileType>
               <FilePath>..\user\shell_export.c</FilePath>
             </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\oled.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -412,6 +417,16 @@
               <FileName>drv_pwm.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\board\GoldenBoard\driver\drv_pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\board\GoldenBoard\driver\drv_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\board\GoldenBoard\driver\drv_spi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -442,6 +457,11 @@
               <FileName>elab_port.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\eLab\port\FreeRTOS\elab_port.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_log.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\common\elab_log.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -493,6 +513,31 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\eLab\edf\normal\elab_pwm.c</FilePath>
             </File>
+            <File>
+              <FileName>elab_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\edf\normal\elab_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\edf\normal\elab_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\edf\normal\elab_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\edf\normal\elab_rtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_watchdog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\edf\normal\elab_watchdog.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -507,6 +552,21 @@
               <FileName>test_pwm.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\board\GoldenBoard\test\test_pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_elog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\test\test_elog.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\board\GoldenBoard\test\test_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\test_oled.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -662,6 +722,26 @@
               <FileName>stm32g0xx_hal_tim_ex.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_tim_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_adc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_adc_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_spi_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_spi_ex.c</FilePath>
             </File>
           </Files>
         </Group>
