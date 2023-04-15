@@ -7,6 +7,7 @@
 /* includes ----------------------------------------------------------------- */
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 #include "shell.h"
 #include "elab_pin.h"
 
@@ -50,6 +51,8 @@ static int32_t test_func_led(int32_t argc, char *argv[])
         ret = -3;
         goto exit;
     }
+    
+    printf("test_func_led %s duty %s.\r\n", argv[1], argv[2]);
 
 exit:
     return ret;
