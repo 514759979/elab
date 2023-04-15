@@ -104,7 +104,6 @@ static void _init(eio_pwm_t * const me)
 {
     eio_pwm_data_t *data = me->super.attr.user_data;
 
-    
     _timer_pwm_init(data);
     _gpio_pwm_init(data);
 
