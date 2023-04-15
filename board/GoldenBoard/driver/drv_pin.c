@@ -36,6 +36,8 @@ static void _set_status(elab_pin_t * const me, bool status);
 /* private variables -------------------------------------------------------- */
 static elab_pin_t pin_c_08;
 static elab_pin_t pin_c_09;
+static elab_pin_t pin_a_03;
+static elab_pin_t pin_a_04;
 
 static const elab_pin_ops_t pin_driver_ops =
 {
@@ -47,12 +49,14 @@ static const elab_pin_ops_t pin_driver_ops =
 
 static eio_pin_data_t eio_pin_driver_data[] =
 {
-    { &pin_c_08, "LED1", GPIOC, GPIO_PIN_8, },
-    { &pin_c_09, "LED2", GPIOC, GPIO_PIN_9, },
+    // { &pin_c_08, "LED1", GPIOC, GPIO_PIN_8, },
+    // { &pin_c_09, "LED2", GPIOC, GPIO_PIN_9, },
+    { &pin_a_03, "OLED_DC", GPIOA, GPIO_PIN_3, },
+    { &pin_a_04, "OLED_RST", GPIOA, GPIO_PIN_4, },
 };
 
 /* public functions --------------------------------------------------------- */
-static void eio_pin_dirver_init(void)
+static void _pin_dirver_init(void)
 {
     for (uint32_t i = 0;
             i < sizeof(eio_pin_driver_data) / sizeof(eio_pin_data_t); i ++)
@@ -82,7 +86,7 @@ static void eio_pin_dirver_init(void)
                             &eio_pin_driver_data[i]);
     }
 }
-//INIT_IO_DRIVER_EXPORT(eio_pin_dirver_init);
+INIT_IO_DRIVER_EXPORT(_pin_dirver_init);
 
 /* private functions -------------------------------------------------------- */
 /**
