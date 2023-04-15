@@ -35,6 +35,22 @@ typedef enum elab_err
     ELAB_ERR_NOT_ENOUGH                 = -11,
 } elab_err_t;
 
+
+typedef struct elab_date
+{
+    uint32_t year               : 16;
+    uint32_t month              : 8;
+    uint32_t day                : 8;
+} elab_date_t;
+
+typedef struct elab_time
+{
+    uint8_t hour;
+    uint8_t minute;
+    uint16_t second             : 6;
+    uint16_t ms                 : 10;
+} elab_time_t;
+
 #if (ELAB_QPC_EN != 0)
 
 typedef struct elab_event

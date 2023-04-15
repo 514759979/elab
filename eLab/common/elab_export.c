@@ -12,6 +12,9 @@
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
 #include "cmsis_os.h"
 #endif
+#if (ELAB_RTOS_BASIC_OS_EN != 0)
+#include "basic_os.h"
+#endif
 
 #if (ELAB_QPC_EN != 0)
 Q_DEFINE_THIS_FILE
@@ -21,7 +24,7 @@ Q_DEFINE_THIS_FILE
 /* private function prototype ----------------------------------------------- */
 static void module_null_init(void);
 static void _export_func_execute(uint8_t level);
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
+#if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
 static void _entry_start_poll(void *para);
 #endif
 
@@ -84,6 +87,10 @@ void elab_run(void)
     osKernelInitialize();
     osThreadNew(_entry_start_poll, NULL, &thread_attr_start_poll);
     osKernelStart();
+#elif (ELAB_RTOS_BASIC_OS_EN != 0)
+    static uint32_t stack[1024];
+    eos_init(stack, 4096);
+    eos_run();
 #else
     /* Initialize all module in eLab. */
     for (uint8_t level = EXPORT_BSP; level <= EXPORT_APP; level ++)
@@ -196,9 +203,6 @@ static void _export_func_execute(uint8_t level)
     }
 }
 
-void ao_led_init(void);
-
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
 /**
   * @brief  eLab startup and poll function.
   * @retval None
@@ -210,7 +214,9 @@ static void _entry_start_poll(void *para)
     {
         _export_func_execute(level);
     }
+#if (ELAB_RTOS_CMSIS_OS_EN != 0)
     _export_func_execute(EXPORT_THREAD);
+#endif
 #if (ELAB_QPC_EN != 0)
     _export_func_execute(EXPORT_HSM);
 #endif
@@ -219,9 +225,17 @@ static void _entry_start_poll(void *para)
     while (1)
     {
         _export_func_execute(EXPORT_MAX);
+#if (ELAB_RTOS_CMSIS_OS_EN != 0)
         osDelay(10);
+#endif
+#if (ELAB_RTOS_BASIC_OS_EN != 0)
+        eos_delay_ms(10);
+#endif
     }
 }
+
+#if (ELAB_RTOS_BASIC_OS_EN != 0)
+task_export(poll, _entry_start_poll, 1, NULL);
 #endif
 
 /**

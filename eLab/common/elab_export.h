@@ -75,7 +75,7 @@ void elab_run(void);
   * @retval None.
   */
 #define INIT_EXPORT(_func, _level)                                             \
-ELAB_USED const elab_export_t init_##_func ELAB_SECTION("elab_export") =   \
+    ELAB_USED const elab_export_t init_##_func ELAB_SECTION("elab_export") =   \
     {                                                                          \
         .name = "init",                                                        \
         .func = (void *)&_func,                                                \
