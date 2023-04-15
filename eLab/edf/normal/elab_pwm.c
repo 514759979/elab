@@ -49,6 +49,7 @@ void elab_pwm_register(elab_pwm_t * const me,
     };
 
     elab_device_register(&me->super, &attr);
+    me->super.user_data = user_data;
     me->super.ops = &_ops;
 
     me->ops = ops;
