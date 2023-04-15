@@ -17,3 +17,5 @@
 08 C版本的设备基类。
 
 09 eLab平台基于CMSIS OS V2的版本，完成。
+
+10 printf功能和elog功能，完成。
