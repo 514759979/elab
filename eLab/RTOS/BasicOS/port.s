@@ -33,12 +33,14 @@ PendSV_Handler   PROC
     STR         r2,[r1,#0x00]       ; } */
 
 PendSV_restore
+    LDR         r4, =copy_size
+    LDR         r2, [R4]
+    CMP         r2, #0
+    BEQ         NEXT_TASK
     LDR         r4, =addr_source
     LDR         r0, [R4]
     LDR         r4, =addr_target
     LDR         r1, [R4]
-    LDR         r4, =copy_size
-    LDR         r2, [R4]
     CMP         r0, r1              ; Check the target addr is at front of the source.
     BNE         LoopStart           ; If yes, copy from front to back.
     ADD         r0, r2              ; If not, copy from back to front.
@@ -59,6 +61,7 @@ Loop2
     CMP         r3, r2              ; Check the end of copying.
     BNE         Loop2               ; If not end, continue
 
+NEXT_TASK
     LDR         r1,=eos_next        ; sp = eos_next->sp; */
     LDR         r1,[r1,#0x00]
     LDR         r0,[r1,#0x00]

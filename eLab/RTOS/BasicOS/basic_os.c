@@ -51,6 +51,22 @@ extern "C" {
 #else
 #define EOS_ASSERT(test_)               ((void)0)
 #endif
+    
+static void _func_basic_os(void *parameter);
+    
+    
+#define EOS_STACK_MIN                   (64)
+
+task_export(poll, _func_basic_os, 1, NULL);
+
+eos_task_t *_data_poll = (eos_task_t *)&task_poll_data;
+void _func_basic_os(void *parameter)
+{
+    while (1)
+    {
+        eos_delay_ms(1000);
+    }
+}
 
 
 static void _entry_idle(void *parameter);
@@ -58,6 +74,8 @@ static void _cb_timer_tick(void *para);
 
 task_export(task_idle, _entry_idle, 1, NULL);
 timer_export(basic_timer, _cb_timer_tick, 1, false, NULL);
+    
+eos_task_t *_data_idle = (eos_task_t *)&task_task_idle_data;
 
 /* eos task ----------------------------------------------------------------- */
 eos_task_t *volatile eos_current;
@@ -90,14 +108,15 @@ typedef struct eos_tag
     uint32_t cpu_usage_count;
 } eos_t;
 
-eos_t eos;
-
-/* private variables -------------------------------------------------------- */
-static uint8_t memory_target[32];
-static uint8_t memory_source[32];
 uint32_t addr_target = 0;
 uint32_t addr_source = 0;
-uint32_t copy_size = 16;
+uint32_t copy_size = 0;
+uint32_t move_size = 0;
+
+uint32_t addr_stack = 0;
+uint32_t size_stack = 0;
+
+eos_t eos;
 
 /* macro -------------------------------------------------------------------- */
 #define EOS_MS_NUM_30DAY                (2592000000U)
@@ -118,13 +137,8 @@ static void eos_task_start(eos_task_t * const me,
 /* public function ---------------------------------------------------------- */
 void eos_init(void *stack, uint32_t size)
 {
-    for (uint32_t i = 0; i < 32; i ++)
-    {
-        memory_source[i] = (uint8_t)i;
-        memory_target[i] = 0;
-    }
-    addr_target = (uint32_t)&memory_target;
-    addr_source = (uint32_t)&memory_source;
+    addr_stack = (uint32_t)stack;
+    size_stack = size;
     
     eos_critical_enter();
 
@@ -135,6 +149,7 @@ void eos_init(void *stack, uint32_t size)
     uint32_t mod = (uint32_t)stack % 4;
     eos.stack = mod == 0 ? stack : (void *)((uint32_t)stack - mod);
     eos.stack_size = mod == 0 ? size : (size - mod);
+    eos.stack_size /= 4;
 
     /* Get the task table and its counting number. */
     eos.task_table = (eos_task_rom_t *)&task_task_idle;
@@ -167,8 +182,6 @@ void eos_init(void *stack, uint32_t size)
             
             // TODO Check the tasks' data is not repeated.
             eos.task_count ++;
-            
-
         }
         else
         {
@@ -218,18 +231,18 @@ void eos_init(void *stack, uint32_t size)
     eos_next = (eos_task_t *)eos.task_table[eos.task_count - 1].data;
 
     /* Set the stack RAM for every task. */
-    uint32_t remaining = eos.stack_size / 4 - 16 * (eos.task_count - 1);
+    uint32_t remaining = eos.stack_size - EOS_STACK_MIN * (eos.task_count - 1);
     void *stack_current = eos.stack;
     eos_task_t *task_data = NULL;
     eos_task_rom_t *task_info = NULL;
     for (uint32_t i = 0; i < eos.task_count; i ++)
     {
         task_data = (eos_task_t *)eos.task_table[i].data;
-        task_info = (eos_task_rom_t *)&eos.task_table[i];
-        task_data->stack = (void *)((uint32_t)stack_current + eos.stack_size - remaining);
-        task_data->stack_size = i == task_id_high_prio ? 16 : remaining;
         task_data->task_id = i;
-        remaining -= task_data->stack_size;
+        task_info = (eos_task_rom_t *)&eos.task_table[i];
+        task_data->stack_size = i == task_id_high_prio ? remaining : EOS_STACK_MIN;
+        task_data->stack = stack_current;
+        stack_current = (void *)((uint32_t)stack_current + eos.stack_size * 4);
 
         eos_task_start(task_data,
                         task_info->func,
@@ -255,7 +268,7 @@ static void eos_task_start(eos_task_t * const me,
     /* round down the stack top to the 8-byte boundary
      * NOTE: ARM Cortex-M stack grows down from hi -> low memory
      */
-    uint32_t *sp = (uint32_t *)((((uint32_t)stack_addr + stack_size) >> 3U) << 3U);
+    uint32_t *sp = (uint32_t *)((((uint32_t)stack_addr + stack_size * 4) >> 3U) << 3U);
 
     *(-- sp) = (uint32_t)(1 << 24);            /* xPSR, Set Bit24(Thumb Mode) to 1. */
     *(-- sp) = (uint32_t)func;                 /* the entry function (PC) */
@@ -496,28 +509,47 @@ static void eos_sheduler(void)
         if (eos_current != NULL)
         {
             /* Calculate the data related with shared-stack. */
+            
+            /* The current task move to front. */
             if (eos_next->task_id < eos_current->task_id)
             {
                 copy_size = 0;
-                addr_target = (uint32_t)eos_current->sp;
-                addr_source = (uint32_t)eos_current->stack;
+                move_size = (uint32_t)eos_current->sp - (uint32_t)eos_current->stack;
                 for (uint32_t i = eos_next->task_id; i < eos_current->task_id; i ++)
                 {
                     task_data = (eos_task_t *)eos.task_table[i].data;
-                    copy_size += task_data->stack_size;
+                    copy_size += task_data->stack_size * 4;
                 }
+                addr_target = (uint32_t)eos_current->sp - copy_size;
+                addr_source = (uint32_t)eos_next->stack;
+                
+                eos_current->stack_size -= move_size / 4;
+                eos_current->stack = (void *)((uint32_t)eos_current->stack - move_size);
+                eos_next->stack_size += move_size / 4;
             }
+            /* The current task move to back. */
             else
             {
-                copy_size = eos_current->stack_size + (uint32_t)eos_current->sp - (uint32_t)eos_current->stack;
+                move_size = (uint32_t)eos_current->sp - (uint32_t)eos_current->stack;
+                copy_size = eos_current->stack_size * 4 - move_size;
                 addr_target = (uint32_t)eos_current->stack;
                 addr_source = (uint32_t)eos_current->sp;
                 for (uint32_t i = eos_current->task_id + 1; i < eos_next->task_id; i ++)
                 {
                     task_data = (eos_task_t *)eos.task_table[i].data;
-                    copy_size += task_data->stack_size;
+                    copy_size += task_data->stack_size * 4;
                 }
+                
+                eos_current->stack_size -= move_size / 4;
+                eos_next->stack = (void *)((uint32_t)eos_next->stack - move_size);
+                eos_next->stack_size += move_size / 4;
             }
+        }
+        else
+        {
+            addr_target = 0;
+            addr_source = 0;
+            copy_size = 0;
         }
         
         /* Trig task switching. */
@@ -632,7 +664,7 @@ void eos_timer_reset(uint16_t timer_id)
     eos_critical_exit();
 }
 
-static void _entry_idle(void *parameter)
+void _entry_idle(void *parameter)
 {
     (void)parameter;
     
@@ -657,82 +689,6 @@ void func_test(void)
 {
     count ++;
 }
-
-/*******************************************************************************
-* NOTE:
-* The inline GNU assembler does not accept mnemonics MOVS, LSRS and ADDS,
-* but for Cortex-M0/M0+/M1 the mnemonics MOV, LSR and ADD always set the
-* condition flags in the PSR.
-*******************************************************************************/
-#if ((defined __GNUC__) || (defined __ICCARM__))
-#if (defined __GNUC__)
-__attribute__ ((naked))
-#endif
-#if ((defined __ICCARM__))
-__stackless
-#endif
-void PendSV_Handler(void)
-{
-    __asm volatile
-    (
-    "CPSID         i                \n" /* disable interrupts (set PRIMASK) */
-    "LDR           r1,=eos_current  \n"  /* if (eos_current != 0)
-    { */
-    "LDR           r1,[r1,#0x00]    \n"
-
-#if (__TARGET_ARCH_THUMB == 3)          /* Cortex-M0/M0+/M1 (v6-M, v6S-M)? */
-    "CMP           r1, #0           \n"
-    "BEQ           restore          \n"
-    "NOP                            \n"
-    "PUSH          {r4-r7}          \n" /*      push r4-r11 into stack */
-    "MOV           r4, r8           \n"
-    "MOV           r5, r9           \n"
-    "MOV           r6, r10          \n"
-    "MOV           r7, r11          \n"
-    "PUSH          {r4-r7}          \n"
-#else
-    "CBZ           r1,restore       \n"
-    "PUSH          {r4-r11}         \n"
-#endif
-
-    "LDR           r1,=eos_current  \n"  /*     eos_current->sp = sp; */
-    "LDR           r1,[r1,#0x00]    \n"
-
-#if (__TARGET_ARCH_THUMB == 3)          /* Cortex-M0/M0+/M1 (v6-M, v6S-M)? */
-    "MOV           r2, SP           \n"
-    "STR           r2,[r1,#0x00]    \n"  /* } */
-#else
-    "STR           sp,[r1,#0x00]    \n"  /* } */
-#endif
-
-    "restore: LDR r1,=eos_next      \n"  /* sp = eos_next->sp; */
-    "LDR           r1,[r1,#0x00]    \n"
-#if (__TARGET_ARCH_THUMB == 3)          /* Cortex-M0/M0+/M1 (v6-M, v6S-M)? */
-    "LDR           r0,[r1,#0x00]    \n"
-    "MOV           SP, r0           \n"
-#else
-    "LDR           sp,[r1,#0x00]    \n"
-#endif
-
-    "LDR           r1,=eos_next     \n"  /* eos_current = eos_next; */
-    "LDR           r1,[r1,#0x00]    \n"
-    "LDR           r2,=eos_current  \n"
-    "STR           r1,[r2,#0x00]    \n"
-#if (__TARGET_ARCH_THUMB == 3)          /* Cortex-M0/M0+/M1 (v6-M, v6S-M)? */
-    "POP           {r4-r7}          \n"
-    "MOV           r8, r4           \n"
-    "MOV           r9, r5           \n"
-    "MOV           r10,r6           \n"
-    "MOV           r11,r7           \n"
-    "POP           {r4-r7}          \n"
-#else
-    "POP           {r4-r11}         \n"  /* pop registers r4-r11 */
-#endif
-    "CPSIE         i                \n"  /* enable interrupts (clear PRIMASK) */
-    "BX            lr               \n"   /* return to the next task */
-    );
-}
-#endif
 
 /* private function --------------------------------------------------------- */
 
