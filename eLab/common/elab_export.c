@@ -6,6 +6,7 @@
 /* include ------------------------------------------------------------------ */
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "elab_export.h"
 #include "elab_common.h"
 
@@ -19,6 +20,10 @@
 #if (ELAB_QPC_EN != 0)
 Q_DEFINE_THIS_FILE
 #include "qpc.h"
+#endif
+
+#if (ELAB_RTOS_BASIC_OS_EN != 0)
+#define ELAB_GLOBAL_STACK_SIZE                      (4096)
 #endif
 
 /* private function prototype ----------------------------------------------- */
@@ -83,14 +88,14 @@ void elab_run(void)
 {
     /* Start polling function in metal eLab, or start the RTOS kernel in RTOS 
        eLab. */
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
+#if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
     osKernelInitialize();
+#endif
+#if (ELAB_RTOS_CMSIS_OS_EN != 0)
     osThreadNew(_entry_start_poll, NULL, &thread_attr_start_poll);
+#endif
+#if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
     osKernelStart();
-#elif (ELAB_RTOS_BASIC_OS_EN != 0)
-    static uint32_t stack[1024];
-    eos_init(stack, 4096);
-    eos_run();
 #else
     /* Initialize all module in eLab. */
     for (uint8_t level = EXPORT_BSP; level <= EXPORT_APP; level ++)
@@ -225,11 +230,8 @@ static void _entry_start_poll(void *para)
     while (1)
     {
         _export_func_execute(EXPORT_MAX);
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
+#if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
         osDelay(10);
-#endif
-#if (ELAB_RTOS_BASIC_OS_EN != 0)
-        eos_delay_ms(10);
 #endif
     }
 }

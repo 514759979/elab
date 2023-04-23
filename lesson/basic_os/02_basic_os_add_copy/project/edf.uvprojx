@@ -473,6 +473,11 @@
               <FileType>1</FileType>
               <FilePath>..\user\test_basic_os.c</FilePath>
             </File>
+            <File>
+              <FileName>test_bos_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\test_bos_timer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -489,9 +494,9 @@
               <FilePath>..\user\cb_basic_os.c</FilePath>
             </File>
             <File>
-              <FileName>port.s</FileName>
+              <FileName>port_mdk.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\..\..\eLab\RTOS\BasicOS\port.s</FilePath>
+              <FilePath>..\..\..\..\eLab\RTOS\BasicOS\port_mdk.s</FilePath>
             </File>
           </Files>
         </Group>

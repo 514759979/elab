@@ -1,5 +1,5 @@
 /*
- * EventOS Basic
+ * BasicOS V0.2
  * Copyright (c) 2021, EventOS Team, <event-os@outlook.com>
  *
  * SPDX-License-Identifier: MIT
@@ -28,6 +28,7 @@
  * Change Logs:
  * Date           Author        Notes
  * 2021-11-23     GouGe         V0.1.0
+ * 2023-04-23     GouGe         V0.2.0
  */
 
 /* include ------------------------------------------------------------------ */
@@ -39,149 +40,135 @@ extern "C" {
 #endif
 
 /* assert ------------------------------------------------------------------- */
-#if (EOS_USE_ASSERT != 0)
-#define EOS_ASSERT(test_)                                                      \
-    do {                                                                       \
+#if (BOS_USE_ASSERT != 0)
+#define BOS_ASSERT(test_)                                                      \
+    do                                                                         \
+    {                                                                          \
         if (!(test_))                                                          \
         {                                                                      \
-            eos_critical_enter();                                              \
-            eos_port_assert(__LINE__);                                         \
+            bos_critical_enter();                                              \
+            bos_port_assert(__LINE__);                                         \
         }                                                                      \
     } while (0)
 #else
-#define EOS_ASSERT(test_)               ((void)0)
+#define BOS_ASSERT(test_)               ((void)0)
 #endif
     
-static void _func_basic_os(void *parameter);
-    
-    
-#define EOS_STACK_MIN                   (64)
+#define BOS_STACK_MIN                   (16)
 
-task_export(poll, _func_basic_os, 1, NULL);
-
-eos_task_t *_data_poll = (eos_task_t *)&task_poll_data;
-void _func_basic_os(void *parameter)
-{
-    while (1)
-    {
-        eos_delay_ms(1000);
-    }
-}
-
+uint32_t get_sp_value(void);
 
 static void _entry_idle(void *parameter);
 static void _cb_timer_tick(void *para);
 
-task_export(task_idle, _entry_idle, 1, NULL);
-timer_export(basic_timer, _cb_timer_tick, 1, false, NULL);
+bos_task_export(task_timer, _entry_idle, 1, NULL);
+bos_timer_export(basic_timer, _cb_timer_tick, false, NULL);
     
-eos_task_t *_data_idle = (eos_task_t *)&task_task_idle_data;
+bos_task_t *_data_idle = (bos_task_t *)&ram_task_timer_data;
 
-/* eos task ----------------------------------------------------------------- */
-eos_task_t *volatile eos_current;
-eos_task_t *volatile eos_next;
+/* bos task ----------------------------------------------------------------- */
+bos_task_t *volatile bos_current;
+bos_task_t *volatile bos_next;
 
 enum
 {
-    EosTaskState_Ready = 0,
-    EosTaskState_Running,
-    EosTaskState_Blocked,
-    EosTaskState_Suspended,
-    EosTaskState_Stop,
+    BosTaskState_Ready = 0,
+    BosTaskState_Running,
+    BosTaskState_Blocked,
+    BosTaskState_Suspended,
+    BosTaskState_Stop,
 
-    EosTaskState_Max,
+    BosTaskState_Max,
 };
 
-typedef struct eos_tag
+typedef struct basic_os_tag
 {
-    eos_task_rom_t *task_table;
-    eos_timer_rom_t *timer_table;
+    bos_task_rom_t *task_table;
+    bos_timer_rom_t *timer_table;
     uint16_t task_count;
     uint16_t timer_count;
     void *stack;
     uint16_t stack_size;
+    bool timer_cb_runing;
 
     uint32_t time_idle_backup;
     uint32_t time;
     uint32_t time_out_min;
     uint32_t time_offset;
     uint32_t cpu_usage_count;
-} eos_t;
+} basic_os_t;
 
 uint32_t addr_target = 0;
 uint32_t addr_source = 0;
 uint32_t copy_size = 0;
 uint32_t move_size = 0;
 
-uint32_t addr_stack = 0;
-uint32_t size_stack = 0;
-
-eos_t eos;
+basic_os_t bos;
+static uint8_t bos_stack[BOS_MAX_STACKS_SIZE];
 
 /* macro -------------------------------------------------------------------- */
-#define EOS_MS_NUM_30DAY                (2592000000U)
-#define EOS_MS_NUM_15DAY                (1296000000U)
+#define BOS_MS_NUM_30DAY                (2592000000U)
+#define BOS_MS_NUM_15DAY                (1296000000U)
 
 /* private function --------------------------------------------------------- */
-static void eos_sheduler(void);
-static void eos_critical_enter(void);
-static void eos_critical_exit(void);
-
-static void eos_task_start(eos_task_t * const me,
-                            eos_func_t func,
-                            uint8_t priority,
-                            void *stack_addr,
-                            uint32_t stack_size,
-                            void *parameter);
+static void bos_sheduler(void);
+static bool bos_check_timer(bool task_idle);
+void bos_critical_enter(void);
+void bos_critical_exit(void);
 
 /* public function ---------------------------------------------------------- */
-void eos_init(void *stack, uint32_t size)
+/**
+  * @brief  BasicOS stack and tasks initialization.
+  * @param  stack   The global stack memory address.
+  * @param  size    The global stack memory size.
+  * @retval None
+  */
+void basic_os_init(void)
 {
-    addr_stack = (uint32_t)stack;
-    size_stack = size;
+    bos_critical_enter();
     
-    eos_critical_enter();
-
     /* Set PendSV to be the lowest priority. */
     *(uint32_t volatile *)0xE000ED20 |= (0xFFU << 16U);
 
     /* Set the stack and its size. */
-    uint32_t mod = (uint32_t)stack % 4;
-    eos.stack = mod == 0 ? stack : (void *)((uint32_t)stack - mod);
-    eos.stack_size = mod == 0 ? size : (size - mod);
-    eos.stack_size /= 4;
+    uint32_t size = BOS_MAX_STACKS_SIZE;
+    uint32_t mod = (uint32_t)bos_stack % 8;
+    bos.stack = mod == 0 ? bos_stack : (void *)((uint32_t)bos_stack + 8 - mod);
+    size = (((uint32_t)bos.stack + size - mod) / 8) * 8 - (uint32_t)bos.stack;
+    bos.stack_size = size / 4;
 
     /* Get the task table and its counting number. */
-    eos.task_table = (eos_task_rom_t *)&task_task_idle;
-    eos_task_rom_t *task_temp = NULL;
+    bos.task_table = (bos_task_rom_t *)&rom_task_task_timer;
+    bos_task_rom_t *task_temp = NULL;
     while (1)
     {
         task_temp =
-            (eos_task_rom_t *)((uint32_t)eos.task_table - sizeof(eos_task_rom_t));
+            (bos_task_rom_t *)((uint32_t)bos.task_table - sizeof(bos_task_rom_t));
         if (task_temp->magic_head != EXPORT_ID_TASK ||
             task_temp->magic_tail != EXPORT_ID_TASK)
         {
             break;
         }
         
-        eos.task_table = task_temp;
+        bos.task_table = task_temp;
     }
-    eos.task_count = 0;
+    bos.task_count = 0;
+    bos.timer_cb_runing = false;
     uint32_t task_id_high_prio = 0;
     uint8_t priority = 0;
     for (uint32_t i = 0; ; i ++)
     {
-        if (eos.task_table[i].magic_head == EXPORT_ID_TASK &&
-            eos.task_table[i].magic_tail == EXPORT_ID_TASK)
+        if (bos.task_table[i].magic_head == EXPORT_ID_TASK &&
+            bos.task_table[i].magic_tail == EXPORT_ID_TASK)
         {
-            if (eos.task_table[i].priority > priority)
+            if (bos.task_table[i].priority > priority)
             {
                 task_id_high_prio = i;
-                priority = eos.task_table[i].priority;
+                priority = bos.task_table[i].priority;
             }
             
             // TODO Check the tasks' data is not repeated.
-            eos.task_count ++;
+            bos.task_count ++;
         }
         else
         {
@@ -190,31 +177,29 @@ void eos_init(void *stack, uint32_t size)
     }
 
     /* Get the timer table and its counting number. */
-    eos.timer_table = (eos_timer_rom_t *)&tim_basic_timer;
-    eos_timer_rom_t *timer_temp = NULL;
+    bos.timer_table = (bos_timer_rom_t *)&tim_basic_timer;
+    bos_timer_rom_t *timer_temp = NULL;
     while (1)
     {
         timer_temp =
-            (eos_timer_rom_t *)((uint32_t)eos.timer_table - sizeof(eos_timer_rom_t));
+            (bos_timer_rom_t *)((uint32_t)bos.timer_table - sizeof(bos_timer_rom_t));
         if (timer_temp->magic_head != EXPORT_ID_TIMER ||
             timer_temp->magic_tail != EXPORT_ID_TIMER)
         {
             break;
         }
         
-        eos.timer_table = timer_temp;
+        bos.timer_table = timer_temp;
     }
-    eos.timer_count = 0;
+    bos.timer_count = 0;
     
     for (uint32_t i = 0; ; i ++)
     {
-        if (eos.timer_table[i].magic_head == EXPORT_ID_TIMER &&
-            eos.timer_table[i].magic_tail == EXPORT_ID_TIMER)
+        if (bos.timer_table[i].magic_head == EXPORT_ID_TIMER &&
+            bos.timer_table[i].magic_tail == EXPORT_ID_TIMER)
         {
-            EOS_ASSERT(eos.timer_table[i].period <= EOS_MS_NUM_30DAY);
-
             // TODO Check all timers' data is not repeated.
-            eos.timer_count ++;
+            bos.timer_count ++;
         }
         else
         {
@@ -222,359 +207,241 @@ void eos_init(void *stack, uint32_t size)
         }
     }
 
-    eos.time = 0;
-    eos.time_offset = 0;
-    eos.time_out_min = UINT32_MAX;
+    bos.time = 0;
+    bos.time_offset = 0;
+    bos.time_out_min = UINT32_MAX;
     
     /* Get the highest priority task. */
-    eos_current = NULL;
-    eos_next = (eos_task_t *)eos.task_table[eos.task_count - 1].data;
+    bos_current = NULL;
+    bos_next = (bos_task_t *)bos.task_table[task_id_high_prio].data;
 
     /* Set the stack RAM for every task. */
-    uint32_t remaining = eos.stack_size - EOS_STACK_MIN * (eos.task_count - 1);
-    void *stack_current = eos.stack;
-    eos_task_t *task_data = NULL;
-    eos_task_rom_t *task_info = NULL;
-    for (uint32_t i = 0; i < eos.task_count; i ++)
+    uint32_t remaining = bos.stack_size - BOS_STACK_MIN * (bos.task_count - 1);
+    void *stack_current = bos.stack;
+    bos_task_t *task_data = NULL;
+    bos_task_rom_t *task_info = NULL;
+    for (uint32_t i = 0; i < bos.task_count; i ++)
     {
-        task_data = (eos_task_t *)eos.task_table[i].data;
+        task_data = (bos_task_t *)bos.task_table[i].data;
         task_data->task_id = i;
-        task_info = (eos_task_rom_t *)&eos.task_table[i];
-        task_data->stack_size = i == task_id_high_prio ? remaining : EOS_STACK_MIN;
+        task_info = (bos_task_rom_t *)&bos.task_table[i];
+        task_data->stack_size = i == task_id_high_prio ? remaining : BOS_STACK_MIN;
         task_data->stack = stack_current;
-        stack_current = (void *)((uint32_t)stack_current + eos.stack_size * 4);
+        stack_current = (void *)((uint32_t)stack_current + task_data->stack_size * 4);
 
-        eos_task_start(task_data,
-                        task_info->func,
-                        task_info->priority,
-                        task_data->stack,
-                        task_data->stack_size,
-                        task_info->parameter);
+        BOS_ASSERT(task_info->priority <= BOS_MAX_PRIORITY && task_info->priority != 0);
+        
+        /* round down the stack top to the 8-byte boundary
+         * NOTE: ARM Cortex-M stack grows down from hi -> low memory
+         */
+        uint32_t *sp = (uint32_t *)((uint32_t)task_data->stack + task_data->stack_size * 4);
+
+        *(-- sp) = (uint32_t)(1 << 24);            /* xPSR, Set Bit24(Thumb Mode) to 1. */
+        *(-- sp) = (uint32_t)task_info->func;      /* the entry function (PC) */
+        *(-- sp) = (uint32_t)task_info->func;      /* R14(LR) */
+        *(-- sp) = (uint32_t)0x12121212u;          /* R12 */
+        *(-- sp) = (uint32_t)0x03030303u;          /* R3 */
+        *(-- sp) = (uint32_t)0x02020202u;          /* r2 */
+        *(-- sp) = (uint32_t)0x01010101u;          /* R1 */
+        *(-- sp) = (uint32_t)task_info->parameter; /* r0 */
+
+        /* additionally, fake registers r4-r11 */
+        *(-- sp) = (uint32_t)0x11111111u;          /* r11 */
+        *(-- sp) = (uint32_t)0x10101010u;          /* r10 */
+        *(-- sp) = (uint32_t)0x09090909u;          /* r9 */
+        *(-- sp) = (uint32_t)0x08080808u;          /* r8 */
+        *(-- sp) = (uint32_t)0x07070707u;          /* r7 */
+        *(-- sp) = (uint32_t)0x06060606u;          /* r6 */
+        *(-- sp) = (uint32_t)0x05050505u;          /* r5 */
+        *(-- sp) = (uint32_t)0x04040404u;          /* r4 */
+
+        /* save the top of the stack in the task's attibute */
+        task_data->sp = sp;
+
+        task_data->state = BosTaskState_Ready;
+        task_data->state_bkp = BosTaskState_Ready;
     }
 
-    eos_critical_exit();
+    bos_critical_exit();
 }
 
-static void eos_task_start(eos_task_t * const me,
-                            eos_func_t func,
-                            uint8_t priority,
-                            void *stack_addr,
-                            uint32_t stack_size,
-                            void *parameter)
+/**
+  * @brief  Start to run BasicOS kernel.
+  * @retval None
+  */
+void basic_os_run(void)
 {
-    EOS_ASSERT(priority <= EOS_MAX_PRIORITY && priority != 0);
-//    EOS_ASSERT(eos_current != &task_task_idle_data);
+    /* Run the starting hook function. */
+    bos_hook_start();
     
-    /* round down the stack top to the 8-byte boundary
-     * NOTE: ARM Cortex-M stack grows down from hi -> low memory
-     */
-    uint32_t *sp = (uint32_t *)((((uint32_t)stack_addr + stack_size * 4) >> 3U) << 3U);
-
-    *(-- sp) = (uint32_t)(1 << 24);            /* xPSR, Set Bit24(Thumb Mode) to 1. */
-    *(-- sp) = (uint32_t)func;                 /* the entry function (PC) */
-    *(-- sp) = (uint32_t)func;                 /* R14(LR) */
-    *(-- sp) = (uint32_t)0x12121212u;          /* R12 */
-    *(-- sp) = (uint32_t)0x03030303u;          /* R3 */
-    *(-- sp) = (uint32_t)0x02020202u;          /* r2 */
-    *(-- sp) = (uint32_t)0x01010101u;          /* R1 */
-    *(-- sp) = (uint32_t)parameter;            /* r0 */
-    /* additionally, fake registers r4-r11 */
-    *(-- sp) = (uint32_t)0x11111111u;          /* r11 */
-    *(-- sp) = (uint32_t)0x10101010u;          /* r10 */
-    *(-- sp) = (uint32_t)0x09090909u;          /* r9 */
-    *(-- sp) = (uint32_t)0x08080808u;          /* r8 */
-    *(-- sp) = (uint32_t)0x07070707u;          /* r7 */
-    *(-- sp) = (uint32_t)0x06060606u;          /* r6 */
-    *(-- sp) = (uint32_t)0x05050505u;          /* r5 */
-    *(-- sp) = (uint32_t)0x04040404u;          /* r4 */
-
-    /* save the top of the stack in the task's attibute */
-    me->sp = sp;
-
-    eos_critical_enter();
-    me->state = EosTaskState_Ready;
-    me->state_bkp = EosTaskState_Ready;
-    eos_critical_exit();
-}
-
-void eos_run(void)
-{
-    eos_hook_start();
+    /* Run the BasicOS sheduler to start all the tasks. */
+    bos_sheduler();
     
-    eos_sheduler();
-    
-    while (1)
-    {
-    }
+    /*  It's impossible for MCU to get here. If the assert is reached, something 
+        wrong occurs. */
+    BOS_ASSERT(false);
 }
 
-void eos_tick(void)
+/**
+  * @brief  Get the BasicOS time in mili-second.
+  * @retval BasicOS time in mili-second
+  */
+uint32_t bos_time(void)
 {
-    eos_critical_enter();
-    eos.time += EOS_TICK_MS;
-    eos_critical_exit();
+    bos_critical_enter();
+    uint32_t time_offset = bos.time_offset;
+    bos_critical_exit();
+
+    return (time_offset + bos.time);
 }
 
-void eos_delay_ms(uint32_t time_ms)
+/**
+  * @brief  The BasicOS tick function. Please put it into one timer ISR and set
+  *         the BOS_TICK_MS macro to the correct value.
+  * @retval None.
+  */
+void bos_tick(void)
 {
+    bos_critical_enter();
+    bos.time += BOS_TICK_MS;
+    bos_critical_exit();
+}
+
+/**
+  * @brief  The BasicOS delay function in the current thread.
+  * @param  time_ms     Delayed time in mili-seconds.
+  * @note   It can NOT be used in the Idle hook function.
+  * @retval None.
+  */
+void bos_delay_ms(uint32_t time_ms)
+{
+    BOS_ASSERT(!bos.timer_cb_runing);
+
     if (time_ms == 0)
     {
-        eos_task_yield();
+        bos_task_yield();
         return;
     }
     
-    EOS_ASSERT(time_ms <= EOS_MS_NUM_30DAY);
+    BOS_ASSERT(time_ms <= BOS_MS_NUM_30DAY);
 
-    /* never call eos_delay_ms in the idle task. */
-    EOS_ASSERT(eos_current != &task_task_idle_data);
-
-    eos_critical_enter();
-    eos_current->timeout = eos.time + time_ms;
-    eos_current->state = EosTaskState_Blocked;
-    eos_critical_exit();
+    /* Never call bos_delay_ms in the idle task. */
+    BOS_ASSERT(bos_current != &ram_task_timer_data);
     
-    eos_sheduler();
-}
-
-void eos_task_exit(void)
-{
-    eos_critical_enter();
-    /* Find the task in the task table. */
-    for (int32_t i = (eos.task_count - 1); i >= 0; i --)
+    bos_task_t *task_data = NULL;
+    uint32_t count = 0;
+    bos_critical_enter();
+    bos_current->timeout = bos.time + time_ms;
+    bos_current->state = BosTaskState_Blocked;
+    for (uint32_t i = bos_current->task_id;;)
     {
-        eos_task_t *task_data = (eos_task_t *)eos.task_table[i].data;
-        if (task_data == eos_current)
+        task_data = (bos_task_t *)bos.task_table[i].data;
+        if (task_data != bos_current &&
+            bos.task_table[i].priority == bos.task_table[bos_current->task_id].priority &&
+            (task_data->state == BosTaskState_Suspended ||
+            task_data->state == BosTaskState_Ready))
         {
-            eos_current->state = EosTaskState_Stop;
-            goto exit;
-        }
-    }
-    EOS_ASSERT(false);
-
-exit:
-    eos_sheduler();
-}
-
-static bool eos_check_timer(bool task_idle)
-{
-    bool ret = false;
-    eos_timer_t *timer_data = NULL;
-    eos_task_t *task_data = NULL;
-    
-    if (eos.time_idle_backup != eos.time)
-    {
-        eos.time_idle_backup = eos.time;
-        
-        eos_critical_enter();
-
-        /* check all the task are timeout or not. */
-        for (uint32_t i = 0; i < eos.task_count; i ++)
-        {
-            task_data = (eos_task_t *)eos.task_table[i].data;
-            if (task_data->state == EosTaskState_Blocked)
-            {
-                if (eos.time >= task_data->timeout)
-                {
-                    task_data->state = EosTaskState_Ready;
-                    if (task_idle)
-                    {
-                        eos_critical_exit();
-                        eos_sheduler();
-                        eos_critical_enter();
-                    }
-                }
-            }
-        }
-        
-        if (eos.time >= EOS_MS_NUM_15DAY)
-        {
-            /* Adjust all tasks' timing. */
-            for (uint32_t i = 0; i < eos.task_count; i ++)
-            {
-                task_data = (eos_task_t *)eos.task_table[i].data;
-                if (task_data->state == EosTaskState_Blocked)
-                {
-                    task_data->timeout -= eos.time;
-                }
-            }
-
-            /* Adjust all timers' timing. */
-            for (uint32_t i = 0; i < eos.timer_count; i ++)
-            {
-                timer_data = (eos_timer_t *)eos.timer_table[i].data;
-                if (timer_data->running != 0)
-                {
-                    timer_data->time -= eos.time;
-                }
-            }
-
-            eos.time_out_min -= eos.time;
-            eos.time_offset += eos.time;
-            eos.time = 0;
+            task_data->state = BosTaskState_Ready;
+            break;
         }
 
-        /* if any timer is timeout */
-        if (eos.time >= eos.time_out_min)
+        count ++;
+        i = (i + 1) % bos.task_count;
+        if (count >= bos.task_count)
         {
-            /* Find the time-out timers and excute the handlers. */
-            for (uint32_t i = 0; i < eos.timer_count; i ++)
-            {
-                timer_data = (eos_timer_t *)eos.timer_table[i].data;
-                if (timer_data->running != 0 && eos.time >= timer_data->time)
-                {
-                    eos_critical_exit();
-                    eos.timer_table[i].func(eos.timer_table[i].parameter);
-                    eos_critical_enter();
-                    if (eos.timer_table[i].oneshoot == 0)
-                    {
-                        timer_data->time += eos.timer_table[i].period;
-                    }
-                    else
-                    {
-                        timer_data->running = 0;
-                    }
-                }
-            }
-
-            /* Recalculate the minimum timeout value. */
-            uint32_t time_out_min = UINT32_MAX;
-            for (uint32_t i = 0; i < eos.timer_count; i ++)
-            {
-                timer_data = (eos_timer_t *)eos.timer_table[i].data;
-                if (timer_data->running != 0 && time_out_min >= timer_data->time)
-                {
-                    time_out_min = timer_data->time;
-                }
-            }
-            eos.time_out_min = time_out_min;
-            ret = true;
-        }
-
-        eos_critical_exit();
-    }
-    
-    return ret;
-}
-
-void eos_task_yield(void)
-{
-    eos_task_t *task_data = NULL;
-
-    eos_check_timer(false);
-    
-    eos_critical_enter();
-    
-    /* Find the next task in the same priority with the current task. */
-    uint8_t priority_current = eos.task_table[eos_current->task_id].priority;
-    for (uint32_t i = 0; i < eos.task_count; i ++)
-    {
-        task_data = (eos_task_t *)eos.task_table[i].data;
-        if (task_data != eos_current &&
-            eos.task_table[i].priority == priority_current &&
-            task_data->state == EosTaskState_Suspended)
-        {
-            task_data->state = EosTaskState_Ready;
-            eos_current->state = EosTaskState_Suspended;
             break;
         }
     }
-    eos_critical_exit();
-    eos_sheduler();
-}
-
-eos_task_t *eos_get_task(void)
-{
-    return eos_current;
-}
-
-static void eos_sheduler(void)
-{
-    eos_task_t *task_data = NULL;
-
-    eos_critical_enter();
-    eos_next = &task_task_idle_data;
-    uint8_t priority = 0;
-    for (int32_t i = (eos.task_count - 1); i >= 0; i --)
-    {
-        task_data = (eos_task_t *)eos.task_table[i].data;
-        if (task_data->state == EosTaskState_Ready &&
-            eos.task_table[i].priority > priority)
-        {
-            eos_next = task_data;
-        }
-    }
+    bos_critical_exit();
     
-    if (eos_next != eos_current)
-    {
-        if (eos_current != NULL)
-        {
-            /* Calculate the data related with shared-stack. */
-            
-            /* The current task move to front. */
-            if (eos_next->task_id < eos_current->task_id)
-            {
-                copy_size = 0;
-                move_size = (uint32_t)eos_current->sp - (uint32_t)eos_current->stack;
-                for (uint32_t i = eos_next->task_id; i < eos_current->task_id; i ++)
-                {
-                    task_data = (eos_task_t *)eos.task_table[i].data;
-                    copy_size += task_data->stack_size * 4;
-                }
-                addr_target = (uint32_t)eos_current->sp - copy_size;
-                addr_source = (uint32_t)eos_next->stack;
-                
-                eos_current->stack_size -= move_size / 4;
-                eos_current->stack = (void *)((uint32_t)eos_current->stack - move_size);
-                eos_next->stack_size += move_size / 4;
-            }
-            /* The current task move to back. */
-            else
-            {
-                move_size = (uint32_t)eos_current->sp - (uint32_t)eos_current->stack;
-                copy_size = eos_current->stack_size * 4 - move_size;
-                addr_target = (uint32_t)eos_current->stack;
-                addr_source = (uint32_t)eos_current->sp;
-                for (uint32_t i = eos_current->task_id + 1; i < eos_next->task_id; i ++)
-                {
-                    task_data = (eos_task_t *)eos.task_table[i].data;
-                    copy_size += task_data->stack_size * 4;
-                }
-                
-                eos_current->stack_size -= move_size / 4;
-                eos_next->stack = (void *)((uint32_t)eos_next->stack - move_size);
-                eos_next->stack_size += move_size / 4;
-            }
-        }
-        else
-        {
-            addr_target = 0;
-            addr_source = 0;
-            copy_size = 0;
-        }
-        
-        /* Trig task switching. */
-        *(uint32_t volatile *)0xE000ED04 = (1U << 28);
-    }
-    eos_critical_exit();
+    bos_sheduler();
 }
 
-uint32_t eos_time(void)
+/**
+  * @brief  The BasicOS terminate the current thread.
+  * @retval None.
+  */
+void bos_task_exit(void)
 {
-    eos_critical_enter();
-    uint32_t time_offset = eos.time_offset;
-    eos_critical_exit();
+    bos_critical_enter();
+    /* Find the task in the task table. */
+    for (int32_t i = (bos.task_count - 1); i >= 0; i --)
+    {
+        bos_task_t *task_data = (bos_task_t *)bos.task_table[i].data;
+        if (task_data == bos_current)
+        {
+            bos_current->state = BosTaskState_Stop;
+            bos_critical_exit();
+            goto exit;
+        }
+    }
+    BOS_ASSERT(false);
 
-    return (time_offset + eos.time);
+exit:
+    bos_sheduler();
+}
+
+
+/**
+  * @brief  The function is used to request a context switch to another task. 
+  *         However, if there are no other tasks at a higher or equal priority 
+  *         to the task that calls bos_task_yield() then the RTOS scheduler will
+  *         simply select the task that called bos_task_yield() to run again.
+  * @retval None.
+  */
+void bos_task_yield(void)
+{
+    bos_task_t *task_data = NULL;
+
+    bos_check_timer(false);
+    
+    bos_critical_enter();
+    
+    /* Find the next task in the same priority with the current task. */
+    uint8_t priority_current = bos.task_table[bos_current->task_id].priority;
+    bool found = false;
+    uint32_t count = 0;
+    for (uint32_t i = bos_current->task_id;;)
+    {
+        task_data = (bos_task_t *)bos.task_table[i].data;
+        if (task_data != bos_current &&
+            bos.task_table[i].priority == priority_current &&
+            (task_data->state == BosTaskState_Suspended ||
+            task_data->state == BosTaskState_Ready))
+        {
+            task_data->state = BosTaskState_Ready;
+            bos_current->state = BosTaskState_Suspended;
+            found = true;
+            break;
+        }
+
+        count ++;
+        i = (i + 1) % bos.task_count;
+        if (count >= bos.task_count)
+        {
+            break;
+        }
+    }
+    bos_critical_exit();
+
+    if (found)
+    {
+        bos_sheduler();
+    }
 }
 
 /* Soft timer --------------------------------------------------------------- */
-int16_t eos_timer_get_id(const char *name)
+/**
+  * @brief  Get the BasicOS timer's ID from its name.
+  * @retval Timer ID when positive or error id when negetive.
+  */
+int16_t bos_timer_get_id(const char *name)
 {
     /* Find the timer in the task table. */
-    int16_t ret = EOS_NOT_FOUND;
-    for (uint32_t i = 0; i < eos.timer_count; i ++)
+    int16_t ret = BOS_NOT_FOUND;
+    for (uint32_t i = 0; i < bos.timer_count; i ++)
     {
-        if (strcmp(eos.timer_table[i].name, name) == 0)
+        if (strcmp(bos.timer_table[i].name, name) == 0)
         {
             ret = i;
             break;
@@ -584,84 +451,85 @@ int16_t eos_timer_get_id(const char *name)
     return ret;
 }
 
-void eos_timer_start(uint16_t timer_id)
+/**
+  * @brief  Start one soft timer exported by bos_timer_export.
+  * @param  timer_id    The timer ID.
+  * @param  period      The soft-timer's period in mili-second.
+  * @retval None.
+  */
+void bos_timer_start(uint16_t timer_id, uint32_t period)
 {
-    EOS_ASSERT(timer_id < eos.timer_count);
+    BOS_ASSERT(timer_id < bos.timer_count);
+    BOS_ASSERT(period <= BOS_MS_NUM_30DAY);
 
-    eos_critical_enter();
+    bos_critical_enter();
 
-    eos_timer_t *timer = (eos_timer_t *)eos.timer_table[timer_id].data;
+    bos_timer_t *timer = (bos_timer_t *)bos.timer_table[timer_id].data;
     timer->running = 1;
+    timer->period = period;
 
-    eos_critical_exit();
+    timer->timeout = bos.time + period;
+    if (timer->timeout < bos.time_out_min)
+    {
+        bos.time_out_min = timer->timeout;
+    }
+    
+
+    bos_critical_exit();
 }
 
-void eos_timer_pause(uint16_t timer_id)
+/**
+  * @brief  Stop the soft timer exported by bos_timer_export.
+  * @param  timer_id    The timer ID.
+  * @retval None.
+  */
+void bos_timer_stop(uint16_t timer_id)
 {
-    EOS_ASSERT(timer_id < eos.timer_count);
-    eos_timer_t *timer = NULL;
+    BOS_ASSERT(timer_id < bos.timer_count);
+    bos_timer_t *timer = NULL;
     uint32_t time_out_min = UINT32_MAX;
 
-    eos_critical_enter();
+    bos_critical_enter();
 
-    for (uint32_t i = 0; i < eos.timer_count; i ++)
+    for (uint32_t i = 0; i < bos.timer_count; i ++)
     {
-        timer = (eos_timer_t *)eos.timer_table[timer_id].data;
+        timer = (bos_timer_t *)bos.timer_table[timer_id].data;
         if (i == timer_id)
         {
             timer->running = 0;
         }
-        else if (timer->running != 0 && time_out_min > timer->time)
+        else if (timer->running != 0 && time_out_min > timer->timeout)
         {
-            time_out_min = timer->time;
+            time_out_min = timer->timeout;
         }
     }
-    eos.time_out_min = time_out_min;
+    bos.time_out_min = time_out_min;
 
-    eos_critical_exit();
+    bos_critical_exit();
 }
 
-void eos_timer_continue(uint16_t timer_id)
+/**
+  * @brief  Re-start one soft timer exported by bos_timer_export.
+  * @param  timer_id    The timer ID.
+  * @param  period      The soft-timer's period in mili-second.
+  * @retval None.
+  */
+void bos_timer_reset(uint16_t timer_id, uint32_t period)
 {
-    EOS_ASSERT(timer_id < eos.timer_count);
-    eos_timer_t *timer = NULL;
+    BOS_ASSERT(timer_id < bos.timer_count);
+    BOS_ASSERT(period <= BOS_MS_NUM_30DAY);
 
-    eos_critical_enter();
+    bos_critical_enter();
 
-    bool existent = false;
-    for (uint32_t i = 0; i < eos.timer_count; i ++)
-    {
-        timer = (eos_timer_t *)eos.timer_table[timer_id].data;
-        if (i == timer_id)
-        {
-            timer->running = 1;
-            if (eos.time_out_min > timer->time)
-            {
-                eos.time_out_min = timer->time;
-            }
-            existent = true;
-            break;
-        }
-    }
-    EOS_ASSERT(existent);
-
-    // not found
-    eos_critical_exit();
-}
-
-void eos_timer_reset(uint16_t timer_id)
-{
-    EOS_ASSERT(timer_id < eos.timer_count);
-    eos_critical_enter();
-
-    eos_timer_t *timer = (eos_timer_t *)eos.timer_table[timer_id].data;
+    bos_timer_t *timer = (bos_timer_t *)bos.timer_table[timer_id].data;
     timer->running = 1;
-    if (eos.time_out_min > timer->time)
+    timer->period = period;
+    if (bos.time_out_min > timer->timeout)
     {
-        eos.time_out_min = timer->time;
+        bos.time_out_min = timer->timeout;
     }
 
-    eos_critical_exit();
+    bos_critical_exit();
 }
 
 void _entry_idle(void *parameter)
@@ -670,62 +538,239 @@ void _entry_idle(void *parameter)
     
     while (1)
     {
-        // if no timer is timeout
-        if (eos_check_timer(true))
+        /* If no timer is timeout. */
+        if (!bos_check_timer(true))
         {
-            eos_hook_idle();
+            bos_hook_idle();
         }
     }
 }
 
+uint32_t count_timer = 0;
 static void _cb_timer_tick(void *para)
 {
-
-}
-
-uint32_t count = 0;
-
-void func_test(void)
-{
-    count ++;
+    count_timer ++;
 }
 
 /* private function --------------------------------------------------------- */
-
-
-static int32_t critical_count = 0;
-#if (defined __CC_ARM)
-inline void eos_critical_enter(void)
-#elif ((defined __GNUC__) || (defined __ICCARM__))
-__attribute__((always_inline)) inline void eos_critical_enter(void)
-#endif
+/**
+  * @brief  Check all thread timers and soft-timers are timeout or not.
+  * @param  task_idle   In idle thread or not.
+  * @retval If false, not timer is timeout.
+  */
+static bool bos_check_timer(bool task_idle)
 {
-#if (defined __CC_ARM)
-    __disable_irq();
-#elif ((defined __GNUC__) || (defined __ICCARM__))
-    __asm volatile ("cpsid i" : : : "memory");
-#endif
-    critical_count ++;
+    bool ret = false;
+    bos_timer_t *timer_data = NULL;
+    bos_task_t *task_data = NULL;
+    
+    if (bos.time_idle_backup != bos.time)
+    {
+        bos.time_idle_backup = bos.time;
+        
+        bos_critical_enter();
+
+        /* check all the task are timeout or not. */
+        bool task_timeout = false;
+        for (uint32_t i = 0; i < bos.task_count; i ++)
+        {
+            task_data = (bos_task_t *)bos.task_table[i].data;
+            if (task_data->state == BosTaskState_Blocked)
+            {
+                if (bos.time >= task_data->timeout)
+                {
+                    task_data->state = BosTaskState_Ready;
+                    task_timeout = true;
+                }
+            }
+        }
+        if (task_idle && task_timeout)
+        {
+            bos_critical_exit();
+            bos_sheduler();
+            bos_critical_enter();
+        }
+        
+        if (bos.time >= BOS_MS_NUM_15DAY)
+        {
+            /* Adjust all tasks' timing. */
+            for (uint32_t i = 0; i < bos.task_count; i ++)
+            {
+                task_data = (bos_task_t *)bos.task_table[i].data;
+                if (task_data->state == BosTaskState_Blocked)
+                {
+                    task_data->timeout -= bos.time;
+                }
+            }
+
+            /* Adjust all timers' timing. */
+            for (uint32_t i = 0; i < bos.timer_count; i ++)
+            {
+                timer_data = (bos_timer_t *)bos.timer_table[i].data;
+                if (timer_data->running != 0)
+                {
+                    timer_data->timeout -= bos.time;
+                }
+            }
+
+            bos.time_out_min -= bos.time;
+            bos.time_offset += bos.time;
+            bos.time = 0;
+        }
+
+        /* if any timer is timeout */
+        if (bos.time >= bos.time_out_min)
+        {
+            /* Find the time-out timers and excute the handlers. */
+            for (uint32_t i = 0; i < bos.timer_count; i ++)
+            {
+                timer_data = (bos_timer_t *)bos.timer_table[i].data;
+                if (timer_data->running != 0 && bos.time >= timer_data->timeout)
+                {
+                    bos.timer_cb_runing = true;
+                    bos_critical_exit();
+                    bos.timer_table[i].func(bos.timer_table[i].parameter);
+                    ret = true;
+                    bos_critical_enter();
+                    bos.timer_cb_runing = false;
+                    if (bos.timer_table[i].oneshoot == 0)
+                    {
+                        timer_data->timeout += timer_data->period;
+                    }
+                    else
+                    {
+                        timer_data->running = 0;
+                    }
+                }
+            }
+
+            /* Recalculate the minimum timeout value. */
+            if (ret)
+            {
+                uint32_t time_out_min = UINT32_MAX;
+                for (uint32_t i = 0; i < bos.timer_count; i ++)
+                {
+                    timer_data = (bos_timer_t *)bos.timer_table[i].data;
+                    if (timer_data->running != 0 && time_out_min >= timer_data->timeout)
+                    {
+                        time_out_min = timer_data->timeout;
+                    }
+                }
+                bos.time_out_min = time_out_min;
+            }
+        }
+
+        bos_critical_exit();
+    }
+    
+    return ret;
 }
 
-#if (defined __CC_ARM)
-inline void eos_critical_exit(void)
-#elif ((defined __GNUC__) || (defined __ICCARM__))
-__attribute__((always_inline)) inline void eos_critical_exit(void)
-#endif
+static void bos_sheduler(void)
 {
-    critical_count --;
-    if (critical_count <= 0)
+    bos_task_t *task_data = NULL;
+
+    bos_critical_enter();
+    
+    if (bos_current != NULL)
     {
-        critical_count = 0;
-#if (defined __CC_ARM)
-        __enable_irq();
-#elif ((defined __GNUC__) || (defined __ICCARM__))
-        __asm volatile ("cpsie i" : : : "memory");
-#endif
+        bos_next = &ram_task_timer_data;
+        uint8_t priority = 0;
+        uint32_t count = 0;
+        for (uint32_t i = ((bos_current->task_id + 1) % bos.task_count); ;)
+        {
+            task_data = (bos_task_t *)bos.task_table[i].data;
+            if (task_data->state == BosTaskState_Ready &&
+                bos.task_table[i].priority > priority)
+            {
+                bos_next = task_data;
+                priority = bos.task_table[i].priority;
+            }
+
+            if (task_data->state == BosTaskState_Ready &&
+                bos.task_table[i].priority == bos.task_table[bos_current->task_id].priority &&
+                bos_next == &ram_task_timer_data)
+            {
+                bos_next = task_data;
+                priority = bos.task_table[i].priority;
+            }
+
+            count ++;
+            i = (i + 1) % bos.task_count;
+            if (count >= bos.task_count)
+            {
+                break;
+            }
+        }
+        
+        if (bos_next != bos_current)
+        {
+            #define STACK_SIZE_PUSH                 (64)
+            
+            uint32_t sp_value = get_sp_value();
+            
+            /* The current task move to front. */
+            if (bos_next->task_id < bos_current->task_id)
+            {
+                copy_size = bos_next->stack_size * 4;
+                move_size = sp_value - STACK_SIZE_PUSH - (uint32_t)bos_current->stack;
+                for (uint32_t i = bos_next->task_id + 1; i < bos_current->task_id; i ++)
+                {
+                    task_data = (bos_task_t *)bos.task_table[i].data;
+                    task_data->stack = (void *)((uint32_t)task_data->stack + move_size);
+                    task_data->sp = (void *)((uint32_t)task_data->sp + move_size);
+                    copy_size += task_data->stack_size * 4;
+                }
+                addr_target = (uint32_t)bos_next->stack + move_size;
+                addr_source = (uint32_t)bos_next->stack;
+                
+                bos_current->stack = (void *)((uint32_t)bos_current->stack + move_size);
+                bos_current->sp = (void *)((uint32_t)sp_value - STACK_SIZE_PUSH);
+                
+                bos_current->stack_size -= (move_size / 4);
+                bos_next->stack_size += (move_size / 4);
+                bos_next->sp = (void *)((uint32_t)bos_next->sp + move_size);
+                move_size = move_size;
+            }
+            /* The current task move to back. */
+            else
+            {
+                move_size = sp_value - STACK_SIZE_PUSH - (uint32_t)bos_current->stack;
+                copy_size = bos_current->stack_size * 4 - move_size;
+                addr_target = (uint32_t)bos_current->stack;
+                addr_source = (uint32_t)(sp_value - STACK_SIZE_PUSH);
+                for (uint32_t i = bos_current->task_id + 1; i < bos_next->task_id; i ++)
+                {
+                    task_data = (bos_task_t *)bos.task_table[i].data;
+                    task_data->stack = (void *)((uint32_t)task_data->stack - move_size);
+                    task_data->sp = (void *)((uint32_t)task_data->sp - move_size);
+                    copy_size += task_data->stack_size * 4;
+                }
+                
+                bos_current->stack_size -= (move_size / 4);
+                bos_next->stack_size += (move_size / 4);
+                bos_current->sp = bos_current->stack;
+                bos_next->stack = (void *)((uint32_t)bos_next->stack - move_size);
+                move_size = move_size;
+            }
+
+            #undef STACK_SIZE_PUSH
+            
+            /* Trig task switching. */
+            *(uint32_t volatile *)0xE000ED04 = (1U << 28);
+        }
     }
+    else
+    {
+        /* Trig task switching. */
+        *(uint32_t volatile *)0xE000ED04 = (1U << 28);
+    }
+    
+    bos_critical_exit();
 }
 
 #ifdef __cplusplus
 }
 #endif
+
+/* ----------------------------- end of file -------------------------------- */

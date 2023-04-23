@@ -18,7 +18,7 @@ uint32_t elab_time_ms(void)
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
     return xTaskGetTickCount() * ELAB_RTOS_TICK_MS;
 #elif (ELAB_RTOS_BASIC_OS_EN != 0)
-    return eos_time();
+    return bos_time();
 #else
     return 0;
 #endif

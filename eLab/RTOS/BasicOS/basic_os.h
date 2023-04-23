@@ -1,6 +1,6 @@
 
 /*
- * EventOS Basic
+ * BasicOS V0.2
  * Copyright (c) 2021, EventOS Team, <event-os@outlook.com>
  *
  * SPDX-License-Identifier: MIT
@@ -28,11 +28,12 @@
  * 
  * Change Logs:
  * Date           Author        Notes
- * 2022-03-21     DogMing       V0.0.1
+ * 2022-03-21     GouGe         V0.1.0
+ * 2023-04-22     GouGe         V0.2.0
  */
 
-#ifndef EVENTOS_H_
-#define EVENTOS_H_
+#ifndef BASIC_OS_H_
+#define BASIC_OS_H_
 
 /* include ------------------------------------------------------------------ */
 #include <stdint.h>
@@ -42,66 +43,72 @@
 extern "C" {
 #endif
 
-/* public define ------------------------------------------------------------ */
-#define EXPORT_ID_TASK                  (0xa5a5a5a5)
-#define EXPORT_ID_TIMER                 (0xbeefbeef)
+/* Public config ------------------------------------------------------------ */
+/**
+  * @brief  The maximum number of tasks in BasicOS.
+  */
+#define BOS_MAX_STACKS_SIZE                     (4096)
 
-/* Config ------------------------------------------------------------------- */
-// 支持的最大的线程数
-#define EOS_MAX_TASKS                           32
+/**
+  * @brief  The maximum number of tasks in BasicOS.
+  */
+#define BOS_MAX_TASKS                           (16)
 
-// 支持的最大优先级数
-#define EOS_MAX_PRIORITY                        8
+/**
+  * @brief  The maximum priority of tasks in BasicOS.
+  */
+#define BOS_MAX_PRIORITY                        (8)
 
-// 时钟滴答的毫秒数
-#define EOS_TICK_MS                             1
+/**
+  * @brief  The tick period time in mili-second.
+  */
+#define BOS_TICK_MS                             (1)
 
-// 是否使用断言
-#define EOS_USE_ASSERT                          1
+/**
+  * @brief  Basic assert function configuration.
+  */
+#define BOS_USE_ASSERT                          (1)
 
-// 是否统计堆栈使用率
-#define EOS_USE_STACK_USAGE                     0
+/**
+  * @brief  Basic stack usage function configuration.
+  */
+#define BOS_USE_STACK_USAGE                     (0)
 
-// 是否统计CPU使用率
-#define EOS_USE_CPU_USAGE                       1
-
-#if (EOS_MAX_TASKS > 32)
-#error The number of tasks can NOT be larger than 32 !
-#endif
+/**
+  * @brief  Basic cpu usage function configuration.
+  */
+#define BOS_USE_CPU_USAGE                       (0)
 
 /* Data structure ----------------------------------------------------------- */
-enum
+enum bos_error
 {
-    EOS_OK                          = 0,
-    EOS_NOT_FOUND                   = -1,
-
+    BOS_OK                          = 0,
+    BOS_NOT_FOUND                   = -1,
 };
 
-typedef void (* eos_func_t)(void *parameter);
+typedef void (* bos_func_t)(void *parameter);
 
-typedef struct eos_task_rom
+typedef struct bos_task_rom
 {
     uint32_t magic_head;
-    eos_func_t func;
+    bos_func_t func;
     uint32_t priority;
     const char *name;
     void *parameter;
     void *data;
-    bool oneshoot;
     uint32_t magic_tail;
-} eos_task_rom_t;
+} bos_task_rom_t;
 
-typedef struct eos_timer_rom
+typedef struct bos_timer_rom
 {
     uint32_t magic_head;
-    eos_func_t func;
-    uint32_t period;
+    bos_func_t func;
     const char *name;
     void *parameter;
     void *data;
     bool oneshoot;
     uint32_t magic_tail;
-} eos_timer_rom_t;
+} bos_timer_rom_t;
 
 /* Task related. */
 typedef struct eos_task
@@ -113,16 +120,164 @@ typedef struct eos_task
     uint32_t state                  : 4;
     uint32_t state_bkp              : 4;
     uint32_t task_id                : 8;
-} eos_task_t;
+} bos_task_t;
 
 /* Timer related. */
 typedef struct eos_timer
 {
-    uint32_t time;
+    uint32_t timeout;
+    uint32_t period;
     uint32_t id                     : 10;
     uint32_t domain                 : 8;
     uint32_t running                : 1;
-} eos_timer_t;
+} bos_timer_t;
+
+/* Task --------------------------------------------------------------------- */
+/**
+  * @brief  BasicOS stack and tasks initialization.
+  * @param  stack   The global stack memory address.
+  * @param  size    The global stack memory size.
+  * @retval None
+  */
+void basic_os_init(void);
+
+/**
+  * @brief  Start to run BasicOS kernel.
+  * @retval None
+  */
+void basic_os_run(void);
+
+/**
+  * @brief  Get the BasicOS time in mili-second.
+  * @retval BasicOS time in mili-second
+  */
+uint32_t bos_time(void);
+
+/**
+  * @brief  The BasicOS tick function. Please put it into one timer ISR and set
+  *         the BOS_TICK_MS macro to the correct value.
+  * @retval None.
+  */
+void bos_tick(void);
+
+/**
+  * @brief  The BasicOS delay function in the current thread.
+  * @param  time_ms     Delayed time in mili-seconds.
+  * @note   It can NOT be used in the Idle hook function.
+  * @retval None.
+  */
+void bos_delay_ms(uint32_t time_ms);
+
+/**
+  * @brief  The BasicOS terminate the current thread.
+  * @retval None.
+  */
+void bos_task_exit(void);
+
+/**
+  * @brief  The function is used to request a context switch to another task. 
+  *         However, if there are no other tasks at a higher or equal priority 
+  *         to the task that calls bos_task_yield() then the RTOS scheduler will
+  *         simply select the task that called bos_task_yield() to run again.
+  * @retval None.
+  */
+void bos_task_yield(void);
+
+/* Soft timer --------------------------------------------------------------- */
+/**
+  * @brief  Get the BasicOS timer's ID from its name.
+  * @retval Timer ID when positive or error id when negetive.
+  */
+int16_t bos_timer_get_id(const char *name);
+
+/**
+  * @brief  Start one soft timer exported by bos_timer_export.
+  * @param  timer_id    The timer ID.
+  * @param  period      The soft-timer's period in mili-second.
+  * @retval None.
+  */
+void bos_timer_start(uint16_t timer_id, uint32_t period);
+
+/**
+  * @brief  Stop the soft timer exported by bos_timer_export.
+  * @param  timer_id    The timer ID.
+  * @retval None.
+  */
+void bos_timer_stop(uint16_t timer_id);
+
+/**
+  * @brief  Re-start one soft timer exported by bos_timer_export.
+  * @param  timer_id    The timer ID.
+  * @param  period      The soft-timer's period in mili-second.
+  * @retval None.
+  */
+void bos_timer_reset(uint16_t timer_id, uint32_t period);
+
+/* Export ------------------------------------------------------------------- */
+/**
+  * @brief  Export one BasicOS task.
+  * @param  _name       The task name.
+  * @param  _func       The task entry function.
+  * @param  _priority   The task priority.
+  * @param  para        The task paramter.
+  * @retval None.
+  */
+#define bos_task_export(_name, _func, _priority, para)                         \
+    static bos_task_t ram_##_name##_data;                                      \
+    BOS_USED const bos_task_rom_t rom_task_##_name BOS_SECTION("task_rom") =   \
+    {                                                                          \
+        .name = #_name,                                                        \
+        .func = _func,                                                         \
+        .priority = (uint32_t)_priority,                                        \
+        .parameter = para,                                                     \
+        .data = &ram_##_name##_data,                                           \
+        .magic_head = EXPORT_ID_TASK,                                          \
+        .magic_tail = EXPORT_ID_TASK,                                          \
+    }
+
+/**
+  * @brief  Export one BasicOS timer.
+  * @param  _name       The timer name.
+  * @param  _func       The timer callback function.
+  * @param  _oneshoot   The task is oneshoot or not.
+  * @param  para        The timer paramter.
+  * @retval None.
+  */
+#define bos_timer_export(_name, _func, _oneshoot, _para)                       \
+    static bos_timer_t timer_##_name##_data;                                   \
+    BOS_USED const bos_timer_rom_t tim_##_name BOS_SECTION("timer_rom") =      \
+    {                                                                          \
+        .name = (const char *)#_name,                                          \
+        .func = _func,                                                         \
+        .oneshoot = _oneshoot,                                                 \
+        .parameter = _para,                                                    \
+        .data = (void *)&timer_##_name##_data,                                 \
+        .magic_head = EXPORT_ID_TIMER,                                         \
+        .magic_tail = EXPORT_ID_TIMER,                                         \
+    }
+
+/* CMSIS RTOS API v2--------------------------------------------------------- */
+#define osKernelInitialize                  basic_os_init
+#define osKernelStart                       basic_os_run
+#define osDelay                             bos_delay_ms
+
+/* port --------------------------------------------------------------------- */
+void bos_port_assert(uint32_t error_id);
+
+/* hook --------------------------------------------------------------------- */
+/* The idle hook function. */
+void bos_hook_idle(void);
+
+/* The hook function when BasicOS starts. */
+void bos_hook_start(void);
+
+/* else --------------------------------------------------------------------- */
+#if (BOS_MAX_TASKS > 32)
+#error The total number of tasks in BasicOS can NOT be larger than 32 !
+#endif
+
+#define EXPORT_ID_TASK                          (0xa5a5a5a5)
+#define EXPORT_ID_TIMER                         (0xbeefbeef)
 
 /* Compiler Related Definitions */
 #if defined(__CC_ARM) || defined(__CLANG_ARM) /* ARM Compiler */
@@ -140,75 +295,13 @@ typedef struct eos_timer
     #define BOS_SECTION(x)              __attribute__((section(x)))
     #define BOS_USED                    __attribute__((used))
 #else
-    #error The compiler is not supported!
+    #error The compiler is not supported by BasicOS !
 #endif
-
-/* 任务相关 ------------------------------------------------------------------ */
-// 初始化，建议在main函数中调用。
-void eos_init(void *stack, uint32_t size);
-// 启动系统
-void eos_run(void);
-// 系统当前时间
-uint32_t eos_time(void);
-// 系统滴答，建议在SysTick中断里调用，也可在普通定时器中断中调用。
-void eos_tick(void);
-// 任务内延时，任务函数中调用，不允许在定时器的回调函数调用，不允许在空闲回调函数中调用。
-void eos_delay_ms(uint32_t time_ms);
-// 退出任务，任务函数中调用。
-void eos_task_exit(void);
-// 任务切换
-void eos_task_yield(void);
-
-#define task_export(_name, _func, _priority, para)                                \
-    static eos_task_t task_##_name##_data;                                      \
-    BOS_USED const eos_task_rom_t task_##_name BOS_SECTION("task_export") =     \
-    {                                                                          \
-        .name = #_name,                                                         \
-        .func = _func,                                                 \
-        .priority = _priority,                                                  \
-        .parameter = para,                                                     \
-        .data = &task_##_name##_data,                                           \
-        .magic_head = EXPORT_ID_TASK,                                          \
-        .magic_tail = EXPORT_ID_TASK,                                          \
-    }
-
-#define timer_export(_name, _func, _period, _oneshoot, _para)                       \
-    static eos_timer_t timer_##_name##_data;                                     \
-    BOS_USED const eos_timer_rom_t tim_##_name BOS_SECTION("timer_export") =   \
-    {                                                                          \
-        .name = (const char *)#_name,                                            \
-        .func = _func,                                                \
-        .oneshoot = _oneshoot, \
-        .parameter = _para,                                                     \
-        .data = (void *)&timer_##_name##_data,                                           \
-        .magic_head = EXPORT_ID_TIMER,                                         \
-        .magic_tail = EXPORT_ID_TIMER,                                         \
-    }
-
-/* 软定时器 ------------------------------------------------------------------ */
-// 获取定时器的ID
-int16_t eos_timer_get_id(const char *name);
-// 启动软定时器
-void eos_timer_start(uint16_t timer_id);
-// 暂停软定时器，允许在中断中调用。
-void eos_timer_pause(uint16_t timer_id);
-// 继续软定时器，允许在中断中调用。
-void eos_timer_continue(uint16_t timer_id);
-// 重启软定时器的定时，允许在中断中调用。
-void eos_timer_reset(uint16_t timer_id);
-
-/* port --------------------------------------------------------------------- */
-void eos_port_assert(uint32_t error_id);
-
-/* hook --------------------------------------------------------------------- */
-// 空闲回调函数
-void eos_hook_idle(void);
-
-// 启动EventOS Basic的时候，所调用的回调函数
-void eos_hook_start(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* BASIC_OS_H_ */
+
+/* ----------------------------- end of file -------------------------------- */

@@ -1,12 +1,7 @@
 #include "basic_os.h"
-#include "elab_log.h"
-#include "elab_assert.h"
-
-ELOG_TAG("eLabCallBack");
 
 void bos_port_assert(uint32_t error_id)
 {
-    elog_error("eLog error id: %u.", error_id);
     while (1)
     {
         bos_delay_ms(10);
