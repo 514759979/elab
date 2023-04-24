@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-/* assert ------------------------------------------------------------------- */
+/* assert define ------------------------------------------------------------ */
 #if (BOS_USE_ASSERT != 0)
 #define BOS_ASSERT(test_)                                                      \
     do                                                                         \
@@ -53,23 +53,14 @@ extern "C" {
 #else
 #define BOS_ASSERT(test_)               ((void)0)
 #endif
-    
-#define BOS_STACK_MIN                   (16)
 
-uint32_t get_sp_value(void);
-
-static void _entry_idle(void *parameter);
-static void _cb_timer_tick(void *para);
-
-bos_task_export(task_timer, _entry_idle, 1, NULL);
-bos_timer_export(basic_timer, _cb_timer_tick, false, NULL);
-    
-bos_task_t *_data_idle = (bos_task_t *)&ram_task_timer_data;
+/* macro -------------------------------------------------------------------- */
+#define BOS_MS_NUM_30DAY                (2592000000U)
+#define BOS_MS_NUM_15DAY                (1296000000U)
+#define BOS_STACK_MIN                   (16)        /* 16 words */
 
 /* bos task ----------------------------------------------------------------- */
-bos_task_t *volatile bos_current;
-bos_task_t *volatile bos_next;
-
+/* Basic task state */
 enum
 {
     BosTaskState_Ready = 0,
@@ -98,23 +89,33 @@ typedef struct basic_os_tag
     uint32_t cpu_usage_count;
 } basic_os_t;
 
+/* public variables --------------------------------------------------------- */
 uint32_t addr_target = 0;
 uint32_t addr_source = 0;
 uint32_t copy_size = 0;
 uint32_t move_size = 0;
 
-basic_os_t bos;
-static uint8_t bos_stack[BOS_MAX_STACKS_SIZE];
+bos_task_t *volatile bos_current;
+bos_task_t *volatile bos_next;
 
-/* macro -------------------------------------------------------------------- */
-#define BOS_MS_NUM_30DAY                (2592000000U)
-#define BOS_MS_NUM_15DAY                (1296000000U)
+/* private variables -------------------------------------------------------- */
+static basic_os_t bos;
+static uint8_t bos_stack[BOS_MAX_STACKS_SIZE];
 
 /* private function --------------------------------------------------------- */
 static void bos_sheduler(void);
 static bool bos_check_timer(bool task_idle);
+static void _entry_idle(void *parameter);
+static void _cb_timer_tick(void *para);
+
+/* public function ---------------------------------------------------------- */
 void bos_critical_enter(void);
 void bos_critical_exit(void);
+uint32_t get_sp_value(void);
+
+/* Default task and timer --------------------------------------------------- */
+bos_task_export(task_timer, _entry_idle, 0, NULL);
+bos_timer_export(basic_timer, _cb_timer_tick, false, NULL);
 
 /* public function ---------------------------------------------------------- */
 /**
@@ -127,8 +128,7 @@ void basic_os_init(void)
 {
     bos_critical_enter();
     
-    /* Set PendSV to be the lowest priority. */
-    *(uint32_t volatile *)0xE000ED20 |= (0xFFU << 16U);
+    bos_cpu_hw_init();
 
     /* Set the stack and its size. */
     uint32_t size = BOS_MAX_STACKS_SIZE;
@@ -231,32 +231,8 @@ void basic_os_init(void)
 
         BOS_ASSERT(task_info->priority <= BOS_MAX_PRIORITY && task_info->priority != 0);
         
-        /* round down the stack top to the 8-byte boundary
-         * NOTE: ARM Cortex-M stack grows down from hi -> low memory
-         */
-        uint32_t *sp = (uint32_t *)((uint32_t)task_data->stack + task_data->stack_size * 4);
-
-        *(-- sp) = (uint32_t)(1 << 24);            /* xPSR, Set Bit24(Thumb Mode) to 1. */
-        *(-- sp) = (uint32_t)task_info->func;      /* the entry function (PC) */
-        *(-- sp) = (uint32_t)task_info->func;      /* R14(LR) */
-        *(-- sp) = (uint32_t)0x12121212u;          /* R12 */
-        *(-- sp) = (uint32_t)0x03030303u;          /* R3 */
-        *(-- sp) = (uint32_t)0x02020202u;          /* r2 */
-        *(-- sp) = (uint32_t)0x01010101u;          /* R1 */
-        *(-- sp) = (uint32_t)task_info->parameter; /* r0 */
-
-        /* additionally, fake registers r4-r11 */
-        *(-- sp) = (uint32_t)0x11111111u;          /* r11 */
-        *(-- sp) = (uint32_t)0x10101010u;          /* r10 */
-        *(-- sp) = (uint32_t)0x09090909u;          /* r9 */
-        *(-- sp) = (uint32_t)0x08080808u;          /* r8 */
-        *(-- sp) = (uint32_t)0x07070707u;          /* r7 */
-        *(-- sp) = (uint32_t)0x06060606u;          /* r6 */
-        *(-- sp) = (uint32_t)0x05050505u;          /* r5 */
-        *(-- sp) = (uint32_t)0x04040404u;          /* r4 */
-
         /* save the top of the stack in the task's attibute */
-        task_data->sp = sp;
+        task_data->sp = bos_cpu_stack_init(task_info);
 
         task_data->state = BosTaskState_Ready;
         task_data->state_bkp = BosTaskState_Ready;
@@ -364,23 +340,11 @@ void bos_delay_ms(uint32_t time_ms)
 void bos_task_exit(void)
 {
     bos_critical_enter();
-    /* Find the task in the task table. */
-    for (int32_t i = (bos.task_count - 1); i >= 0; i --)
-    {
-        bos_task_t *task_data = (bos_task_t *)bos.task_table[i].data;
-        if (task_data == bos_current)
-        {
-            bos_current->state = BosTaskState_Stop;
-            bos_critical_exit();
-            goto exit;
-        }
-    }
-    BOS_ASSERT(false);
-
-exit:
+    bos_current->state = BosTaskState_Stop;
+    bos_critical_exit();
+    
     bos_sheduler();
 }
-
 
 /**
   * @brief  The function is used to request a context switch to another task. 
@@ -532,26 +496,6 @@ void bos_timer_reset(uint16_t timer_id, uint32_t period)
     bos_critical_exit();
 }
 
-void _entry_idle(void *parameter)
-{
-    (void)parameter;
-    
-    while (1)
-    {
-        /* If no timer is timeout. */
-        if (!bos_check_timer(true))
-        {
-            bos_hook_idle();
-        }
-    }
-}
-
-uint32_t count_timer = 0;
-static void _cb_timer_tick(void *para)
-{
-    count_timer ++;
-}
-
 /* private function --------------------------------------------------------- */
 /**
   * @brief  Check all thread timers and soft-timers are timeout or not.
@@ -666,6 +610,11 @@ static bool bos_check_timer(bool task_idle)
     return ret;
 }
 
+/**
+  * @brief  Check all thread timers and soft-timers are timeout or not.
+  * @param  task_idle   In idle thread or not.
+  * @retval If false, not timer is timeout.
+  */
 static void bos_sheduler(void)
 {
     bos_task_t *task_data = NULL;
@@ -756,17 +705,43 @@ static void bos_sheduler(void)
 
             #undef STACK_SIZE_PUSH
             
-            /* Trig task switching. */
-            *(uint32_t volatile *)0xE000ED04 = (1U << 28);
+            bos_cpu_trig_task_switch();
         }
     }
     else
     {
-        /* Trig task switching. */
-        *(uint32_t volatile *)0xE000ED04 = (1U << 28);
+        bos_cpu_trig_task_switch();
     }
     
     bos_critical_exit();
+}
+
+/**
+  * @brief  The idle task entry function.
+  * @param  parameter   The idle task parameter.
+  * @retval None.
+  */
+static void _entry_idle(void *parameter)
+{
+    (void)parameter;
+    
+    while (1)
+    {
+        /* If no timer is timeout. */
+        if (!bos_check_timer(true))
+        {
+            bos_hook_idle();
+        }
+    }
+}
+
+/**
+  * @brief  Callback function if the timer.
+  * @param  para    The idle task parameter.
+  * @retval None.
+  */
+static void _cb_timer_tick(void *para)
+{
 }
 
 #ifdef __cplusplus

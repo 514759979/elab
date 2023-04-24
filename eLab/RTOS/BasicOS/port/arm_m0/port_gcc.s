@@ -1,31 +1,66 @@
-    SECTION    .text:CODE(2)
-    THUMB
-    REQUIRE8
-    PRESERVE8
+; 
+;  BasicOS V0.2
+;  Copyright (c) 2021, EventOS Team, <event-os@outlook.com>
+; 
+;  SPDX-License-Identifier: MIT
+;  
+;  Permission is hereby granted, free of charge, to any person obtaining a copy
+;  of this software and associated documentation files (the 'Software'), to deal
+;  in the Software without restriction, including without limitation the rights
+;  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+;  copies of the Software, and to permit persons to whom the Software is furnished
+;  to do so, subject to the following conditions:
+; 
+;  The above copyright notice and this permission notice shall be
+;  included in all copies or substantial portions of the Software.
+; 
+;  THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+;  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+;  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+;  OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+;  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+;  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+; 
+;  https://www.event-os.cn
+;  https://github.com/event-os/eventos-basic
+;  https://gitee.com/event-os/eventos-basic
+;  
+;  Change Logs:
+;  Date           Author        Notes
+;  2022-03-21     GouGe         V0.1.0
+;  2023-04-22     GouGe         V0.2.0
+;
+
+    .cpu    cortex-m0
+    .fpu    softvfp
+    .syntax unified
+    .thumb
+    .text
 
 ; Enable the global interrput.
+    .global bos_critical_exit
+    .type bos_critical_exit, %function
 bos_critical_exit:
-
-    EXPORT bos_critical_exit
-
     CPSIE   I
     BX      LR
 
 ; Disable the global interrput.
+    .global bos_critical_enter
+    .type bos_critical_enter, %function
 bos_critical_enter:
-
-    EXPORT bos_critical_enter
-
     CPSID   I
     BX      LR
-        
+
+; Get the current stack top.
+    .global get_sp_value
+    .type get_sp_value, %function
 get_sp_value:
-    
-    EXPORT get_sp_value
-    
     MOV         r0, sp
     BX          lr                  ; return to the next task */
-    
+
+; PendSV hanbder.
+    .global PendSV_Handler
+    .type PendSV_Handler, %function
 PendSV_Handler:
 
     EXPORT PendSV_Handler
@@ -118,3 +153,4 @@ NextTask
 
     END
 
+; ------------------------------ end of file --------------------------------- ;

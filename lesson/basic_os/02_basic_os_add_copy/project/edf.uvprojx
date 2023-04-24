@@ -494,9 +494,14 @@
               <FilePath>..\user\cb_basic_os.c</FilePath>
             </File>
             <File>
+              <FileName>cpu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\RTOS\BasicOS\port\arm_m0\cpu.c</FilePath>
+            </File>
+            <File>
               <FileName>port_mdk.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\..\..\eLab\RTOS\BasicOS\port_mdk.s</FilePath>
+              <FilePath>..\..\..\..\eLab\RTOS\BasicOS\port\arm_m0\port_mdk.s</FilePath>
             </File>
           </Files>
         </Group>

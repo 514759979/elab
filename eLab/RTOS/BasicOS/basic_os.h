@@ -113,9 +113,9 @@ typedef struct bos_timer_rom
 /* Task related. */
 typedef struct eos_task
 {
-    uint32_t *sp;
-    uint32_t timeout;
+    void *sp;
     void *stack;
+    uint32_t timeout;
     uint32_t stack_size             : 16;
     uint32_t state                  : 4;
     uint32_t state_bkp              : 4;
@@ -228,7 +228,7 @@ void bos_timer_reset(uint16_t timer_id, uint32_t period);
     {                                                                          \
         .name = #_name,                                                        \
         .func = _func,                                                         \
-        .priority = (uint32_t)_priority,                                        \
+        .priority = (uint32_t)_priority,                                       \
         .parameter = para,                                                     \
         .data = &ram_##_name##_data,                                           \
         .magic_head = EXPORT_ID_TASK,                                          \
@@ -262,7 +262,9 @@ void bos_timer_reset(uint16_t timer_id, uint32_t period);
 #define osDelay                             bos_delay_ms
 
 /* port --------------------------------------------------------------------- */
-void bos_port_assert(uint32_t error_id);
+void bos_cpu_hw_init(void);
+void* bos_cpu_stack_init(bos_task_rom_t *task_info);
+void bos_cpu_trig_task_switch(void);
 
 /* hook --------------------------------------------------------------------- */
 /* The idle hook function. */
@@ -270,6 +272,8 @@ void bos_hook_idle(void);
 
 /* The hook function when BasicOS starts. */
 void bos_hook_start(void);
+
+void bos_port_assert(uint32_t error_id);
 
 /* else --------------------------------------------------------------------- */
 #if (BOS_MAX_TASKS > 32)
