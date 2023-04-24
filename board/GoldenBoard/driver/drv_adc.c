@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-ELAB_TAG("Driver_ADC")
+ELAB_TAG("DriverADC");
 
 /* public typedef ----------------------------------------------------------- */
 typedef struct elab_adc_data
@@ -152,7 +152,6 @@ static uint32_t _get_value(elab_adc_t * const me)
 {
     elab_assert(me != NULL);
 
-    elab_adc_data_t *_data = (elab_adc_data_t *)me->super.user_data;
     HAL_StatusTypeDef ret = HAL_OK;
 
     ret = HAL_ADC_Start(&hadc1);

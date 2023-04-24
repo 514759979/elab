@@ -2,7 +2,7 @@
 #include "elab_log.h"
 #include "elab_assert.h"
 
-ELOG_TAG("eLabCallBack");
+ELAB_TAG("eLabCallBack");
 
 void eos_port_assert(uint32_t error_id)
 {

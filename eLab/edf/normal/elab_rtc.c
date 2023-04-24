@@ -7,7 +7,8 @@
 #include "elab_rtc.h"
 #include "elab_assert.h"
 
-#define TAG                             "elab_rtc"
+ELAB_TAG("Edf_RTC");
+
 #define ELOG_DEBUG_ENABLE               (1)
 #define ELOG_INFO_ENABLE                (1)
 #include "elab_log.h"
@@ -30,9 +31,9 @@ const static elab_dev_ops_t device_ops =
 void elab_rtc_register(elab_rtc_t *rtc, const char *name,
                         elab_rtc_ops_t *ops, void *user_data)
 {
-    elab_assert(rtc != NULL);
-    elab_assert(name != NULL);
-    elab_assert(ops != NULL);
+    assert(rtc != NULL);
+    assert(name != NULL);
+    assert(ops != NULL);
 
     elab_device_t *device = &(rtc->super);
 
@@ -51,8 +52,8 @@ void elab_rtc_register(elab_rtc_t *rtc, const char *name,
 
 void elab_rtc_get_time(elab_device_t *me, elab_rtc_time_t *rtc_time)
 {
-    elab_assert(me != NULL);
-    elab_assert(rtc_time != NULL);
+    assert(me != NULL);
+    assert(rtc_time != NULL);
 
     elab_rtc_t *rtc = (elab_rtc_t *)me;
 
@@ -65,8 +66,8 @@ void elab_rtc_get_time(elab_device_t *me, elab_rtc_time_t *rtc_time)
 
 void elab_rtc_set_time(elab_device_t *me, const elab_rtc_time_t *rtc_time)
 {
-    elab_assert(me != NULL);
-    elab_assert(rtc_time != NULL);
+    assert(me != NULL);
+    assert(rtc_time != NULL);
 
     elab_rtc_t *rtc = (elab_rtc_t *)me;
 

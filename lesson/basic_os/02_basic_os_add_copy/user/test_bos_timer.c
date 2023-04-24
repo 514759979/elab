@@ -59,7 +59,7 @@ void _func_poll_7(void *parameter)
     }
 }
 
-bos_task_export(poll7, _func_poll_7, 2, NULL);
+//bos_task_export(poll7, _func_poll_7, 2, NULL);
 
 void _timer_func_1(void *parameter)
 {

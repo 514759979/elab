@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-ELAB_TAG("Driver_PIN")
+ELAB_TAG("DriverPin");
 
 /* public typedef ----------------------------------------------------------- */
 typedef struct eio_pin_data
@@ -163,7 +163,6 @@ static void _set_mode(elab_pin_t * const me, uint8_t mode)
 static bool _get_status(elab_pin_t * const me)
 {
     elab_assert(me != NULL);
-    elab_assert(mode < PIN_MODE_MAX);
 
     eio_pin_data_t *driver_data = (eio_pin_data_t *)me->super.user_data;
 
@@ -181,8 +180,7 @@ static bool _get_status(elab_pin_t * const me)
 static void _set_status(elab_pin_t * const me, bool status)
 {
     elab_assert(me != NULL);
-    elab_assert(mode < PIN_MODE_MAX);
-
+    
     eio_pin_data_t *driver_data = (eio_pin_data_t *)me->super.user_data;
 
     HAL_GPIO_WritePin(driver_data->gpio_x,

@@ -11,7 +11,7 @@
 #include "shell.h"
 #include "elab_log.h"
 
-ELOG_TAG("eLogTest");
+ELAB_TAG("eLogTest");
 
 #ifdef __cplusplus
 extern "C" {

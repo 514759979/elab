@@ -5,6 +5,8 @@
 #include "elab_assert.h"
 #include "elab_export.h"
 
+ELAB_TAG("OLED");
+
 static void _write_byte(uint8_t byte, bool cmd);
 
 static elab_device_t *spi = NULL;

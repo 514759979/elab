@@ -114,7 +114,11 @@ void bos_critical_exit(void);
 uint32_t get_sp_value(void);
 
 /* Default task and timer --------------------------------------------------- */
-bos_task_export(task_timer, _entry_idle, 0, NULL);
+/*  Note 1
+    Although the priority of idle task is set to be 1. But the program in 
+    bos_sheduler() makes the actual priority of idle task is 0.
+*/
+bos_task_export(task_timer, _entry_idle, 1, NULL);
 bos_timer_export(basic_timer, _cb_timer_tick, false, NULL);
 
 /* public function ---------------------------------------------------------- */
@@ -229,7 +233,8 @@ void basic_os_init(void)
         task_data->stack = stack_current;
         stack_current = (void *)((uint32_t)stack_current + task_data->stack_size * 4);
 
-        BOS_ASSERT(task_info->priority <= BOS_MAX_PRIORITY && task_info->priority != 0);
+        BOS_ASSERT(task_info->priority <= BOS_MAX_PRIORITY);
+        BOS_ASSERT(task_info->priority != 0);
         
         /* save the top of the stack in the task's attibute */
         task_data->sp = bos_cpu_stack_init(task_info);
@@ -623,6 +628,7 @@ static void bos_sheduler(void)
     
     if (bos_current != NULL)
     {
+        /* The actual priority of idle task is 0. */
         bos_next = &ram_task_timer_data;
         uint8_t priority = 0;
         uint32_t count = 0;

@@ -43,10 +43,10 @@ static const osMutexAttr_t mutex_attr_edev =
  */
 void elab_device_register(elab_device_t *me, elab_device_attr_t *attr)
 {
-    elab_assert(me != NULL);
-    elab_assert(attr != NULL);
-    elab_assert(attr->name != NULL);
-    elab_assert_name(elab_device_find(attr->name) == NULL, attr->name);
+    assert(me != NULL);
+    assert(attr != NULL);
+    assert(attr->name != NULL);
+    assert_name(elab_device_find(attr->name) == NULL, attr->name);
 
     osMutexId_t mutex = _device_mutex();
     
@@ -55,7 +55,7 @@ void elab_device_register(elab_device_t *me, elab_device_attr_t *attr)
     me->enable_count = 0;
 
     me->mutex = osMutexNew(&mutex_attr_edev);
-    elab_assert(me->mutex != NULL);
+    assert(me->mutex != NULL);
 
     _add_device(me);
 
@@ -71,7 +71,7 @@ void elab_device_register(elab_device_t *me, elab_device_attr_t *attr)
  */
 elab_device_t *elab_device_find(const char *name)
 {
-    elab_assert(name != NULL);
+    assert(name != NULL);
     
     elab_device_t *me = NULL;
 
@@ -99,24 +99,24 @@ elab_device_t *elab_device_find(const char *name)
  */
 elab_err_t elab_device_enable(elab_device_t *me, bool status)
 {
-    elab_assert(me != NULL);
-    elab_assert(me->ops != NULL);
-    elab_assert(me->ops->enable != NULL);
+    assert(me != NULL);
+    assert(me->ops != NULL);
+    assert(me->ops->enable != NULL);
 
     osMutexAcquire(me->mutex, osWaitForever);
     
     if (me->attr.sole)
     {
-        elab_assert(me->enable_count == 0);
+        assert(me->enable_count == 0);
     }
     else
     {
-        elab_assert(me->enable_count < UINT8_MAX);
+        assert(me->enable_count < UINT8_MAX);
     }
     
     elab_err_t ret = me->ops->enable(me, status);
     me->enable_count ++;
-    elab_assert(me->enable_count == 0);
+    assert(me->enable_count == 0);
 
     osMutexRelease(me->mutex);
 
@@ -136,10 +136,10 @@ elab_err_t elab_device_enable(elab_device_t *me, bool status)
 int32_t elab_device_read(elab_device_t *me,
                             uint32_t pos, void *buffer, uint32_t size)
 {
-    elab_assert(me != NULL);
-    elab_assert(me->enable_count != 0);
-    elab_assert(me->ops != NULL);
-    elab_assert(me->ops->read != NULL);
+    assert(me != NULL);
+    assert(me->enable_count != 0);
+    assert(me->ops != NULL);
+    assert(me->ops->read != NULL);
 
     return me->ops->read(me, pos, buffer, size);
 }
@@ -157,10 +157,10 @@ int32_t elab_device_read(elab_device_t *me,
 int32_t elab_device_write(elab_device_t *me,
                             uint32_t pos, const void *buffer, uint32_t size)
 {
-    elab_assert(me != NULL);
-    elab_assert(me->enable_count != 0);
-    elab_assert(me->ops != NULL);
-    elab_assert(me->ops->write != NULL);
+    assert(me != NULL);
+    assert(me->enable_count != 0);
+    assert(me->ops != NULL);
+    assert(me->ops->write != NULL);
 
     return me->ops->write(me, pos, buffer, size);
 }
@@ -171,7 +171,7 @@ static osMutexId_t _device_mutex(void)
     if (mutex_edev == NULL)
     {
         mutex_edev = osMutexNew(&mutex_attr_edev);
-        elab_assert(mutex_edev != NULL);
+        assert(mutex_edev != NULL);
     }
 
     return mutex_edev;
@@ -179,7 +179,7 @@ static osMutexId_t _device_mutex(void)
 
 static void _add_device(elab_device_t *me)
 {
-    elab_assert(edev_device_count < ELAB_DEV_NUM_MAX);
+    assert(edev_device_count < ELAB_DEV_NUM_MAX);
 
     edev_table[edev_device_count ++] = me;
 }

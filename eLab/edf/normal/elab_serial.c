@@ -40,7 +40,7 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
 {
     elab_serial_attr_t attr = ELAB_SERIAL_ATTR_DEFAULT;
 
-    elab_assert(serial != NULL);
+    assert(serial != NULL);
     serial->ops = ops;
 
     elab_device_t *device = &(serial->super);
@@ -70,11 +70,11 @@ static elab_err_t _device_enable(elab_device_t *me, bool status)
 {
     elab_err_t ret = ELAB_OK;
 
-    elab_assert(me != NULL);
+    assert(me != NULL);
 
     elab_serial_t *serial = (elab_serial_t *)me;
-    elab_assert(serial->ops != NULL);
-    elab_assert(serial->ops->enable != NULL);
+    assert(serial->ops != NULL);
+    assert(serial->ops->enable != NULL);
 
     return serial->ops->enable(serial, status);;
 }
@@ -92,11 +92,11 @@ static int32_t _device_read(elab_device_t *me,
 {
     uint32_t read_cnt = 0;
 
-    elab_assert(me != NULL);
+    assert(me != NULL);
 
     elab_serial_t *serial = (elab_serial_t *)me;
-    elab_assert(serial->ops != NULL);
-    elab_assert(serial->ops->read != NULL);
+    assert(serial->ops != NULL);
+    assert(serial->ops->read != NULL);
 
     return serial->ops->read(serial, pbuf, size);
 }
@@ -114,11 +114,11 @@ static int32_t _device_write(elab_device_t *me,
 {
     uint32_t write_cnt = 0;
 
-    elab_assert(me != NULL);
+    assert(me != NULL);
 
     elab_serial_t *serial = (elab_serial_t *)me;
-    elab_assert(serial->ops != NULL);
-    elab_assert(serial->ops->write != NULL);
+    assert(serial->ops != NULL);
+    assert(serial->ops->write != NULL);
 
     return serial->ops->write(serial, buffer, size);
 }

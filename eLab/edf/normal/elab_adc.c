@@ -8,6 +8,8 @@
 #include "elab_adc.h"
 #include "elab_assert.h"
 
+ELAB_TAG("Edf_ADC");
+
 /* private variables -------------------------------------------------------- */
 static const osTimerAttr_t timer_attr_adc =
 {
@@ -38,12 +40,12 @@ static void _timer_cb(void *argument);
 void elab_adc_register(elab_adc_t * const me, const char *name,
                         const elab_adc_ops_t *ops, void *user_data)
 {
-    elab_assert(me != NULL);
-    elab_assert(name != NULL);
-    elab_assert(ops != NULL);
+    assert(me != NULL);
+    assert(name != NULL);
+    assert(ops != NULL);
 
     me->timer = osTimerNew(_timer_cb, osTimerPeriodic, me, &timer_attr_adc);
-    elab_assert_name(me->timer != NULL, name);
+    assert_name(me->timer != NULL, name);
 
     elab_device_attr_t attr =
     {
@@ -70,8 +72,8 @@ void elab_adc_register(elab_adc_t * const me, const char *name,
   */
 float elab_adc_get_value(elab_device_t *const me)
 {
-    elab_assert(me != NULL);
-    elab_assert(me->attr.type == ELAB_DEVICE_ADC);
+    assert(me != NULL);
+    assert(me->attr.type == ELAB_DEVICE_ADC);
     
     elab_adc_t *adc = (elab_adc_t *)me;
     uint32_t value = adc->en_auto_read ? adc->value : adc->ops->get_value(adc);
@@ -85,8 +87,8 @@ float elab_adc_get_value(elab_device_t *const me)
   */
 void elab_adc_en_auto_read(elab_device_t *const me, bool status)
 {
-    elab_assert(me != NULL);
-    elab_assert(me->attr.type == ELAB_DEVICE_ADC);
+    assert(me != NULL);
+    assert(me->attr.type == ELAB_DEVICE_ADC);
 
     elab_adc_t *adc = (elab_adc_t *)me;
     adc->en_auto_read = status;
@@ -102,13 +104,15 @@ void elab_adc_en_auto_read(elab_device_t *const me, bool status)
 void elab_adc_cache_start(elab_device_t *const me,
                             elab_adc_cache_cb_t cb, float *buffer)
 {
-    elab_assert(me != NULL);
-    elab_assert(me->attr.type == ELAB_DEVICE_ADC);
-    elab_assert(!me->en_cache);
-    elab_assert(cb != NULL);
-    elab_assert(buffer != NULL);
+    assert(me != NULL);
+    assert(me->attr.type == ELAB_DEVICE_ADC);
+    
+    assert(cb != NULL);
+    assert(buffer != NULL);
 
     elab_adc_t *adc = (elab_adc_t *)me;
+    assert(!adc->en_cache);
+    
     adc->cb = cb;
     adc->buffer = buffer;
     adc->en_cache = true;
@@ -122,8 +126,8 @@ void elab_adc_cache_start(elab_device_t *const me,
   */
 void elab_adc_get_attr(elab_device_t *const me, elab_adc_attr_t *attr)
 {
-    elab_assert(me != NULL);
-    elab_assert(attr != NULL);
+    assert(me != NULL);
+    assert(attr != NULL);
 
     memcpy(attr, &me->attr, sizeof(elab_adc_attr_t));
 }
@@ -136,8 +140,8 @@ void elab_adc_get_attr(elab_device_t *const me, elab_adc_attr_t *attr)
   */
 void elab_adc_set_attr(elab_device_t *const me, elab_adc_attr_t *attr)
 {
-    elab_assert(me != NULL);
-    elab_assert(attr != NULL);
+    assert(me != NULL);
+    assert(attr != NULL);
 
     elab_adc_t *adc = (elab_adc_t *)me;
     osStatus_t ret_os = osOK;
@@ -153,9 +157,9 @@ void elab_adc_set_attr(elab_device_t *const me, elab_adc_attr_t *attr)
     {
         /* Stop the old timer and restart it. */
         ret_os = osTimerStop(adc->timer);
-        elab_assert(ret_os == osOK);
+        assert(ret_os == osOK);
         ret_os = osTimerStart(adc->timer, attr->interval);
-        elab_assert(ret_os == osOK);
+        assert(ret_os == osOK);
         (void)ret_os;
     }
 }

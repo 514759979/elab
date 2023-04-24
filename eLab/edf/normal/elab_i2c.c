@@ -9,7 +9,8 @@
 #include "elab_i2c.h"
 #include "cmsis_os.h"
 
-#define TAG                                     "EDF_I2C"
+ELAB_TAG("Edf_I2C");
+
 #define ELOG_DEBUG_ENABLE                       (1)
 #define ELOG_INFO_ENABLE                        (1)
 
@@ -113,7 +114,7 @@ void elab_i2c_register(elab_i2c_t *device, const char *name, const char *bus_nam
 int32_t elab_i2c_xfer_msgs(elab_device_t *me, elab_i2c_msg_t msgs[], uint32_t num)
 {
     elab_assert(me != NULL);
-    elab_assert(me->super.attr.type == ELAB_DEVICE_I2C);
+    elab_assert(me->attr.type == ELAB_DEVICE_I2C);
 
     int32_t ret = (int32_t)ELAB_OK;
     osStatus_t ret_os = osOK;
@@ -168,7 +169,7 @@ exit:
 elab_err_t elab_i2c_xfer(elab_device_t *me, elab_i2c_msg_t msg)
 {
     elab_assert(me != NULL);
-    elab_assert(me->super.attr.type == ELAB_DEVICE_I2C);
+    elab_assert(me->attr.type == ELAB_DEVICE_I2C);
 
     elab_err_t ret = ELAB_OK;
     osStatus_t ret_os = osOK;

@@ -10,10 +10,72 @@
 extern "C" {
 #endif
 
-/* public define ------------------------------------------------------------ */
-#define ELAB_TAG(tag)
-#define elab_assert(ex)                     ((void)0)
-#define elab_assert_name(ex, name)          ((void)0)
+/* Includes ------------------------------------------------------------------*/
+#include <stdio.h>
+#include <stdbool.h>
+#include "elab_log.h"
+
+/* Exported functions --------------------------------------------------------*/
+void elab_assert_func(void);
+
+/* Exported functions --------------------------------------------------------*/
+/**
+  * @brief  The legacy assert function.
+  * @param  test_   The given condition.
+  */
+#define elab_assert(test_)                  do                                 \
+    {                                                                          \
+        if (!(test_))                                                          \
+            _assert(#test_, 0, TAG, __LINE__);                                 \
+    } while (0)
+    
+#define assert(test_)                       elab_assert(test_)
+
+/**
+ * @brief  Assert function with ID.
+ * @param  test_   The given condition.
+ * @param  id_     The given id.
+ */
+#define assert_id(test_, id_)               do                                 \
+    {                                                                          \
+        if (!(test_))                                                          \
+            _assert(name_, 0, NULL, id_);                                      \
+    } while (0)
+
+/**
+ * @brief  Assert function with name.
+ * @param  test_   The given condition.
+ * @param  name_   The given name.
+ */
+#define assert_name(test_, name_)           do                                 \
+    {                                                                          \
+        if (!(test_))                                                          \
+            _assert(name_, 0, TAG, __LINE__);                                  \
+    } while (0)
+
+/**
+ * @brief  Assert function for checking the given pointer is not NULL.
+ * @param  ptr_    The given data pointer.
+ */
+#define assert_not_null(ptr_)               assert_name((ptr_ != NULL), #ptr_)
+
+/* Private functions ---------------------------------------------------------*/
+#ifdef __linux__
+#include <assert.h>
+#define elab_assert_func()                  assert(0)
+#else
+void elab_assert_func(void);
+#endif
+
+/* Private functions ---------------------------------------------------------*/
+/**
+ * @brief  The internal assert function when assert fails.
+ * @param  str_     The given string information, such as object name.
+ * @param  id_      The given uint32_t information, such as object ID.
+ * @param  tag      The file name setted by ELAG_TAG macro.
+ * @param  location The assert location in file.
+ */
+void _assert(const char *str_, uint32_t id_, const char *tag, uint32_t location);
 
 #ifdef __cplusplus
 }

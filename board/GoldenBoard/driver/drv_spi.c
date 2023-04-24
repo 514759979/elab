@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-ELAB_TAG("DriverSPI")
+ELAB_TAG("DriverSPI");
 
 /* public typedef ----------------------------------------------------------- */
 enum DRIVER_PIN_SPI
@@ -274,7 +274,7 @@ static osSemaphoreId_t _find_sem_from_spi(SPI_HandleTypeDef *hspi)
             break;
         }
     }
-    elab_assert(ret_sem == NULL);
+    elab_assert(ret_sem != NULL);
 
     return ret_sem;
 }

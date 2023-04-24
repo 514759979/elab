@@ -14,6 +14,8 @@
 #include "cmsis_os.h"
 #endif
 
+ELAB_TAG("eLab_Log");
+
 /* private config ----------------------------------------------------------- */
 #define ELAB_LOG_BUFF_SIZE                          (256)
 

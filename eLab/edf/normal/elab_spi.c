@@ -8,6 +8,8 @@
 #include "elab_assert.h"
 #include "elab_log.h"
 
+ELAB_TAG("Edf_SPI");
+
 /* Private variables ---------------------------------------------------------*/
 static const elab_dev_ops_t spi_ops =
 {
@@ -30,9 +32,9 @@ void elab_spi_bus_register(elab_spi_bus_t *bus,
                             const char *name, const elab_spi_bus_ops_t *ops,
                             void *user_data)
 {
-    elab_assert(bus != NULL);
-    elab_assert(name != NULL);
-    elab_assert(ops != NULL);
+    assert(bus != NULL);
+    assert(name != NULL);
+    assert(ops != NULL);
 
     elab_device_t *device = &bus->super;
 
@@ -53,7 +55,7 @@ void elab_spi_bus_register(elab_spi_bus_t *bus,
         0U
     };
     bus->mutex = osMutexNew(&mutex_attr);
-    elab_assert(NULL != bus->mutex);
+    assert(NULL != bus->mutex);
 
     /* register to device manager */
     elab_device_attr_t attr_spi_bus =
@@ -77,13 +79,13 @@ void elab_spi_register(elab_spi_t *device, const char *name,
                             elab_spi_config_t config,
                             void *user_data)
 {
-    elab_assert(device != NULL);
-    elab_assert(name != NULL);
-    elab_assert(bus_name != NULL);
-    elab_assert(ops != NULL);
+    assert(device != NULL);
+    assert(name != NULL);
+    assert(bus_name != NULL);
+    assert(ops != NULL);
  
     elab_spi_bus_t *bus = (elab_spi_bus_t *)elab_device_find(bus_name);
-    elab_assert(bus != NULL);
+    assert(bus != NULL);
 
     device->bus = bus;
     device->config = config;
@@ -113,21 +115,21 @@ elab_err_t elab_spi_send_twice(elab_device_t *me,
                                 const void *buff1, uint32_t size1,
                                 const void *buff2, uint32_t size2)
 {
-    elab_assert(me != NULL);
-    elab_assert(buff1 != NULL);
-    elab_assert(buff2 != NULL);
-    elab_assert(size1 != 0);
-    elab_assert(size1 != 0);
+    assert(me != NULL);
+    assert(buff1 != NULL);
+    assert(buff2 != NULL);
+    assert(size1 != 0);
+    assert(size1 != 0);
 
     elab_err_t ret = ELAB_OK;
     osStatus_t ret_os = osOK;
     elab_spi_t *spi = (elab_spi_t *)me;
     elab_spi_msg_t msg;
 
-    elab_assert(spi->bus != NULL);
+    assert(spi->bus != NULL);
 
     ret_os = osMutexAcquire(spi->bus->mutex, osWaitForever);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
 
     /* Not the same config as current, re-configure SPI bus */
     if (memcmp(&spi->bus->config_owner,
@@ -170,7 +172,7 @@ elab_err_t elab_spi_send_twice(elab_device_t *me,
     
 exit_release_mutex:
     ret_os = osMutexRelease(spi->bus->mutex);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
     (void)ret_os;
 
     return ret;
@@ -189,22 +191,21 @@ elab_err_t elab_spi_send_recv(elab_device_t *me,
                                 const void *buff_send, uint32_t size_send,
                                 void *buff_recv, uint32_t size_recv)
 {
-    elab_assert(me != NULL);
-    elab_assert(buff_send != NULL);
-    elab_assert(buff_recv != NULL);
-    elab_assert(size_send != 0);
-    elab_assert(size_recv != 0);
+    assert(me != NULL);
+    assert(buff_send != NULL);
+    assert(buff_recv != NULL);
+    assert(size_send != 0);
+    assert(size_recv != 0);
+    
+    elab_spi_t *spi = (elab_spi_t *)me;
+    assert(spi->bus != NULL);
 
     elab_err_t ret = ELAB_OK;
     osStatus_t ret_os = osOK;
-    elab_spi_t *spi = (elab_spi_t *)me;
     elab_spi_msg_t msg;
 
-    elab_assert(device != NULL);
-    elab_assert(spi->bus != NULL);
-
     ret_os = osMutexAcquire(spi->bus->mutex, osWaitForever);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
 
     /* not the same config as current, re-configure SPI bus */
     if (memcmp(&spi->bus->config_owner,
@@ -246,7 +247,7 @@ elab_err_t elab_spi_send_recv(elab_device_t *me,
 
 exit_release_mutex:
     ret_os = osMutexRelease(spi->bus->mutex);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
     (void)ret_os;
 
     return ret;
@@ -263,18 +264,18 @@ exit_release_mutex:
  */
 elab_err_t elab_spi_xfer_msg(elab_device_t *me, elab_spi_msg_t *msg, uint32_t num)
 {
-    elab_assert(me != NULL);
-    elab_assert(msg != NULL);
-    elab_assert(num != 0);
+    assert(me != NULL);
+    assert(msg != NULL);
+    assert(num != 0);
 
     elab_err_t ret = ELAB_OK;
     osStatus_t ret_os = osOK;
     elab_spi_t *spi = (elab_spi_t *)me;
 
-    elab_assert(spi->bus != NULL);
+    assert(spi->bus != NULL);
 
     ret_os = osMutexAcquire(spi->bus->mutex, osWaitForever);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
 
     /* not the same config as current, re-configure SPI bus */
     if (memcmp(&spi->bus->config_owner,
@@ -306,7 +307,7 @@ elab_err_t elab_spi_xfer_msg(elab_device_t *me, elab_spi_msg_t *msg, uint32_t nu
 
 exit_release_mutex:
     ret_os = osMutexRelease(spi->bus->mutex);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
     (void)ret_os;
 
     return ret;
@@ -326,18 +327,18 @@ elab_err_t elab_spi_xfer(elab_device_t *me,
                             const void *buff_send, void *buff_recv,
                             uint32_t size)
 {
-    elab_assert(me != NULL);
-    elab_assert(size != 0);
+    assert(me != NULL);
+    assert(size != 0);
 
     elab_err_t ret = ELAB_OK;
     osStatus_t ret_os = osOK;
     elab_spi_msg_t msg;
     elab_spi_t *spi = (elab_spi_t *)me;
 
-    elab_assert(spi->bus != NULL);
+    assert(spi->bus != NULL);
 
     ret_os = osMutexAcquire(spi->bus->mutex, osWaitForever);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
 
     /* If not the same config as current, re-configure SPI bus */
     if (memcmp(&spi->bus->config_owner,
@@ -367,7 +368,7 @@ elab_err_t elab_spi_xfer(elab_device_t *me,
 
 exit:
     ret_os = osMutexRelease(spi->bus->mutex);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
     (void)ret_os;
 
     return ret;
@@ -382,9 +383,9 @@ exit:
   */
 elab_err_t elab_spi_recv(elab_device_t *me, void *buff, uint32_t size)
 {
-    elab_assert(me != NULL);
-    elab_assert(buffer != NULL);
-    elab_assert(size != 0);
+    assert(me != NULL);
+    assert(buff != NULL);
+    assert(size != 0);
 
     return elab_spi_xfer(me, NULL, buff, size);
 }
@@ -398,9 +399,9 @@ elab_err_t elab_spi_recv(elab_device_t *me, void *buff, uint32_t size)
   */
 elab_err_t elab_spi_send(elab_device_t *me, const void *buffer, uint32_t size)
 {
-    elab_assert(me != NULL);
-    elab_assert(buffer != NULL);
-    elab_assert(size != 0);
+    assert(me != NULL);
+    assert(buffer != NULL);
+    assert(size != 0);
 
     return elab_spi_xfer(me, buffer, NULL, size);
 }

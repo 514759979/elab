@@ -10,7 +10,7 @@
 #include "shell.h"
 #include "elab_log.h"
 
-ELOG_TAG("ShellExport");
+ELAB_TAG("ShellExport");
 
 /* private config ----------------------------------------------------------- */
 #define SHELL_POLL_PERIOD_MS                (10)

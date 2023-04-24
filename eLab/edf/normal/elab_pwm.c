@@ -9,11 +9,11 @@
 #include "elab_pwm.h"
 #include "elab_assert.h"
 
+ELAB_TAG("Edf_PWM");
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-ELAB_TAG("EIO_PWM")
 
 /* private variables -------------------------------------------------------- */
 static elab_dev_ops_t _ops =
@@ -37,9 +37,9 @@ void elab_pwm_register(elab_pwm_t * const me,
                         const elab_pwm_ops_t *ops,
                         void *user_data)
 {
-    elab_assert(me != NULL);
-    elab_assert(name != NULL);
-    elab_assert(ops != NULL);
+    assert(me != NULL);
+    assert(name != NULL);
+    assert(ops != NULL);
 
     elab_device_attr_t attr =
     {
@@ -65,9 +65,9 @@ void elab_pwm_register(elab_pwm_t * const me,
   */
 void elab_pwm_set_duty(elab_device_t * const me, uint8_t duty_ratio)
 {
-    elab_assert(me != NULL);
-    elab_assert(duty_ratio <= 100);
-    elab_assert(me->attr.type == ELAB_DEVICE_PWM);
+    assert(me != NULL);
+    assert(duty_ratio <= 100);
+    assert(me->attr.type == ELAB_DEVICE_PWM);
     
     elab_pwm_t *pwm = (elab_pwm_t *)me;
     if (duty_ratio != pwm->duty_ratio)

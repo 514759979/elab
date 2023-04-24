@@ -16,6 +16,9 @@
 #include "elab_export.h"
 #include "elab_device.h"
 #include "cmsis_os.h"
+#include "elab_assert.h"
+
+ELAB_TAG("Edf_DevNull");
 
 /* Private function prototypes -----------------------------------------------*/
 static elab_err_t _null_enable(elab_device_t *me, bool status);

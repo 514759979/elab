@@ -3,7 +3,7 @@
  * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
  */
 
-/* Includes ------------------------------------------------------------------*/
+/* includes ----------------------------------------------------------------- */
 #include "bsp.h"
 #include "elab_export.h"
 

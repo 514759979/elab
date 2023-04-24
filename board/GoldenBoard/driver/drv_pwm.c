@@ -8,10 +8,13 @@
 #include "elab_pwm.h"
 #include "stm32g0xx_hal.h"
 #include "elab_export.h"
+#include "elab_assert.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+ELAB_TAG("DriverPwm");
 
 /* public typedef ----------------------------------------------------------- */
 typedef struct eio_pwm_data

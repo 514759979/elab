@@ -78,14 +78,14 @@ void _func_poll_6(void *parameter)
 }
 
 bos_task_export(poll1, _func_poll_1, 2, NULL);
-bos_task_export(poll2, _func_poll_2, 2, NULL);
-bos_task_export(poll3, _func_poll_3, 2, NULL);
-bos_task_export(poll4, _func_poll_4, 2, NULL);
+//bos_task_export(poll2, _func_poll_2, 2, NULL);
+//bos_task_export(poll3, _func_poll_3, 2, NULL);
+//bos_task_export(poll4, _func_poll_4, 2, NULL);
 
-bos_task_export(poll5, _func_poll_5, 2, NULL);
-bos_task_export(poll6, _func_poll_6, 2, NULL);
-bos_task_export(poll0, _func_poll_6, 2, NULL);
-bos_task_export(poll8, _func_poll_6, 2, NULL);
+//bos_task_export(poll5, _func_poll_5, 2, NULL);
+bos_task_export(poll6, _func_poll_6, 1, NULL);
+//bos_task_export(poll0, _func_poll_6, 2, NULL);
+//bos_task_export(poll8, _func_poll_6, 2, NULL);
 
 //bos_task_export(poll9, _func_poll_6, 2, NULL);
 //bos_task_export(poll10, _func_poll_6, 2, NULL);

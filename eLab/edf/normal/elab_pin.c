@@ -9,11 +9,11 @@
 #include "elab_pin.h"
 #include "elab_assert.h"
 
+ELAB_TAG("Edf_PIN");
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-ELAB_TAG("EDF_PIN")
 
 /* public functions --------------------------------------------------------- */
 /**
@@ -28,9 +28,9 @@ void elab_pin_register(elab_pin_t * const me,
                         const elab_pin_ops_t *ops,
                         void *user_data)
 {
-    elab_assert(me != NULL);
-    elab_assert(name != NULL);
-    elab_assert(ops != NULL);
+    assert(me != NULL);
+    assert(name != NULL);
+    assert(ops != NULL);
 
     elab_device_attr_t attr =
     {
@@ -44,6 +44,7 @@ void elab_pin_register(elab_pin_t * const me,
 
     me->ops = ops;
     me->ops->init(me);
+    me->mode = PIN_MODE_OUTPUT_OD;
     me->status = me->ops->get_status(me);
 }
 
@@ -54,7 +55,7 @@ void elab_pin_register(elab_pin_t * const me,
   */
 void elab_pin_set_mode(elab_device_t * const me, uint8_t mode)
 {
-    elab_assert(me != NULL);
+    assert(me != NULL);
 
     elab_pin_t *pin = (elab_pin_t *)me;
     if (pin->mode != mode)
@@ -72,7 +73,7 @@ void elab_pin_set_mode(elab_device_t * const me, uint8_t mode)
   */
 bool elab_pin_get_status(elab_device_t *const me)
 {
-    elab_assert(me != NULL);
+    assert(me != NULL);
     elab_pin_t *pin = (elab_pin_t *)me;
 
     pin->status = pin->ops->get_status(pin);
@@ -88,16 +89,17 @@ bool elab_pin_get_status(elab_device_t *const me)
   */
 void elab_pin_set_status(elab_device_t *const me, bool status)
 {
-    elab_assert(me != NULL);
+    assert(me != NULL);
 
     elab_pin_t *pin = (elab_pin_t *)me;
-    elab_assert(pin->mode == PIN_MODE_OUTPUT_PP || pin->mode == PIN_MODE_OUTPUT_OD);
+    assert_name(pin->mode == PIN_MODE_OUTPUT_PP || pin->mode == PIN_MODE_OUTPUT_OD,
+                pin->super.attr.name);
     
     if (status != pin->status)
     {
         pin->ops->set_status(pin, status);
         elab_pin_get_status(me);
-        elab_assert(pin->status == status);
+        assert(pin->status == status);
     }
 }
 
