@@ -12,10 +12,13 @@
 #ifndef     __SHELL_H__
 #define     __SHELL_H__
 
+#include <stdint.h>
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.1.1"                 /**< 版本号 */
+typedef int64_t                        shell_pointer_t;
 
+#define     SHELL_VERSION               "3.1.1"                 /**< 版本号 */
+#define     SHELL_MAGIC_NUM             (0xdeb55fed)
 
 /**
  * @brief shell 断言
@@ -135,6 +138,8 @@
             SHELL_USED const ShellCommand \
             shellCommand##_name SHELL_SECTION("shellCommand") =  \
             { \
+                .magic_head = SHELL_MAGIC_NUM, \
+                .magic_tail = SHELL_MAGIC_NUM, \
                 .attr.value = _attr, \
                 .data.cmd.name = shellCmd##_name, \
                 .data.cmd.function = (int (*)())_func, \
@@ -168,6 +173,8 @@
             SHELL_USED const ShellCommand \
             shellVar##_name SHELL_SECTION("shellCommand") =  \
             { \
+                .magic_head = SHELL_MAGIC_NUM, \
+                .magic_tail = SHELL_MAGIC_NUM, \
                 .attr.value = _attr, \
                 .data.var.name = shellCmd##_name, \
                 .data.var.value = (void *)_value, \
@@ -189,6 +196,8 @@
             SHELL_USED const ShellCommand \
             shellUser##_name SHELL_SECTION("shellCommand") =  \
             { \
+                .magic_head = SHELL_MAGIC_NUM, \
+                .magic_tail = SHELL_MAGIC_NUM, \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_USER), \
                 .data.user.name = shellCmd##_name, \
                 .data.user.password = shellPassword##_name, \
@@ -208,6 +217,8 @@
             SHELL_USED const ShellCommand \
             shellKey##_value SHELL_SECTION("shellCommand") =  \
             { \
+                .magic_head = SHELL_MAGIC_NUM, \
+                .magic_tail = SHELL_MAGIC_NUM, \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_KEY), \
                 .data.key.value = _value, \
                 .data.key.function = (void (*)(Shell *))_func, \
@@ -237,6 +248,8 @@
      */
     #define SHELL_CMD_ITEM(_attr, _name, _func, _desc) \
             { \
+                .magic_head = SHELL_MAGIC_NUM, \
+                .magic_tail = SHELL_MAGIC_NUM, \
                 .attr.value = _attr, \
                 .data.cmd.name = #_name, \
                 .data.cmd.function = (int (*)())_func, \
@@ -253,6 +266,8 @@
      */
     #define SHELL_VAR_ITEM(_attr, _name, _value, _desc) \
             { \
+                .magic_head = SHELL_MAGIC_NUM, \
+                .magic_tail = SHELL_MAGIC_NUM, \
                 .attr.value = _attr, \
                 .data.var.name = #_name, \
                 .data.var.value = (void *)_value, \
@@ -269,6 +284,8 @@
      */
     #define SHELL_USER_ITEM(_attr, _name, _password, _desc) \
             { \
+                .magic_head = SHELL_MAGIC_NUM, \
+                .magic_tail = SHELL_MAGIC_NUM, \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_USER), \
                 .data.user.name = #_name, \
                 .data.user.password = #_password, \
@@ -285,6 +302,8 @@
      */
     #define SHELL_KEY_ITEM(_attr, _value, _func, _desc) \
             { \
+                .magic_head = SHELL_MAGIC_NUM, \
+                .magic_tail = SHELL_MAGIC_NUM, \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_KEY), \
                 .data.key.value = _value, \
                 .data.key.function = (void (*)(Shell *))_func, \
@@ -385,26 +404,27 @@ typedef struct shell_def
  */
 typedef struct shell_command
 {
+    uint32_t magic_head;
     union
     {
         struct
         {
-            unsigned char permission : 8;                       /**< command权限 */
-            ShellCommandType type : 4;                          /**< command类型 */
-            unsigned char enableUnchecked : 1;                  /**< 在未校验密码的情况下可用 */
-            unsigned char disableReturn : 1;                    /**< 禁用返回值输出 */
-            unsigned char  readOnly : 1;                        /**< 只读 */
-            unsigned char reserve : 1;                          /**< 保留 */
-            unsigned char paramNum : 4;                         /**< 参数数量 */
+            uint32_t permission : 8;                       /**< command权限 */
+            uint32_t type : 4;                          /**< command类型 */
+            uint32_t enableUnchecked : 1;                  /**< 在未校验密码的情况下可用 */
+            uint32_t disableReturn : 1;                    /**< 禁用返回值输出 */
+            uint32_t  readOnly : 1;                        /**< 只读 */
+            uint32_t reserve : 1;                          /**< 保留 */
+            uint32_t paramNum : 4;                         /**< 参数数量 */
         } attrs;
-        int value;
+        int32_t value;
     } attr;                                                     /**< 属性 */
     union
     {
         struct
         {
             const char *name;                                   /**< 命令名 */
-            int (*function)();                                  /**< 命令执行函数 */
+            int32_t (*function)();                                  /**< 命令执行函数 */
             const char *desc;                                   /**< 命令描述 */
         } cmd;                                                  /**< 命令定义 */
         struct
@@ -421,11 +441,12 @@ typedef struct shell_command
         } user;                                                 /**< 用户定义 */
         struct
         {
-            int value;                                          /**< 按键键值 */
+            int32_t value;                                      /**< 按键键值 */
             void (*function)(Shell *);                          /**< 按键执行函数 */
             const char *desc;                                   /**< 按键描述 */
         } key;                                                  /**< 按键定义 */
-    } data; 
+    } data;
+    uint32_t magic_tail;
 } ShellCommand;
 
 /**

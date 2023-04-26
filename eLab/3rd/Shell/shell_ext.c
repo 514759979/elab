@@ -268,7 +268,7 @@ static unsigned int shellExtParseVar(Shell *shell, char *var)
  * @param string 参数
  * @return unsigned int 解析结果
  */
-unsigned int shellExtParsePara(Shell *shell, char *string)
+shell_pointer_t shellExtParsePara(Shell *shell, char *string)
 {
     if (*string == '\'' && *(string + 1))
     {
@@ -284,7 +284,7 @@ unsigned int shellExtParsePara(Shell *shell, char *string)
     }
     else if (*string)
     {
-        return (unsigned int)shellExtParseString(string);
+        return (shell_pointer_t)shellExtParseString(string);
     }
     return 0;
 }
