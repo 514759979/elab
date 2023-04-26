@@ -124,7 +124,7 @@ static elab_export_t * _get_export_table(uint8_t level)
     
     while (1)
     {
-        uint32_t address_last = ((uint32_t)func_block - sizeof(elab_export_t));
+        elab_pointer_t address_last = ((elab_pointer_t)func_block - sizeof(elab_export_t));
         elab_export_t *table = (elab_export_t *)address_last;
         if (table->magic_head != export_id_table[level] ||
             table->magic_tail != export_id_table[level])

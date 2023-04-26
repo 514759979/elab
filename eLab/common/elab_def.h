@@ -51,6 +51,12 @@ typedef struct elab_time
     uint16_t ms                 : 10;
 } elab_time_t;
 
+#if defined(__x86_64__)
+typedef uint64_t                        elab_pointer_t;
+#else
+typedef uint32_t                        elab_pointer_t;
+#endif
+
 #if (ELAB_QPC_EN != 0)
 
 typedef struct elab_event

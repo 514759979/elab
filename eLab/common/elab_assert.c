@@ -6,6 +6,9 @@
 /* include ------------------------------------------------------------------ */
 #include "elab_def.h"
 #include "elab_assert.h"
+#ifdef __linux__
+#include "assert.h"
+#endif
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
 #include "cmsis_os.h"
 #endif
@@ -21,9 +24,13 @@
   */
 ELAB_WEAK void elab_assert_func(void)
 {
+#ifdef __linux__
+    assert(0);
+#else
     while (1)
     {
     }
+#endif
 }
 
 /**

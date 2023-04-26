@@ -60,14 +60,6 @@ void elab_assert_func(void);
 #define assert_not_null(ptr_)               assert_name((ptr_ != NULL), #ptr_)
 
 /* Private functions ---------------------------------------------------------*/
-#ifdef __linux__
-#include <assert.h>
-#define elab_assert_func()                  assert(0)
-#else
-void elab_assert_func(void);
-#endif
-
-/* Private functions ---------------------------------------------------------*/
 /**
  * @brief  The internal assert function when assert fails.
  * @param  str_     The given string information, such as object name.
