@@ -7,6 +7,8 @@
 #include "elab_serial.h"
 #include "elab_assert.h"
 
+ELAB_TAG("Edf_Serial");
+
 /* private function prototypes ---------------------------------------------- */
 static elab_err_t _device_enable(elab_device_t *me, bool status);
 static int32_t _device_read(elab_device_t *me,
