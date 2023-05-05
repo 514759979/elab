@@ -10,6 +10,8 @@
 #include "elab_assert.h"
 #include "elab_common.h"
 
+ELAB_TAG("eLibHashTable");
+
 /* private function prototypes ---------------------------------------------- */
 static uint32_t _get_prime_max(uint32_t capacity);
 

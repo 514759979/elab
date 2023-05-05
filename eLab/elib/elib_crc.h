@@ -1,33 +1,33 @@
-/**
- *******************************************************************************
- * @file    platform_crc.h
- * @author  Embedded Software Team @Eric WANG
- * @brief   The crc functions.
- *              + crc32 function.
- *
- * @attention
- *
- * <h2><center>&copy; Copyright (c) 2022 Philips Healthcare (Suzhou).
- * All rights reserved.</center></h2>
- *
- *******************************************************************************
+/*
+ * eLab Project
+ * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
  */
 
-#ifndef PLATFORM_API_PLATFORM_CRC_H_
-#define PLATFORM_API_PLATFORM_CRC_H_
+#ifndef ELAB_CRC_H_
+#define ELAB_CRC_H_
 
+/* includes ----------------------------------------------------------------- */
 #include <stdint.h>
 #include "elab_def.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* public functions --------------------------------------------------------- */
 /**
   * @brief  Private function calculating CRC32 value of one memory.
-  * @param  crc         : The former CRC32 value.
-  * @param  data        : Data buffer to be calculated.
-  * @param  size        : Size of the buffer.
-  * @retval             : CRC32 value.
+  * @param  crc   The former CRC32 value.
+  * @param  data  Data buffer to be calculated.
+  * @param  size  Size of the buffer.
+  * @retval CRC32 value.
   */
 uint32_t elib_crc32(uint32_t crc, void *data, uint32_t size);
 
+#ifdef __cplusplus
+}
 #endif
 
-/********** (C) COPYRIGHT Philips Healthcare Suzhou ***** END OF FILE *********/
+#endif
+
+/* ----------------------------- end of file -------------------------------- */

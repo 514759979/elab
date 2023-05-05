@@ -1,20 +1,12 @@
-/**
- *******************************************************************************
- * @file    platform_crc.c
- * @author  Embedded Software Team @Eric WANG
- * @brief   The crc functions.
- *              + crc32 function.
- *
- * @attention
- *
- * <h2><center>&copy; Copyright (c) 2022 Philips Healthcare (Suzhou).
- * All rights reserved.</center></h2>
- *
- *******************************************************************************
+/*
+ * eLab Project
+ * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
  */
 
+/* includes ----------------------------------------------------------------- */
 #include "elib_crc.h"
 
+/* private variables -------------------------------------------------------- */
 static const uint32_t crc32_table[] =
 {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
@@ -62,6 +54,7 @@ static const uint32_t crc32_table[] =
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
+/* public functions --------------------------------------------------------- */
 /**
   * @brief  Private function calculating CRC32 value of one memory.
   * @param  crc         : The former CRC32 value.
@@ -81,4 +74,4 @@ uint32_t elib_crc32(uint32_t crc, void *data, uint32_t size)
     return (uint32_t)(crc ^ (~0U));
 }
 
-/********** (C) COPYRIGHT Philips Healthcare Suzhou ***** END OF FILE *********/
+/* ----------------------------- end of file -------------------------------- */
