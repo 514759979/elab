@@ -31,17 +31,17 @@ static void task_function_malloc(void *parameter)
     void *data;
 
     printf("Test malloc start.\n");
-    data = platform_malloc(10 * 1024);
+    data = elab_malloc(10 * 1024);
     if (data != NULL)
     {
-        platform_free(data);
+        elab_free(data);
     }
     printf("Test malloc step 1 passed.\n");
 
-    data = platform_malloc(31 * 1024 * 1024);
+    data = elab_malloc(31 * 1024 * 1024);
     if (data != NULL)
     {
-        platform_free(data);
+        elab_free(data);
     }
     else
     {
