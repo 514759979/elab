@@ -6,7 +6,9 @@
 /* include ------------------------------------------------------------------ */
 #include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
+#include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include "elab_export.h"
 #include "elab_common.h"
 
@@ -22,13 +24,17 @@ Q_DEFINE_THIS_FILE
 #include "qpc.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if (ELAB_RTOS_BASIC_OS_EN != 0)
 #define ELAB_GLOBAL_STACK_SIZE                      (4096)
 #endif
 
 /* private function prototype ----------------------------------------------- */
 static void module_null_init(void);
-static void _export_func_execute(uint8_t level);
+static void _export_func_execute(int8_t level);
 #if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
 static void _entry_start_poll(void *para);
 #endif
@@ -80,12 +86,35 @@ void elab_unit_test(void)
     _export_func_execute(EXPORT_TEST);
 }
 
+static bool app_exit = false;
+static bool app_exit_end = false;
+
+#if defined(__linux__)
+static void signal_handle(int sig)
+{
+    printf("Elab Signal: %d.\n", sig);
+    app_exit = true;
+    osKernelEnd();
+
+    elab_exit();
+    system("stty echo");
+
+    app_exit_end = true;
+}
+#endif
+
 /**
   * @brief  eLab polling exporting function.
   * @retval None
   */
 void elab_run(void)
 {
+#if defined(__linux__)
+    signal(SIGINT, signal_handle);
+    signal(SIGTERM, signal_handle);
+    signal(SIGABRT, signal_handle);
+#endif
+
     /* Start polling function in metal eLab, or start the RTOS kernel in RTOS 
        eLab. */
 #if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
@@ -96,6 +125,11 @@ void elab_run(void)
 #endif
 #if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
     osKernelStart();
+    
+    if (!app_exit_end)
+    {
+        elab_exit();
+    }
 #else
     /* Initialize all module in eLab. */
     for (uint8_t level = EXPORT_BSP; level <= EXPORT_APP; level ++)
@@ -104,11 +138,20 @@ void elab_run(void)
     }
 
     /* Start polling function in metal eLab. */
-    while (1)
+    while (!app_exit)
     {
         _export_func_execute(EXPORT_MAX);
     }
 #endif
+}
+
+void elab_exit(void)
+{
+    /* Initialize all module in eLab. */
+    for (int32_t level = -EXPORT_APP; level <= -EXPORT_BSP; level ++)
+    {
+        _export_func_execute(level - 1);
+    }
 }
 
 /* private function --------------------------------------------------------- */
@@ -121,10 +164,11 @@ static elab_export_t * _get_export_table(uint8_t level)
                     level < EXPORT_MAX ?
                     ((elab_export_t *)&init_module_null_init) :
                     ((elab_export_t *)&poll_module_null_init);
+    elab_pointer_t address_last;
     
     while (1)
     {
-        elab_pointer_t address_last = ((elab_pointer_t)func_block - sizeof(elab_export_t));
+        address_last = ((elab_pointer_t)func_block - sizeof(elab_export_t));
         elab_export_t *table = (elab_export_t *)address_last;
         if (table->magic_head != export_id_table[level] ||
             table->magic_tail != export_id_table[level])
@@ -142,9 +186,11 @@ static elab_export_t * _get_export_table(uint8_t level)
   * @param  level export level.
   * @retval None
   */
-static void _export_func_execute(uint8_t level)
+static void _export_func_execute(int8_t level)
 {
     uint32_t export_id = export_id_table[level];
+    bool is_init = level >= 0 ? true : false;
+    level = level < 0 ? (-level - 1) : level;
 
     /* Get the start address of exported poll table. */
     if (export_init_table == NULL)
@@ -164,9 +210,17 @@ static void _export_func_execute(uint8_t level)
         if (export_table[i].magic_head == export_id &&
             export_table[i].magic_tail == export_id)
         {
+            // printf("export!\n");
             if (export_table[i].level == level && level <= EXPORT_APP)
             {
-                ((void (*)(void))export_table[i].func)();
+                if (is_init && export_table[i].type == EXPORT_TYPE_INIT)
+                {
+                    ((void (*)(void))export_table[i].func)();
+                }
+                if (!is_init && export_table[i].type == EXPORT_TYPE_EXIT)
+                {
+                    ((void (*)(void))export_table[i].func)();
+                }
             }
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
             else if (export_table[i].level == level && level == EXPORT_THREAD)
@@ -248,5 +302,9 @@ static void module_null_init(void)
 {
     /* NULL */
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 /* ----------------------------- end of file -------------------------------- */

@@ -33,6 +33,8 @@ typedef enum elab_err
     ELAB_ERR_MEM_OVERLAY                = -9,
     ELAB_ERR_MALLOC                     = -10,
     ELAB_ERR_NOT_ENOUGH                 = -11,
+    ELAB_ERR_NO_SYSTEM                  = -12,
+    ELAB_ERR_BUS                        = -13,
 } elab_err_t;
 
 
@@ -51,10 +53,12 @@ typedef struct elab_time
     uint16_t ms                 : 10;
 } elab_time_t;
 
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(__aarch64__)
 typedef uint64_t                        elab_pointer_t;
-#else
+#elif defined(__i386__) || defined(__arm__)
 typedef uint32_t                        elab_pointer_t;
+#else
+    #error The currnet CPU is NOT supported!
 #endif
 
 #if (ELAB_QPC_EN != 0)
@@ -82,36 +86,40 @@ typedef struct elab_event
 #endif
 
 #ifndef offsetof
-#define offsetof(type, member)          ((uint32_t)&((type *)0)->member)
+#define offsetof(type, member)          ((elab_pointer_t)&((type *)0)->member)
 #endif
 
 /* Compiler Related Definitions */
 #if defined(__CC_ARM) || defined(__CLANG_ARM) /* ARM Compiler */
+
     #include <stdarg.h>
     #define ELAB_SECTION(x)             __attribute__((section(x)))
     #define ELAB_USED                   __attribute__((used))
     #define ELAB_ALIGN(n)               __attribute__((aligned(n)))
     #define ELAB_WEAK                   __attribute__((weak))
-    #define ELAB_INLINE                 static __inline
+    #define elab_inline                 static __inline
 
 #elif defined (__IAR_SYSTEMS_ICC__)           /* for IAR Compiler */
+
     #include <stdarg.h>
     #define ELAB_SECTION(x)             @ x
     #define ELAB_USED                   __root
     #define ELAB_PRAGMA(x)              _Pragma(#x)
     #define ELAB_ALIGN(n)               ELAB_PRAGMA(data_alignment=n)
     #define ELAB_WEAK                   __weak
-    #define ELAB_INLINE                 static inline
+    #define elab_inline                 static inline
 
 #elif defined (__GNUC__)                      /* GNU GCC Compiler */
+
     #include <stdarg.h>
     #define ELAB_SECTION(x)             __attribute__((section(x)))
     #define ELAB_USED                   __attribute__((used))
     #define ELAB_ALIGN(n)               __attribute__((aligned(n)))
     #define ELAB_WEAK                   __attribute__((weak))
-    #define ELAB_INLINE                 static __inline
+    #define elab_inline                 static __inline
+
 #else
-    #error The compiler is not supported!
+    #error The current compiler is NOT supported!
 #endif
 
 #ifdef __cplusplus

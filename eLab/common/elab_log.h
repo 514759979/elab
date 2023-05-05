@@ -9,6 +9,10 @@
 /* includes ----------------------------------------------------------------- */
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* public config ------------------------------------------------------------ */
 #define ELOG_COLOR_ENABLE                           (1)
 
@@ -45,6 +49,10 @@ void _elog_printf(const char *tag, uint8_t level, const char * s_format, ...);
 #define elog_info(...)
 #define elog_debug(...)
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* ELAB_LOG_H_ */

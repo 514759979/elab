@@ -19,8 +19,18 @@ extern "C" {
 #endif
 
 /* public typedef ----------------------------------------------------------- */
+uint32_t elab_version(void);
+
 /* time related. */
 uint32_t elab_time_ms(void);
+void elab_delay_us(void);
+
+/* Memory management related. */
+void *elab_malloc(uint32_t size);
+void elab_free(void *memory);
+
+/* MCU related */
+void elab_mcu_reset(void);
 
 /* uart debug related. */
 void elab_debug_uart_init(uint32_t baudrate);

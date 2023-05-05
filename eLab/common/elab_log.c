@@ -14,6 +14,10 @@
 #include "cmsis_os.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 ELAB_TAG("eLab_Log");
 
 /* private config ----------------------------------------------------------- */
@@ -123,6 +127,10 @@ int _write(int file, char *ptr, int len)
     (void)len;
 
     return 0;
+}
+#endif
+
+#ifdef __cplusplus
 }
 #endif
 

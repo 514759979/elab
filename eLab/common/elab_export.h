@@ -17,11 +17,21 @@
 #include "qpc.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* public define ------------------------------------------------------------ */
 #define EXPORT_ID_INIT                  (0xa5a5a5a5)
 #define EXPORT_ID_POLL                  (0xbeefbeef)
 
 /* public define ------------------------------------------------------------ */
+enum elab_export_type
+{
+    EXPORT_TYPE_INIT = 0,
+    EXPORT_TYPE_EXIT,
+};
+
 enum elab_export_level
 {
     EXPORT_BSP = 0,
@@ -57,15 +67,16 @@ typedef struct elab_export
     uint16_t stack_size;
     uint16_t queue_size;
     uint16_t priority;
-    uint16_t level;
+    uint8_t level;
+    uint8_t type;
     uint32_t period_ms;
-    uint32_t temp[6];
     uint32_t magic_tail;
 } elab_export_t;
 
 /* private function --------------------------------------------------------- */
 void elab_unit_test(void);
 void elab_run(void);
+void elab_exit(void);
 
 /* public export ------------------------------------------------------------ */
 /**
@@ -80,6 +91,24 @@ void elab_run(void);
         .name = "init",                                                        \
         .func = (void *)&_func,                                                \
         .level = _level,                                                       \
+        .type = (uint8_t)EXPORT_TYPE_INIT,                                     \
+        .magic_head = EXPORT_ID_INIT,                                          \
+        .magic_tail = EXPORT_ID_INIT,                                          \
+    }
+
+/**
+  * @brief  Exiting function exporting macro.
+  * @param  _func   The polling function.
+  * @param  _level  The export level. See enum elab_export_level.
+  * @retval None.
+  */
+#define EXIT_EXPORT(_func, _level)                                             \
+    ELAB_USED const elab_export_t exit_##_func ELAB_SECTION("elab_export") =   \
+    {                                                                          \
+        .name = "exit",                                                        \
+        .func = (void *)&_func,                                                \
+        .level = _level,                                                       \
+        .type = (uint8_t)EXPORT_TYPE_EXIT,                                     \
         .magic_head = EXPORT_ID_INIT,                                          \
         .magic_tail = EXPORT_ID_INIT,                                          \
     }
@@ -180,15 +209,15 @@ void elab_run(void);
   * @retval None.
   */
 #define POLL_EXPORT(_func, _period_ms)                                         \
-    static elab_export_poll_data_t poll_##_func##_data =                       \
+    static elab_export_poll_data_t poll_##_data =                              \
     {                                                                          \
         .timeout_ms = 0,                                                       \
     };                                                                         \
     ELAB_USED const elab_export_t poll_##_func ELAB_SECTION("expoll") =        \
     {                                                                          \
-        .name = "poll", \
-        .func = (void *)&_func,                                                \
-        .data = (void *)&poll_##_func##_data,                                  \
+        .name = "poll",                                                        \
+        .func = &_func,                                                        \
+        .data = (void *)&poll_##_data,                                         \
         .level = EXPORT_MAX,                                                   \
         .period_ms = (uint32_t)(_period_ms),                                   \
         .magic_head = EXPORT_ID_POLL,                                          \
@@ -232,11 +261,50 @@ void elab_run(void);
 #define INIT_APP_EXPORT(_func)              INIT_EXPORT(_func, EXPORT_APP)
 
 /**
+  * @brief  Exit function in BSP layer.
+  * @param  _func       The exit function.
+  * @retval None.
+  */
+#define EXIT_BSP_EXPORT(_func)              EXIT_EXPORT(_func, EXPORT_BSP)
+
+/**
+  * @brief  Exit function in IO driver layer.
+  * @param  _func       The exit function.
+  * @retval None.
+  */
+#define EXIT_IO_DRIVER_EXPORT(_func)        EXIT_EXPORT(_func, EXPORT_IO_DRIVER)
+
+/**
+  * @brief  Exit function in component layer.
+  * @param  _func       The exit function.
+  * @retval None.
+  */
+#define EXIT_COMPONENT_EXPORT(_func)        EXIT_EXPORT(_func, EXPORT_COMPONENT)
+
+/**
+  * @brief  Exit function in device layer.
+  * @param  _func       The exit function.
+  * @retval None.
+  */
+#define EXIT_DEV_EXPORT(_func)              EXIT_EXPORT(_func, EXPORT_DEVICE)
+
+/**
+  * @brief  Exit function in appliation layer.
+  * @param  _func       The exit function.
+  * @retval None.
+  */
+#define EXIT_APP_EXPORT(_func)              EXIT_EXPORT(_func, EXPORT_APP)
+
+/**
   * @brief  Testing function in unit test layer.
-  * @param  _func       The initialization function.
+  * @param  _func       The unit testing entry function.
   * @retval None.
   */
 #define INIT_EXPORT_TEST(_func)             INIT_EXPORT(_func, EXPORT_TEST)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ELAB_EXPORT_H__ */
 
