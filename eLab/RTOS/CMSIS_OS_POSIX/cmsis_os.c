@@ -1,17 +1,24 @@
 
+/*
+ * eLab Project
+ * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
+ */
+
 /* includes ----------------------------------------------------------------- */
-#include "cmsis_os.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
 #include <errno.h>
 #include <string.h>
+#include "cmsis_os.h"
+#include "elab_assert.h"
 #include "esh.h"
+
+ELAB_TAG("CmsisOSPosix");
 
 #if defined(__x86_64__)
 typedef uint64_t                        elab_pointer_t;
@@ -373,10 +380,10 @@ osStatus_t osMutexDelete(osMutexId_t mutex_id)
 
 osStatus_t osMutexAcquire(osMutexId_t mutex_id, uint32_t timeout)
 {
-    assert(timeout == osWaitForever);
     assert(mutex_id != NULL);
 
     os_mutex_data_t *data = (os_mutex_data_t *)mutex_id;
+    assert_name(timeout == osWaitForever, data->attr.name);
 
     int ret = pthread_mutex_lock(&data->mutex);
     if (ret != 0)

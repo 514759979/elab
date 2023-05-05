@@ -1,3 +1,8 @@
+/*
+ * eLab Project
+ * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
+ */
+
 #ifndef __CMSIS_OS_H
 #define __CMSIS_OS_H
 
