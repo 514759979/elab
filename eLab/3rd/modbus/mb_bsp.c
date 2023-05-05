@@ -1,16 +1,7 @@
-/**
-  ******************************************************************************
-  * @file    mb_bsp.c
-  * @author  Embedded Software Team @Eric Wang
-  * @brief   uC-Modbus board support package.
-  *
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2022 Philips Healthcare Suzhou.
-  * All rights reserved.</center></h2>
-  *
-  ******************************************************************************
-  */
+/*
+ * eLab Project
+ * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
+ */
 
 /* includes ----------------------------------------------------------------- */
 #include "mb_def.h"
@@ -22,14 +13,10 @@
 #include "cmsis_os.h"
 #include "elab_def.h"
 #include "elab_rs485.h"
-
-#define TAG                                     "modbus_bsp"
-
-#define ELOG_DEBUG_ENABLE                      (1)
-#define ELOG_ENABLE
-
 #include "elab_log.h"
 #include "elab_assert.h"
+
+ELAB_TAG("modbus_bsp");
 
 /* Private define ------------------------------------------------------------*/
 #define MODBUS_SERAIL_RX_BUFSZ                  (256)

@@ -49,7 +49,7 @@
 *********************************************************************************************************
 */
 
-#define  MODBUS_CFG_MAX_CH                           2           /* Maximum number of Modbus channels.                 */
+#define  MODBUS_CFG_MAX_CH                           4           /* Maximum number of Modbus channels.                 */
 
 #define  MODBUS_CFG_BUF_SIZE                       255           /* Maximum outgoing message size.                     */
 
@@ -59,10 +59,10 @@
 *********************************************************************************************************
 */
 
-#define  MODBUS_CFG_FP_EN                       DEF_DISABLED    /* Enable Floating-Point support.                     */
+#define  MODBUS_CFG_FP_EN                       DEF_ENABLED     /* Enable Floating-Point support.                     */
 
 #if     (MODBUS_CFG_FP_EN == DEF_ENABLED)
-#define  MODBUS_CFG_FP_START_IX                  5000           /* Start address of Floating-Point registers          */
+#define  MODBUS_CFG_FP_START_IX                 10000           /* Start address of Floating-Point registers          */
 #else
 #define  MODBUS_CFG_FP_START_IX                 65500           /* Floating point is disabled, set start of ...       */
                                                                 /*   ...FP very high                                  */
@@ -76,13 +76,13 @@
 */
 
 #define  MODBUS_CFG_FC01_EN                DEF_ENABLED          /* Enable or Disable support for Modbus functions     */
-#define  MODBUS_CFG_FC02_EN                DEF_DISABLED
+#define  MODBUS_CFG_FC02_EN                DEF_ENABLED
 #define  MODBUS_CFG_FC03_EN                DEF_ENABLED
-#define  MODBUS_CFG_FC04_EN                DEF_DISABLED
-#define  MODBUS_CFG_FC05_EN                DEF_DISABLED
+#define  MODBUS_CFG_FC04_EN                DEF_ENABLED
+#define  MODBUS_CFG_FC05_EN                DEF_ENABLED
 #define  MODBUS_CFG_FC06_EN                DEF_ENABLED
 #define  MODBUS_CFG_FC08_EN                DEF_DISABLED
-#define  MODBUS_CFG_FC15_EN                DEF_DISABLED
-#define  MODBUS_CFG_FC16_EN                DEF_DISABLED
+#define  MODBUS_CFG_FC15_EN                DEF_ENABLED
+#define  MODBUS_CFG_FC16_EN                DEF_ENABLED
 #define  MODBUS_CFG_FC20_EN                DEF_DISABLED
 #define  MODBUS_CFG_FC21_EN                DEF_DISABLED

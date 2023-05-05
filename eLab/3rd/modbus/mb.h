@@ -59,6 +59,26 @@
 ********************************************************************************
 */
 
+typedef struct elab_mb_channel_cb
+{
+    bool (* coil_read)(uint16_t coil, uint16_t *perr);
+    void (* coil_write)(uint16_t coil, bool coil_val, uint16_t *perr);
+    bool (* di_read)(uint16_t di, uint16_t *perr);
+    uint16_t (* in_reg_read)(uint16_t reg, uint16_t *perr);
+    float (* in_reg_read_fp)(uint16_t reg, uint16_t *perr);
+
+    uint16_t (* holding_reg_read)(uint16_t reg, uint16_t *perr);
+    float (* holding_reg_read_fp)(uint16_t reg, uint16_t *perr);
+    void (* holding_reg_write)(uint16_t reg, uint16_t reg_val_16, uint16_t *perr);
+    void (* holding_reg_write_fp)(uint16_t reg, float reg_val_fp, uint16_t *perr);
+
+    uint16_t (* file_read)(uint16_t file_nbr, uint16_t record_nbr, uint16_t ix,
+                            uint8_t record_len, uint16_t *perr);
+
+    uint16_t (* file_write)(uint16_t file_nbr, uint16_t record_nbr, uint16_t ix,
+                            uint8_t record_len, uint16_t value, uint16_t *perr);
+} elab_mb_channel_cb_t;
+
 typedef  struct  elab_mb_channel_t {
     uint8_t       Ch;                               /* Channel number                                                   */
     bool write_en;                             /* Indicates whether MODBUS writes are enabled for the channel      */
@@ -112,6 +132,8 @@ typedef  struct  elab_mb_channel_t {
     uint8_t       TxFrameData[MODBUS_CFG_BUF_SIZE]; /* Additional data for function requested.                          */
     uint16_t       TxFrameNDataBytes;                /* Number of bytes in the data field.                               */
     uint16_t       TxFrameCRC;                       /* Error check value (LRC or CRC-16).                               */
+
+    elab_mb_channel_cb_t cb;
 } elab_mb_channel_t;
 
  
@@ -126,7 +148,7 @@ extern uint16_t MB_RTU_Freq;                  /* Frequency at which RTU timer is
 extern uint32_t MB_RTU_TmrCtr;                /* Incremented every Modbus RTU timer interrupt                     */
 #endif
 
-extern uint8_t MB_ChCtr;                     /* Modbus channel counter (0..MODBUS_MAX_CH)                        */
+// extern uint8_t MB_ChCtr;                     /* Modbus channel counter (0..MODBUS_MAX_CH)                        */
 extern elab_mb_channel_t modbus_channel_table[MODBUS_CFG_MAX_CH];  /* Modbus channels                                                  */
 
 /*
@@ -154,7 +176,8 @@ elab_mb_channel_t *elab_mb_config_channel(
                         uint8_t port_nbr, uint32_t baud, uint8_t bits,
                         uint8_t parity, uint8_t stops,
                         uint8_t wr_en);
-
+/* Add by GouGe.*/
+void elab_mb_slave_set_cb(elab_mb_channel_t *pch, elab_mb_channel_cb_t *cb);
 void elab_mb_master_set_timeout(elab_mb_channel_t *pch, uint32_t timeout);
 void elab_mb_set_mode(elab_mb_channel_t *pch, uint8_t master_slave, uint8_t mode);
 void elab_mb_set_node_addr(elab_mb_channel_t *pch, uint8_t addr);

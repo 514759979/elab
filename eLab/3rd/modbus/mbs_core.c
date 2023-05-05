@@ -31,7 +31,11 @@
 */
 
 #define   MBS_MODULE
+
+#include "elab_assert.h"
 #include "mb.h"
+
+ELAB_TAG("ModbusSlaveCore");
 
 #if (MODBUS_CFG_SLAVE_EN == DEF_ENABLED)
 
@@ -413,29 +417,29 @@ static  bool  MBS_FC01_CoilRd (elab_mb_channel_t  *pch)
     *presp++ = MBS_RX_FRAME_FC;
     *presp++ = (uint8_t)nbr_bytes;                            /* Set number of data bytes in response message.            */
     while (ix < nbr_coils) {                                     /* Loop through each COIL requested.                        */
-        coil_val = MB_CoilRd(coil,                               /* Get the current value of the coil                        */
-                             &err);
+        /* Get the current value of the coil. */
+        elab_assert(pch->cb.coil_read != NULL);
+        coil_val = pch->cb.coil_read(coil, &err);
         switch (err) {
             case MODBUS_ERR_NONE:
-                 if (coil_val == MODBUS_COIL_ON) {               /* Only set data response bit if COIL is on.                */
-                     *presp |= bit_mask;
-                 }
-                 coil++;
-                 ix++;                                           /* Increment COIL counter.                                  */
-                 if ((ix % 8) == 0) {                            /* Determine if 8 data bits have been filled.               */
-                     bit_mask   = 0x01;                          /* Reset the data mask.                                     */
-                     presp++;                                    /* Increment data frame index.                              */
-                 } else {                                        /* Still in same data byte, so                              */
-                     bit_mask <<= 1;                             /* Shift the data mask to the next higher bit position.     */
-                 }
-                 break;
+                if (coil_val == MODBUS_COIL_ON) {               /* Only set data response bit if COIL is on.                */
+                    *presp |= bit_mask;
+                }
+                coil++;
+                ix++;                                           /* Increment COIL counter.                                  */
+                if ((ix % 8) == 0) {                            /* Determine if 8 data bits have been filled.               */
+                    bit_mask   = 0x01;                          /* Reset the data mask.                                     */
+                    presp++;                                    /* Increment data frame index.                              */
+                } else {                                        /* Still in same data byte, so                              */
+                    bit_mask <<= 1;                             /* Shift the data mask to the next higher bit position.     */
+                }
+                break;
 
             case MODBUS_ERR_RANGE:
             default:
-                 pch->Err = MODBUS_ERR_FC01_02;
-                 MBS_ErrRespSet(pch,
-                                MODBUS_ERR_ILLEGAL_DATA_ADDR);
-                 return (true);                              /* Tell caller that we need to send a response              */
+                pch->Err = MODBUS_ERR_FC01_02;
+                MBS_ErrRespSet(pch, MODBUS_ERR_ILLEGAL_DATA_ADDR);
+                return (true);                              /* Tell caller that we need to send a response. */
         }
     }
     pch->Err = MODBUS_ERR_NONE;
@@ -515,22 +519,23 @@ static  bool  MBS_FC02_DIRd (elab_mb_channel_t  *pch)
     *presp++ =  MBS_RX_FRAME_FC;
     *presp++ = (uint8_t)nbr_bytes;                            /* Set number of data bytes in response message.            */
     while (ix < nbr_di) {                                        /* Loop through each DI requested.                          */
-        di_val = MB_DIRd(di,                                     /* Get the current value of the DI                          */
-                         &err);
+        /* Get the current value of the DI. */
+        elab_assert(pch->cb.di_read != NULL);
+        di_val = pch->cb.di_read(di, &err);
         switch (err) {
             case MODBUS_ERR_NONE:
-                 if (di_val == MODBUS_COIL_ON) {                 /* Only set data response bit if DI is on.                  */
-                     *presp |= bit_mask;
-                 }
-                 di++;
-                 ix++;                                           /* Increment DI counter.                                    */
-                 if ((ix % 8) == 0) {                            /* Determine if 8 data bits have been filled.               */
-                     bit_mask   = 0x01;                          /* Reset the data mask.                                     */
-                     presp++;                                    /* Increment data frame index.                              */
-                 } else {                                        /* Still in same data byte, so                              */
-                     bit_mask <<= 1;                             /* Shift the data mask to the next higher bit position.     */
-                 }
-                 break;
+                if (di_val == MODBUS_COIL_ON) {                 /* Only set data response bit if DI is on.                  */
+                    *presp |= bit_mask;
+                }
+                di++;
+                ix++;                                           /* Increment DI counter.                                    */
+                if ((ix % 8) == 0) {                            /* Determine if 8 data bits have been filled.               */
+                    bit_mask   = 0x01;                          /* Reset the data mask.                                     */
+                    presp++;                                    /* Increment data frame index.                              */
+                } else {                                        /* Still in same data byte, so                              */
+                    bit_mask <<= 1;                             /* Shift the data mask to the next higher bit position.     */
+                }
+                break;
 
             case MODBUS_ERR_RANGE:
             default:
@@ -625,8 +630,7 @@ static  bool  MBS_FC03_HoldingRegRd (elab_mb_channel_t  *pch)
 #else
     if (nbr_regs == 0 || nbr_regs > 125) {                       /* Make sure we don't exceed the allowed limit per request  */
         pch->Err = MODBUS_ERR_FC03_03;
-        MBS_ErrRespSet(pch,
-                       MODBUS_ERR_ILLEGAL_DATA_QTY);
+        MBS_ErrRespSet(pch, MODBUS_ERR_ILLEGAL_DATA_QTY);
         return (true);                                       /* Tell caller that we need to send a response              */
     }
     nbr_bytes = (uint8_t)(nbr_regs * sizeof(uint16_t));     /* Find #bytes needed for response.                         */
@@ -636,56 +640,71 @@ static  bool  MBS_FC03_HoldingRegRd (elab_mb_channel_t  *pch)
     *presp++              =  MBS_RX_FRAME_ADDR;
     *presp++              =  MBS_RX_FRAME_FC;
     *presp++              = (uint8_t)nbr_bytes;               /* Set number of data bytes in response message             */
-    while (nbr_regs > 0) {                                       /* Loop through each register requested.                    */
-        if (reg < MODBUS_CFG_FP_START_IX) {                      /* See if we want an integer register                       */
-            reg_val_16 = MB_HoldingRegRd(reg,                    /* Yes, get its value                                       */
-                                         &err);
-            switch (err) {
+
+    /* Loop through each register requested. */
+    while (nbr_regs > 0)
+    {
+        /* See if we want an integer register. */
+        if (reg < MODBUS_CFG_FP_START_IX)
+        {
+            /* Yes, get its value. */
+            elab_assert(pch->cb.holding_reg_read != NULL);
+            reg_val_16 = pch->cb.holding_reg_read(reg, &err);
+            switch (err)
+            {
                 case MODBUS_ERR_NONE:
-                     *presp++ = (uint8_t)((reg_val_16 >> 8) & 0x00FF); /*      Get MSB first.                             */
-                     *presp++ = (uint8_t)(reg_val_16 & 0x00FF);        /*      Get LSB next.                              */
-                     break;
+                    *presp++ = (uint8_t)((reg_val_16 >> 8) & 0x00FF); /* MSB */
+                    *presp++ = (uint8_t)(reg_val_16 & 0x00FF);        /* LSB */
+                    break;
 
                 case MODBUS_ERR_RANGE:
                 default:
-                     pch->Err = MODBUS_ERR_FC03_01;
-                     MBS_ErrRespSet(pch,
-                                    MODBUS_ERR_ILLEGAL_DATA_ADDR);
-                     return (true);
+                    pch->Err = MODBUS_ERR_FC03_01;
+                    MBS_ErrRespSet(pch, MODBUS_ERR_ILLEGAL_DATA_ADDR);
+                    return (true);
             }
-        } else {
+        }
+        else
+        {
 #if (MODBUS_CFG_FP_EN == DEF_ENABLED)
-            reg_val_fp = MB_HoldingRegRdFP(reg,                  /* No,  get the value of the FP register                    */
-                                           &err);
-            switch (err) {
+            /* No, get the value of the FP register. */
+            elab_assert(pch->cb.holding_reg_read_fp != NULL);
+            reg_val_fp = pch->cb.holding_reg_read_fp(reg, &err);
+            switch (err)
+            {
                 case MODBUS_ERR_NONE:
-                     pfp = (uint8_t *)&reg_val_fp;            /* Point to the FP register                                 */
+                    /* Point to the FP register. */
+                    pfp = (uint8_t *)&reg_val_fp;            
 #if (CPU_CFG_ENDIAN_TYPE == CPU_ENDIAN_TYPE_BIG)
-                     for (ix = 0; ix < sizeof(float); ix++) { /* Copy value to response buffer                            */
-                         *presp++ = *pfp++;
-                     }
+                    for (ix = 0; ix < sizeof(float); ix++) { /* Copy value to response buffer                            */
+                        *presp++ = *pfp++;
+                    }
 #else
-                     pfp += sizeof(float) - 1;
-                     for (ix = 0; ix < sizeof(float); ix++) {
-                         *presp++ = *pfp--;
-                     }
+                    pfp += sizeof(float) - 1;
+                    for (ix = 0; ix < sizeof(float); ix++) {
+                        *presp++ = *pfp--;
+                    }
 #endif
-                     break;
+                    break;
 
                 case MODBUS_ERR_RANGE:
                 default:
-                     pch->Err = MODBUS_ERR_FC03_02;
-                     MBS_ErrRespSet(pch,
-                                    MODBUS_ERR_ILLEGAL_DATA_ADDR);
-                     return (true);
+                    pch->Err = MODBUS_ERR_FC03_02;
+                    MBS_ErrRespSet(pch,
+                                MODBUS_ERR_ILLEGAL_DATA_ADDR);
+                    return (true);
             }
 #endif
         }
-        reg++;                                                   /* Increment current register number                        */
-        nbr_regs--;
+
+        /* Increment current register number. */
+        reg ++;
+        nbr_regs --;
     }
     pch->Err = MODBUS_ERR_NONE;
-    return (true);                                           /* Tell caller that we need to send a response              */
+
+    /* Tell caller that we need to send a response. */
+    return (true);
 }
 #endif
 #endif
@@ -777,9 +796,11 @@ static  bool  MBS_FC04_InRegRd (elab_mb_channel_t  *pch)
     *presp++              =  MBS_RX_FRAME_FC;
     *presp++              = (uint8_t)nbr_bytes;               /* Set number of data bytes in response message             */
     while (nbr_regs > 0) {                                       /* Loop through each register requested.                    */
-        if (reg < MODBUS_CFG_FP_START_IX) {                      /* See if we want an integer register                       */
-            reg_val_16 = MB_InRegRd(reg,                         /* Yes, get its value                                       */
-                                    &err);
+        if (reg < MODBUS_CFG_FP_START_IX)                       /* See if we want an integer register                       */
+        {
+            elab_assert(pch->cb.in_reg_read != NULL);
+            /* Yes, get its value. */
+            reg_val_16 = pch->cb.in_reg_read(reg, &err);
             switch (err) {
                 case MODBUS_ERR_NONE:
                      *presp++ = (uint8_t)((reg_val_16 >> 8) & 0x00FF); /*      Get MSB first.                             */
@@ -889,9 +910,9 @@ static  bool  MBS_FC05_CoilWr (elab_mb_channel_t  *pch)
         } else {
             coil_val = 1;                                        /* No,  Turn coil ON                                        */
         }
-        MB_CoilWr(coil,                                          /* Force coil                                               */
-                  coil_val,
-                  &err);
+        /* Force coil. */
+        elab_assert(pch->cb.coil_write != NULL);
+        pch->cb.coil_write(coil, coil_val, &err);
     } else {
         pch->Err = MODBUS_ERR_FC05_02;
         MBS_ErrRespSet(pch,                                      /* Writes are not enabled                                   */
@@ -966,25 +987,35 @@ static  bool  MBS_FC06_HoldingRegWr (elab_mb_channel_t *pch)
     uint8_t   i;
     uint8_t   max;
     uint16_t err;
-    uint16_t   reg;
+    uint16_t reg = MBS_RX_DATA_START;
     uint16_t   reg_val_16;
 #if (MODBUS_CFG_FP_EN == DEF_ENABLED)
-    float     reg_val_fp;
+    float     reg_val_fp = 1.0;
     uint8_t  *pfp;
 #endif
 
-
-    if (pch->RxFrameNDataBytes != 4) {                           /* Nbr of data bytes must be 4.                             */
+    /* Nbr of data bytes must be 4. */
+    if (pch->RxFrameNDataBytes != 4 && reg < MODBUS_CFG_FP_START_IX)
+    {
         return (false);
     }
-    reg = MBS_RX_DATA_START;
+
+    /* Nbr of data bytes must be 6. */
+    if (pch->RxFrameNDataBytes != 6 && reg >= MODBUS_CFG_FP_START_IX)
+    {
+        return (false);
+    }
+    
 #if (MODBUS_CFG_FP_EN == DEF_ENABLED)
-    if (reg < MODBUS_CFG_FP_START_IX) {
+    if (reg < MODBUS_CFG_FP_START_IX)
+    {
         reg_val_16 = MBS_RX_DATA_REG;
-        MB_HoldingRegWr(reg,                                     /* Write to integer register                                */
-                        reg_val_16,
-                        &err);
-    } else {
+        /* Write to integer register. */
+        elab_assert(pch->cb.holding_reg_write != NULL);
+        pch->cb.holding_reg_write(reg, reg_val_16, &err);
+    }
+    else
+    {
         prx_data = &pch->RxFrameData[4];                         /* Point to data in the received frame.                     */
         pfp      = (uint8_t *)&reg_val_fp;
 #if CPU_CFG_ENDIAN_TYPE == CPU_ENDIAN_TYPE_BIG
@@ -997,15 +1028,15 @@ static  bool  MBS_FC06_HoldingRegWr (elab_mb_channel_t *pch)
             *pfp++ = *prx_data--;
         }
 #endif
-        MB_HoldingRegWrFP(reg,                                   /* Write to floating point register                         */
-                          reg_val_fp,
-                          &err);
+        /* Write to floating point register. */
+        elab_assert(pch->cb.holding_reg_write_fp != NULL);
+        pch->cb.holding_reg_write_fp(reg, reg_val_fp, &err);
     }
 #else
     reg_val_16 = MBS_RX_DATA_REG;
-    MB_HoldingRegWr(reg,                                         /* Write to integer register                                */
-                    reg_val_16,
-                    &err);
+    /* Write to integer register. */
+    elab_assert(pch->cb.holding_reg_write != NULL);
+    pch->cb.holding_reg_write(reg, reg_val_16, &err);
 #endif
     pch->TxFrameNDataBytes = 4;
     MBS_TX_FRAME_ADDR      = MBS_RX_FRAME_ADDR;                  /* Prepare response packet (duplicate Rx frame)             */
@@ -1178,7 +1209,6 @@ static  bool  MBS_FC15_CoilWrMultiple (elab_mb_channel_t  *pch)
     uint8_t   temp;
     uint16_t err;
 
-
     if (pch->write_en == true) {
         if (pch->RxFrameNDataBytes < 6) {                        /* Minimum Nbr of data bytes must be 6.                     */
             return (false);                                  /* Tell caller that we DON'T need to send a response        */
@@ -1199,9 +1229,8 @@ static  bool  MBS_FC15_CoilWrMultiple (elab_mb_channel_t  *pch)
                 } else {
                     coil_val = MODBUS_COIL_OFF;
                 }
-                MB_CoilWr(coil + ix,
-                          coil_val,
-                          &err);
+                elab_assert(pch->cb.coil_write != NULL);
+                pch->cb.coil_write(coil + ix, coil_val, &err);
                 switch (err) {
                     case MODBUS_ERR_NONE:
                          break;                                  /* Continue with the next coil if no error                  */
@@ -1339,8 +1368,7 @@ static  bool  MBS_FC16_HoldingRegWrMultiple (elab_mb_channel_t *pch)
     }
     if ((nbr_bytes / nbr_regs) != (uint16_t)data_size) {
         pch->Err = MODBUS_ERR_FC16_02;
-        MBS_ErrRespSet(pch,
-                       MODBUS_ERR_ILLEGAL_DATA_VAL);
+        MBS_ErrRespSet(pch, MODBUS_ERR_ILLEGAL_DATA_VAL);
         return (true);                                       /* Tell caller that we need to send a response              */
     }
     while (nbr_regs > 0) {
@@ -1348,31 +1376,30 @@ static  bool  MBS_FC16_HoldingRegWrMultiple (elab_mb_channel_t *pch)
         if (reg < MODBUS_CFG_FP_START_IX) {
             reg_val_16  = ((uint16_t)*prx_data++) << 8;        /* Get MSB first.                                           */
             reg_val_16 +=  (uint16_t)*prx_data++;              /* Add in the LSB.                                          */
-            MB_HoldingRegWr(reg,
-                            reg_val_16,
-                            &err);
-        } else {
+            elab_assert(pch->cb.holding_reg_write != NULL);
+            pch->cb.holding_reg_write(reg, reg_val_16, &err);
+        }
+        else
+        {
             pfp = (uint8_t *)&reg_val_fp;
   #if CPU_CFG_ENDIAN_TYPE == CPU_ENDIAN_TYPE_BIG
             for (i = 0; i < sizeof(float); i++) {
-                *pfp++   = *prx_data++;
+                *pfp++ = *prx_data++;
             }
   #else
             pfp += sizeof(float) - 1;
             for (i = 0; i < sizeof(float); i++) {
-                *pfp--   = *prx_data++;
+                *pfp-- = *prx_data++;
             }
   #endif
-            MB_HoldingRegWrFP(reg,
-                              reg_val_fp,
-                              &err);
+            elab_assert(pch->cb.holding_reg_write_fp != NULL);
+            pch->cb.holding_reg_write_fp(reg, reg_val_fp, &err);
         }
 #else
         reg_val_16  = ((uint16_t)*prx_data++) << 8;            /* Get MSB first.                                           */
         reg_val_16 +=  (uint16_t)*prx_data++;                  /* Add in the LSB.                                          */
-        MB_HoldingRegWr(reg,
-                        reg_val_16,
-                        &err);
+        elab_assert(pch->cb.holding_reg_write != NULL);
+        pch->cb.holding_reg_write(reg, reg_val_16, &err);
 #endif
 
         switch (err) {                                           /* See if any errors in writing the data                    */

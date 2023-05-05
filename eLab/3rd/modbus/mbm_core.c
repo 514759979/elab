@@ -749,20 +749,22 @@ uint16_t MBM_FC06_HoldingRegWrFP(elab_mb_channel_t *pch,
     uint8_t  *p_fp;
     uint8_t  *p_data;
 
-
-
-    MBM_TX_FRAME_NBYTES       = 4;
-    MBM_TX_FRAME_SLAVE_ADDR   = slave_node;                                     /* Setup command                     */
+    MBM_TX_FRAME_NBYTES       = 6;
+    MBM_TX_FRAME_SLAVE_ADDR   = slave_node;             /* Setup command. */
     MBM_TX_FRAME_FC           = 6;
     MBM_TX_FRAME_FC06_ADDR_HI = (uint8_t)((slave_addr >> 8) & 0x00FF);
     MBM_TX_FRAME_FC06_ADDR_LO = (uint8_t) (slave_addr       & 0x00FF);
 
-    p_fp   = (uint8_t *)&reg_val_fp;                                         /* Point to the FP value             */
+    /* Point to the FP value. */
+    p_fp   = (uint8_t *)&reg_val_fp;
     p_data = MBM_TX_FRAME_FC06_DATA_ADDR;
 
 #if CPU_CFG_ENDIAN_TYPE == CPU_ENDIAN_TYPE_BIG
-    for (i = 0; i < sizeof(float); i++) {                                    /* Copy value to transmit buffer     */
+    /* Copy value to transmit buffer. */
+    for (i = 0; i < sizeof(float); i++)
+    {
         *p_data++ = *p_fp++;
+        
     }
 #else
     p_fp += sizeof(float) - 1;
@@ -771,16 +773,21 @@ uint16_t MBM_FC06_HoldingRegWrFP(elab_mb_channel_t *pch,
     }
 #endif
 
-    MBM_TxCmd(pch);                                                             /* Send command                      */
+    /* Send command. */
+    MBM_TxCmd(pch);
 
-    elab_mb_os_rx_wait(pch,                                                           /* Wait for response from slave      */
-                 &err);
+    /* Wait for response from slave. */
+    elab_mb_os_rx_wait(pch, &err);
 
-    if (err == MODBUS_ERR_NONE) {
+    if (err == MODBUS_ERR_NONE)
+    {
         ok = MBM_RxReply(pch);
-        if (ok == true) {
-            err = MBM_RegWr_Resp(pch);                                          /* Parse the response from the slave */
-        } else {
+        if (ok == true)
+        {
+            /* Parse the response from the slave */
+            err = MBM_RegWr_Resp(pch);
+        }
+        else {
             err = MODBUS_ERR_RX;
         }
     }
@@ -911,15 +918,12 @@ uint16_t  MBM_FC15_CoilWr (elab_mb_channel_t   *pch,
                              uint16_t   nbr_coils)
 {
     uint16_t err;
-    bool ok;
     uint8_t   nbr_bytes;
     uint8_t   i;
     uint8_t  *p_data;
 
-
-
-    MBM_TX_FRAME_NBYTES             =  4;
-    MBM_TX_FRAME_SLAVE_ADDR         = slave_node;                               /* Setup command                     */
+    MBM_TX_FRAME_NBYTES             =  6;
+    MBM_TX_FRAME_SLAVE_ADDR         = slave_node;       /* Setup command. */
     MBM_TX_FRAME_FC                 = 15;
     MBM_TX_FRAME_FC15_ADDR_HI       = (uint8_t) ((slave_addr >> 8) & 0x00FF);
     MBM_TX_FRAME_FC15_ADDR_LO       = (uint8_t)  (slave_addr       & 0x00FF);
@@ -929,26 +933,32 @@ uint16_t  MBM_FC15_CoilWr (elab_mb_channel_t   *pch,
     MBM_TX_FRAME_FC15_BYTE_CNT      = nbr_bytes;
     p_data                          = MBM_TX_FRAME_FC15_DATA;
 
-    for (i = 0; i < nbr_bytes; i++) {
+    for (i = 0; i < nbr_bytes; i++)
+    {
         *p_data++ = *p_coil_tbl++;
     }
 
-    MBM_TxCmd(pch);                                                             /* Send command                      */
+    MBM_TxCmd(pch);                                     /* Send command. */
 
-    elab_mb_os_rx_wait(pch,                                                           /* Wait for response from slave      */
-                 &err);
+    /* Wait for response from slave. */
+    elab_mb_os_rx_wait(pch, &err);
 
-    if (err == MODBUS_ERR_NONE) {
-        ok = MBM_RxReply(pch);
-        if (ok == MODBUS_TRUE) {
-            err = MBM_CoilWrN_Resp(pch);                                        /* Parse the response from the slave */
-        } else {
+    if (err == MODBUS_ERR_NONE)
+    {
+        bool ok = MBM_RxReply(pch);
+        if (ok == MODBUS_TRUE)
+        {
+            /* Parse the response from the slave */
+            err = MBM_CoilWrN_Resp(pch);
+        }
+        else
+        {
             err = MODBUS_ERR_RX;
         }
     }
 
     pch->RxBufByteCtr = 0;
-    pch->RxBufPtr     = &pch->RxBuf[0];
+    pch->RxBufPtr = &pch->RxBuf[0];
 
     return (err);
 }

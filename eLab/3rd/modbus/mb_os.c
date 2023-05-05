@@ -1,32 +1,18 @@
 
-
-/**
-  ******************************************************************************
-  * @file    mb_os.c
-  * @author  Embedded Software Team @Eric Wang
-  * @brief   uC-Modbus RTOS layer interface.
-  *
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2022 Philips Healthcare Suzhou.
-  * All rights reserved.</center></h2>
-  *
-  ******************************************************************************
-  */
+/*
+ * eLab Project
+ * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
+ */
 
 /* includes ----------------------------------------------------------------- */
 #define MB_OS_MODULE
 
 #include "mb.h"
 #include "cmsis_os.h"
-
-#define TAG                                     "modbus_os"
-
-#define ELOG_DEBUG_ENABLE                      (1)
-#define ELOG_ENABLE
-
 #include "elab_log.h"
 #include "elab_assert.h"
+
+ELAB_TAG("modbus_os");
 
 /* Private variables ---------------------------------------------------------*/
 #if (MODBUS_CFG_MASTER_EN == DEF_ENABLED)
@@ -271,4 +257,4 @@ static void  _entry_slave_rx(void *paras)
 }
 #endif
 
-/********** (C) COPYRIGHT Philips Healthcare Suzhou ***** END OF FILE *********/
+/* ----------------------------- end of file -------------------------------- */

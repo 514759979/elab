@@ -1,16 +1,7 @@
-/**
-  ******************************************************************************
-  * @file    mb_bsp.h
-  * @author  Embedded Software Team @Eric Wang
-  * @brief   The header file for mb bsp data structure definitions.
-  *
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2022 Philips Healthcare Suzhou.
-  * All rights reserved.</center></h2>
-  *
-  ******************************************************************************
-  */
+/*
+ * eLab Project
+ * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
+ */
 
 #ifndef MB_BSP_H
 #define MB_BSP_H
@@ -41,4 +32,4 @@ typedef struct mb_dev_info
 
 #endif  /* MB_BSP_H */
 
-/********** (C) COPYRIGHT Philips Healthcare Suzhou ***** END OF FILE *********/
+/* ----------------------------- end of file -------------------------------- */

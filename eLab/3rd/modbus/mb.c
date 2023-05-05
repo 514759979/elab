@@ -30,7 +30,14 @@
 */
 
 #define    MB_MODULE
-#include  "mb.h"
+
+#include "elab_assert.h"
+#include <stdlib.h>
+#include "mb.h"
+
+static uint8_t MB_ChCtr = 0;
+
+ELAB_TAG("MB");
 
 #if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
 uint32_t  const  MB_TotalRAMSize = sizeof(MB_RTU_Freq)
@@ -223,10 +230,42 @@ elab_mb_channel_t  *elab_mb_config_channel (uint8_t  node_addr,
         pch->RTU_TimeoutCtr  = cnts;
 #endif
         MB_ChCtr++;
+
+        pch->cb.coil_read = NULL;
+        pch->cb.coil_write = NULL;
+        pch->cb.di_read = NULL;
+        pch->cb.in_reg_read = NULL;
+        pch->cb.in_reg_read_fp = NULL;
+        pch->cb.holding_reg_read = NULL;
+        pch->cb.holding_reg_read_fp = NULL;
+        pch->cb.holding_reg_write = NULL;
+        pch->cb.holding_reg_write_fp = NULL;
+        pch->cb.file_read = NULL;
+        pch->cb.file_write = NULL;
+
         return (pch);
-    } else {
+    }
+    else
+    {
         return ((elab_mb_channel_t *)0);
     }
+}
+
+void elab_mb_slave_set_cb(elab_mb_channel_t *pch, elab_mb_channel_cb_t *cb)
+{
+    elab_assert(pch->m_or_s == MODBUS_SLAVE);
+
+    pch->cb.coil_read = cb->coil_read;
+    pch->cb.coil_write = cb->coil_write;
+    pch->cb.di_read = cb->di_read;
+    pch->cb.in_reg_read = cb->in_reg_read;
+    pch->cb.in_reg_read_fp = cb->in_reg_read_fp;
+    pch->cb.holding_reg_read = cb->holding_reg_read;
+    pch->cb.holding_reg_read_fp = cb->holding_reg_read_fp;
+    pch->cb.holding_reg_write = cb->holding_reg_write;
+    pch->cb.holding_reg_write_fp = cb->holding_reg_write_fp;
+    pch->cb.file_read = cb->file_read;
+    pch->cb.file_write = cb->file_write;
 }
 
 /*
@@ -249,10 +288,10 @@ elab_mb_channel_t  *elab_mb_config_channel (uint8_t  node_addr,
 *********************************************************************************************************
 */
 
-void  elab_mb_master_set_timeout (elab_mb_channel_t  *pch,
-                           uint32_t  timeout)
+void elab_mb_master_set_timeout(elab_mb_channel_t *pch, uint32_t timeout)
 {
-    if (pch != (elab_mb_channel_t *)0) {
+    if (pch != (elab_mb_channel_t *)0)
+    {
         pch->RxTimeout = timeout;
     }
 }
@@ -336,10 +375,10 @@ void  elab_mb_set_mode (elab_mb_channel_t  *pch,
 *********************************************************************************************************
 */
 
-void  elab_mb_set_node_addr (elab_mb_channel_t  *pch,
-                      uint8_t  node_addr)
+void elab_mb_set_node_addr(elab_mb_channel_t *pch, uint8_t node_addr)
 {
-    if (pch != (elab_mb_channel_t *)0) {
+    if (pch != (elab_mb_channel_t *)0)
+    {
         pch->NodeAddr = node_addr;
     }
 }
