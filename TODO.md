@@ -1,8 +1,8 @@
 # TODO
 -----------
 1. 【完成】printf的实现
-2. assert的实现
-3. assert全功能的实现
+2. 【完成】assert的实现
+3. 【完成】assert全功能的实现
 4. 【完成】log的实现
 5. 【完成】BasicOS的运行。
 6. 共享栈BasicOS的实现。
