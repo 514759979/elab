@@ -14,8 +14,9 @@
 
 #include <stdint.h>
 #include "shell_cfg.h"
+#include "elab_def.h"
 
-typedef int64_t                        shell_pointer_t;
+#define shell_pointer_t                 elab_pointer_t
 
 #define     SHELL_VERSION               "3.1.1"                 /**< 版本号 */
 #define     SHELL_MAGIC_NUM             (0xdeb55fed)
@@ -446,6 +447,9 @@ typedef struct shell_command
             const char *desc;                                   /**< 按键描述 */
         } key;                                                  /**< 按键定义 */
     } data;
+#ifdef __linux__
+    uint32_t data_add[7];
+#endif
     uint32_t magic_tail;
 } ShellCommand;
 
