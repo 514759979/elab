@@ -275,8 +275,8 @@ osStatus_t osEventFlagsDelete(osEventFlagsId_t ef_id);
 /* -----------------------------------------------------------------------------
 Malloc & Free
 ----------------------------------------------------------------------------- */
-void * platform_malloc(uint32_t size);
-void platform_free(void *data);
+void * elab_malloc(uint32_t size);
+void elab_free(void *data);
 
 /* -----------------------------------------------------------------------------
 Assert
