@@ -1,31 +1,27 @@
+
 /*
  * eLab Project
  * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
  */
 
-#ifndef ELAB_DEVICE_DEF_H
-#define ELAB_DEVICE_DEF_H
+#ifndef SIMU_IO_CONFIG_H
+#define SIMU_IO_CONFIG_H
 
-/* includes ----------------------------------------------------------------- */
-#include "elab_device.h"
+/* include ------------------------------------------------------------------ */
+#include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* public define ------------------------------------------------------------ */
-enum elab_device_user
-{
-    ELAB_DEVICE_MOTOR = ELAB_DEVICE_NORMAL_MAX,
-    ELAB_DEVICE_IMU,
-
-    ELAB_DEVICE_MAX,
-};
+#define SIMU_HASH_TABLE_SIZE                    (128)
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif  /* SIMU_IO_CONFIG_H */
 
 /* ----------------------------- end of file -------------------------------- */

@@ -13,9 +13,13 @@
 #include "elab_def.h"
 #include "cmsis_os.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* public config ------------------------------------------------------------ */
 #define ELAB_DEV_NUM_MAX                (32)
-#define ELAB_DEV_PALTFORM               (0)     /* 0 - RTOS, 1 - Polling */
+#define ELAB_DEV_PALTFORM               ELAB_PALTFORM_RTOS
 
 /* public define ------------------------------------------------------------ */
 enum elab_device_type
@@ -42,8 +46,8 @@ enum elab_device_type
 
 enum elab_device_layer
 {
-    ELAB_DEV_LAYER_NORAML = 0,                /* On-chip device mode */
-    ELAB_DEV_LAYER_USER,                      /* User defined device mode */
+    ELAB_DEV_LAYER_NORAML = 0,                  /* On-chip device mode */
+    ELAB_DEV_LAYER_USER,                        /* User defined device mode */
 };
 
 enum elab_device_boot_level
@@ -66,9 +70,11 @@ typedef struct elab_device_attr
     uint8_t type;
 } elab_device_attr_t;
 
+struct elab_device;
 typedef struct elab_driver
 {
     struct elab_driver *next;
+    struct elab_device *device;
     const char *name;
     void *ops;
     uint8_t type;
@@ -82,7 +88,8 @@ typedef struct elab_device
     elab_device_attr_t attr;
 
     uint8_t enable_count;
-#if (ELAB_DEV_PALTFORM == 0)
+#if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_RTOS)
+    uint8_t lock_count;
     osMutexId_t mutex;
 #endif
 
@@ -97,32 +104,126 @@ typedef struct elab_dev_ops
     elab_err_t (* enable)(elab_device_t *me, bool status);
     int32_t (* read)(elab_device_t *me, uint32_t pos, void *buffer, uint32_t size);
     int32_t (* write)(elab_device_t *me, uint32_t pos, const void *buffer, uint32_t size);
-#if (ELAB_DEV_PALTFORM == 1)
+#if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
     void (* poll)(elab_device_t *me);
 #endif
 } elab_dev_ops_t;
 
+#define ELAB_DEVICE_CAST(_dev)      ((elab_device_t *)_dev)
+
 /* public functions --------------------------------------------------------- */
+/**
+ * @brief This function registers a device with its atttibutes.
+ * @param me    Device handle
+ * @param attr  the device driver's atttibute.
+ * @return None.
+ */
 void elab_device_register(elab_device_t *me, elab_device_attr_t *attr);
-void elab_device_boot(uint8_t mode);
 
+/**
+ * @brief This function finds a device driver by specified name.
+ * @param name  Device name.
+ * @param attr  the device driver's atttibute.
+ * @return Device handle. If not found, return NULL.
+ */
 elab_device_t *elab_device_find(const char *name);
-/* TODO */
+
+/**
+ * @brief This function check one device name is valid or not.
+ * @param name  Device name.
+ * @return Valid if true and invalid if false.
+ */
+bool elab_device_valid(const char *name);
+
+/**
+ * @brief This function check one device is enabled or not.
+ * @param name  Device name.
+ * @return Valid if true and invalid if false.
+ */
+bool elab_device_is_enabled(elab_device_t *me);
+
+/**
+ * @brief Add a new driver to the existent device.
+ * @param name      Device name.
+ * @param driver    Device driver.
+ * @return None.
+ */
+/* TODO For EDF V2.0*/
 void elab_device_add_driver(const char *name, elab_driver_t *driver);
-/* TODO */
+
+/**
+ * @brief Enable a driver of the given device.
+ * @param name      Device name.
+ * @param driver    driver name.
+ * @return None.
+ */
+/* TODO For EDF V2.0*/
 void elab_device_driver_enable(const char *name, const char *driver);
-elab_err_t elab_device_enable(elab_device_t *me, bool status);
-void elab_device_mutex_lock(elab_device_t *me, bool status);
-int32_t elab_device_read(elab_device_t *me, uint32_t pos, void *buffer, uint32_t size);
-int32_t elab_device_write(elab_device_t *me, uint32_t pos, const void *buffer, uint32_t size);
 
-#define elab_devide_open(_dev)              elab_device_enable(_dev, true)
-#define elab_devide_close(_dev)             elab_device_enable(_dev, false)
+/**
+ * @brief Device general reading function.
+ * @param me        Device handle.
+ * @param pos       Reading position
+ * @param buffer    Reading buffer.
+ * @param size      Expected read size.
+ * @return if > 0, actual reading size; if < 0, error ID.
+ */
+int32_t elab_device_read(elab_device_t *me,
+                            uint32_t pos, void *buffer, uint32_t size);
 
-#define elab_device_lock(_dev)              elab_device_mutex_lock(_dev, true)
-#define elab_device_unlock(_dev)            elab_device_mutex_unlock(_dev, false)
+/**
+ * @brief Device general writting function.
+ * @param me        Device handle.
+ * @param pos       Writting position
+ * @param buffer    Writting buffer.
+ * @param size      Expected writting size.
+ * @return if > 0, actual writting size; if < 0, error ID.
+ */
+int32_t elab_device_write(elab_device_t *me,
+                            uint32_t pos, const void *buffer, uint32_t size);
+
+/**
+ * @brief Open the given device.
+ * @param _dev  Device handle.
+ * @return None.
+ */
+#define elab_device_open(_dev)              __device_enable(ELAB_DEVICE_CAST(_dev), true)
+
+/**
+ * @brief Close the given device.
+ * @param _dev  Device handle.
+ * @return None.
+ */
+#define elab_device_close(_dev)             __device_enable(ELAB_DEVICE_CAST(_dev), false)
+
+/**
+ * @brief Lock the device to ensure its thread-safety.
+ * @param _dev  Device handle.
+ * @return None.
+ */
+#define elab_device_lock(_dev)              __device_mutex_lock(ELAB_DEVICE_CAST(_dev), true)
+
+/**
+ * @brief Unlock the device to ensure its thread-safety.
+ * @param _dev  Device handle.
+ * @return None.
+ */
+#define elab_device_unlock(_dev)            __device_mutex_lock(ELAB_DEVICE_CAST(_dev), false)
+
+/* private function --------------------------------------------------------- */
+void __device_mutex_lock(elab_device_t *me, bool status);
+elab_err_t __device_enable(elab_device_t *me, bool status);
+
+/* private define ----------------------------------------------------------- */
+/* eLab platform */
+#define ELAB_PALTFORM_RTOS                  (0)
+#define ELAB_PALTFORM_POLL                  (1)
+#define ELAB_PALTFORM_BASIC_OS              (2)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ELAB_DEVICE_H */
 
 /* ----------------------------- end of file -------------------------------- */
-

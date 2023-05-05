@@ -10,6 +10,10 @@
 #include "elab_def.h"
 #include "elab_device.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* private typedef ---------------------------------------------------------- */
 typedef struct elab_motor
 {
@@ -38,6 +42,8 @@ typedef struct elab_motor_ops
     elab_err_t (* get_speed)(elab_motor_t *const me, int32_t *speed);
 } elab_motor_ops_t;
 
+#define ELAB_MOTOR_CAST(_dev)           ((elab_motor_t *)_dev)
+
 /* public function ---------------------------------------------------------- */
 /* Config functions, for lua script programming. */
 void elab_motor_config_ratio(const char *const name, uint32_t ratio);
@@ -53,6 +59,10 @@ elab_err_t elab_motor_get_speed(elab_device_t *const me, float *speed);
 /* For exporting. */
 void elab_motor_init(elab_motor_t *const me, const char *name,
                         elab_motor_ops_t *ops, void *user_data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* ELAB_MOTOR_H */
 

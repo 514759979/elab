@@ -8,21 +8,20 @@
 #include "elab_assert.h"
 #include "elab_i2c.h"
 #include "cmsis_os.h"
+#include "elab_log.h"
 
 ELAB_TAG("Edf_I2C");
 
-#define ELOG_DEBUG_ENABLE                       (1)
-#define ELOG_INFO_ENABLE                        (1)
-
-#include "elab_log.h"
-
 /* Private variables ---------------------------------------------------------*/
+/**
+ * @brief  The I2C oprations function.
+ */
 static const elab_dev_ops_t i2c_ops =
 {
     .enable = NULL,
     .read = NULL,
     .write = NULL,
-#if (ELAB_DEV_PALTFORM == 1)
+#if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
     .poll = NULL,
 #endif
 };

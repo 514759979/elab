@@ -11,6 +11,10 @@
 #include "elab_device.h"
 #include "cmsis_os.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* public macros -------------------------------------------------------------*/
 enum elab_spi_mode
 {
@@ -108,6 +112,10 @@ elab_err_t elab_spi_xfer(elab_device_t *me,
 elab_err_t elab_spi_xfer_msg(elab_device_t *me, elab_spi_msg_t *msg, uint32_t num);
 elab_err_t elab_spi_recv(elab_device_t *me, void *buff, uint32_t size);
 elab_err_t elab_spi_send(elab_device_t *me, const void *buffer, uint32_t size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ELAB_SPI_H */
 

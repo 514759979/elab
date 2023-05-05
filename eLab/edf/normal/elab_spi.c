@@ -8,6 +8,10 @@
 #include "elab_assert.h"
 #include "elab_log.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 ELAB_TAG("Edf_SPI");
 
 /* Private variables ---------------------------------------------------------*/
@@ -16,7 +20,7 @@ static const elab_dev_ops_t spi_ops =
     .enable = NULL,
     .read = NULL,
     .write = NULL,
-#if (ELAB_DEV_PALTFORM == 1)
+#if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
     .poll = NULL,
 #endif
 };
@@ -68,8 +72,8 @@ void elab_spi_bus_register(elab_spi_bus_t *bus,
 }
 
 /**
-  * @brief  SPI device init and register to platform device
-  * @param  dev  The pointer of platform dev
+  * @brief  SPI device init and register to elab Edf.
+  * @param  dev  The pointer of elab Edf.
   * @param  name Device name
   * @retval See elab_err_t
   */
@@ -405,5 +409,9 @@ elab_err_t elab_spi_send(elab_device_t *me, const void *buffer, uint32_t size)
 
     return elab_spi_xfer(me, buffer, NULL, size);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 /* ----------------------------- end of file -------------------------------- */

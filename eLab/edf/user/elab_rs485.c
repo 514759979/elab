@@ -1,29 +1,17 @@
-/**
-  ******************************************************************************
-  * @file    rs485.c
-  * @author  Embedded Software Team @Eric Wang
-  * @brief   The source file of RS485 class.
-  *
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2022 Philips Healthcare Suzhou.
-  * All rights reserved.</center></h2>
-  *
-  ******************************************************************************
-  */
+/*
+ * eLab Project
+ * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
+ */
 
 /* Includes ------------------------------------------------------------------*/
 #include "elab_rs485.h"
 #include "elab_serial.h"
 #include "elab_pin.h"
 #include <stdbool.h>
-
-#define TAG                                     "rs485"
-#define ELOG_DEBUG_ENABLE                      (1)
-#define ELOG_INFO_ENABLE                       (1)
-
 #include "elab_log.h"
 #include "elab_assert.h"
+
+ELAB_TAG("rs485");
 
 /* Private function prototypes -----------------------------------------------*/
 static void rs485_tx_active(rs485_t *me, bool active);
@@ -54,10 +42,10 @@ elab_err_t rs485_init(rs485_t *me,
         goto exit;
     }
 
-    me->pin_tx_en = elab_pin_get(pin_tx_en_name);
-    if (ELAB_ERR_NO_SYSTEM == me->pin_tx_en)
+    me->pin_tx_en = elab_device_find(pin_tx_en_name);
+    if (NULL == me->pin_tx_en)
     {
-        elog_error("Pin device %s not found.", pin_tx_en_name);
+        elog_error("PIN device %s not found.", pin_tx_en_name);
         ret = ELAB_ERROR;
         goto exit;
     }
@@ -65,27 +53,16 @@ elab_err_t rs485_init(rs485_t *me,
     me->tx_en_high_active = tx_en_high_active;
     me->user_data = user_data;
 
-    // Serial mode setting.
-    elab_io_uart_mode serial_mode = ELAB_IO_UART_MODE_BLOCKING;
-    elab_err_t ret_mode =
-    elab_io_control(me->serial,
-                            ELAB_IO_CTRL_UART_SET_MODE,
-                            &serial_mode);
-    if (ELAB_OK != ret_mode)
-    {
-        elog_error("rs485 serial %s mode setting fails. Err ID: %d.",
-                     serial_name,
-                     ret_mode);
-        ret = ELAB_ERROR;
-        goto exit;
-    }
+    /* Serial mode setting. */
+    elab_serial_set_mode((elab_serial_t *)me->serial,
+                            (uint8_t)ELAB_SERIAL_MODE_HALF_DUPLEX);
 
-    // Set the rx485 to receiving mode.
-    elab_pin_mode(me->pin_tx_en, PIN_MODE_OUTPUT);
+    /* Set the rx485 to receiving mode. */
+    elab_pin_set_mode(me->pin_tx_en, PIN_MODE_OUTPUT_PP);
     rs485_tx_active(me, false);
 
-    // Serail port opening.
-    ret = elab_io_open(me->serial);
+    /* Serail port opening. */
+    ret = elab_device_open(me->serial);
     if (ELAB_OK != ret)
     {
         elog_error("RS485 opening serial %s port fails.", serial_name);
@@ -116,9 +93,9 @@ elab_device_t *rs485_get_serial(rs485_t *me)
 uint32_t rs485_read(rs485_t *me, void *pbuf, uint32_t size)
 {
     elab_serial_t *serial = (elab_serial_t *)me->serial;
-    elab_assert(serial->uart_mode == ELAB_IO_UART_MODE_BLOCKING);
+    elab_assert(serial->attr.mode == ELAB_SERIAL_MODE_HALF_DUPLEX);
 
-    return elab_io_read(me->serial, 0, pbuf, size);
+    return elab_device_read(me->serial, 0, pbuf, size);
 }
 
 /**
@@ -131,14 +108,14 @@ uint32_t rs485_read(rs485_t *me, void *pbuf, uint32_t size)
 uint32_t rs485_write(rs485_t *me, const void *pbuf, uint32_t size)
 {
     elab_serial_t *serial = (elab_serial_t *)me->serial;
-    elab_assert(serial->uart_mode == ELAB_IO_UART_MODE_BLOCKING);
+    elab_assert(serial->attr.mode == ELAB_SERIAL_MODE_HALF_DUPLEX);
 
-    // Set the rx485 to sending mode.
+    /* Set the rx485 to sending mode. */
     rs485_tx_active(me, true);
 
-    uint32_t ret = elab_io_write(me->serial, 0, pbuf, size);
+    uint32_t ret = elab_device_write(me->serial, 0, pbuf, size);
 
-    // Set the rx485 to receiving mode.
+    /* Set the rx485 to receiving mode. */
     rs485_tx_active(me, false);
 
     return ret;
@@ -154,17 +131,17 @@ uint32_t rs485_write(rs485_t *me, const void *pbuf, uint32_t size)
 static void rs485_tx_active(rs485_t *me, bool active)
 {
     // Write the tx_en pin.
-    int32_t tx_en_status;
+    bool tx_en_status = false;
     if (me->tx_en_high_active == true)
     {
-        tx_en_status = active ? 1 : 0;
+        tx_en_status = active ? true : false;
     }
     else
     {
-        tx_en_status = active ? 0 : 1;
+        tx_en_status = active ? false : true;
     }
 
-    elab_pin_write(me->pin_tx_en, tx_en_status);
+    elab_pin_set_status(me->pin_tx_en, tx_en_status);
 }
 
-/**************** (C) COPYRIGHT Philips Healthcare Suzhou ******END OF FILE****/
+/* ----------------------------- end of file -------------------------------- */

@@ -6,9 +6,11 @@
 /* include ------------------------------------------------------------------ */
 #include <math.h>
 #include <stdlib.h>
-#include "edev_motor.h"
+#include "elab_motor.h"
 #include "elab_device.h"
 #include "elab_assert.h"
+
+ELAB_TAG("EdfMotor");
 
 /* private typedef ---------------------------------------------------------- */
 enum edev_motor_state
@@ -18,6 +20,17 @@ enum edev_motor_state
     EDEV_MOTOR_EMG_STOP,
 
     EDEV_MOTOR_MAX
+};
+
+/* Private variables ---------------------------------------------------------*/
+static const elab_dev_ops_t _motor_ops =
+{
+    .enable = NULL,
+    .read = NULL,
+    .write = NULL,
+#if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
+    .poll = NULL,
+#endif
 };
 
 /* public function ---------------------------------------------------------- */
@@ -156,7 +169,17 @@ void elab_motor_init(elab_motor_t *const me, const char *name,
     me->diameter = 0.2;
     me->state = EDEV_MOTOR_INIT;
 
-    elab_device_register(&me->super, name, user_data);
+    me->super.ops = &_motor_ops;
+    me->super.user_data = user_data;
+
+    /* register to device manager */
+    elab_device_attr_t attr_motor =
+    {
+        .name = name,
+        .sole = false,
+        .type = ELAB_DEVICE_UNKNOWN,
+    };
+    elab_device_register(&me->super, &attr_motor);
 }
 
 /* ----------------------------- end of file -------------------------------- */

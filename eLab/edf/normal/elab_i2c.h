@@ -11,6 +11,10 @@
 #include "elab_device.h"
 #include "cmsis_os.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Exported types ------------------------------------------------------------*/
 typedef struct elab_i2c_msg
 {
@@ -71,6 +75,10 @@ void elab_i2c_register(elab_i2c_t *device, const char *name, const char *bus_nam
 
 int32_t elab_i2c_xfer_msgs(elab_device_t *me, elab_i2c_msg_t msgs[], uint32_t num);
 elab_err_t elab_i2c_xfer(elab_device_t *me, elab_i2c_msg_t msg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -9,7 +9,7 @@
 #include "elab_pin.h"
 #include "elab_assert.h"
 
-ELAB_TAG("Edf_PIN");
+ELAB_TAG("Edf_Pin");
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,7 +99,7 @@ void elab_pin_set_status(elab_device_t *const me, bool status)
     {
         pin->ops->set_status(pin, status);
         elab_pin_get_status(me);
-        assert(pin->status == status);
+        assert_name(pin->status == status, me->attr.name);
     }
 }
 

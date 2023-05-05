@@ -8,7 +8,11 @@
 
 /* include ------------------------------------------------------------------ */
 #include "elab_def.h"
-#include "edev.h"
+#include "elab_device.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* private typedef ---------------------------------------------------------- */
 typedef struct elab_helm
@@ -37,6 +41,10 @@ void elab_helm_config_ratio(const char *helm_name, uint32_t ratio);
 /* Helm class functions */
 elab_err_t elab_helm_init(elab_helm_t *const me);
 elab_err_t elab_helm_set_position(elab_helm_t *const me, float pos);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* ELAB_HELM_H */
 

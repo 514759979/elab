@@ -12,6 +12,10 @@
 #include "cmsis_os.h"
 #include "elib_queue.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* private types -----------------------------------------------------------  */
 typedef struct elab_adc_attr
 {
@@ -56,6 +60,10 @@ void elab_adc_cache_start(elab_device_t *const me,
                             elab_adc_cache_cb_t cb, float *buffer);
 void elab_adc_get_attr(elab_device_t *const me, elab_adc_attr_t *attr);
 void elab_adc_set_attr(elab_device_t *const me, elab_adc_attr_t *attr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* __ELAB_ADC_H */
 

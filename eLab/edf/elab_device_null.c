@@ -1,16 +1,7 @@
-/**
-  ******************************************************************************
-  * @file    platform_uart_null.c
-  * @author  Embedded Software Team @Eric WANG
-  * @brief   Register null uart devices to platform device
-  *
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2022 Philips Healthcare Suzhou.
-  * All rights reserved.</center></h2>
-  *
-  ******************************************************************************
-  */
+/*
+ * eLab Project
+ * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
+ */
 
 /* includes ----------------------------------------------------------------- */
 #include "elab_export.h"
@@ -37,7 +28,7 @@ static const elab_dev_ops_t dev_null_ops =
     .enable = _null_enable,
     .read = _null_read,
     .write = _null_write,
-#if (ELAB_DEV_PALTFORM == 1)
+#if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
     .poll = _null_poll,
 #endif
 };
@@ -106,7 +97,7 @@ static int32_t _null_write(elab_device_t *me,
     return size;
 }
 
-#if (ELAB_DEV_PALTFORM == 1)
+#if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
 /**
  * The null function for the device poll interface.
  */
@@ -116,4 +107,4 @@ static void _null_poll(elab_device_t *me)
 }
 #endif
 
-/********** (C) COPYRIGHT Philips Healthcare Suzhou ***** END OF FILE *********/
+/* ----------------------------- end of file -------------------------------- */

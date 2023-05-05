@@ -6,13 +6,9 @@
 /* includes ----------------------------------------------------------------- */
 #include "elab_watchdog.h"
 #include "elab_assert.h"
+#include "elab_log.h"
 
 ELAB_TAG("Edf_WatchDog");
-
-#define ELOG_DEBUG_ENABLE               (1)
-#define ELOG_INFO_ENABLE                (1)
-
-#include "elab_log.h"
 
 /* private function prototypes ---------------------------------------------- */
 static elab_err_t _dev_enable(elab_device_t *me, bool status);
@@ -23,7 +19,7 @@ static const elab_dev_ops_t dev_ops =
     .enable = _dev_enable,
     NULL,
     NULL,
-#if (ELAB_DEV_PALTFORM == 1)
+#if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
     .poll = NULL,
 #endif
 };

@@ -11,6 +11,10 @@
 #include "elab_def.h"
 #include "elab_device.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* public types ------------------------------------------------------------- */
 typedef struct elab_rtc_time
 {
@@ -36,6 +40,10 @@ void elab_rtc_register(elab_rtc_t *rtc, const char *name,
                         elab_rtc_ops_t *ops, void *user_data);
 void elab_rtc_get_time(elab_device_t *me, elab_rtc_time_t *rtc_time);
 void elab_rtc_set_time(elab_device_t *me, const elab_rtc_time_t *rtc_time);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ELAB_RTC_H_ */
 
