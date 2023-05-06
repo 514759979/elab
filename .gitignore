@@ -18,8 +18,12 @@
 *.axf
 *.lnp
 *.ini
+*.cmake
 
 core
+CMakeFiles
+Makefile
+CMakeCache.txt
 
 # Forder
 Objects
