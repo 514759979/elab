@@ -90,7 +90,7 @@ static bool app_exit = false;
 static bool app_exit_end = false;
 
 #if defined(__linux__)
-static void signal_handle(int sig)
+static void signal_handler(int sig)
 {
     printf("Elab Signal: %d.\n", sig);
     app_exit = true;
@@ -110,9 +110,12 @@ static void signal_handle(int sig)
 void elab_run(void)
 {
 #if defined(__linux__)
-    signal(SIGINT, signal_handle);
-    signal(SIGTERM, signal_handle);
-    signal(SIGABRT, signal_handle);
+    signal(SIGINT, signal_handler);                 /* Ctrl + C*/
+    signal(SIGTERM, signal_handler);                /* kill pid */
+    signal(SIGABRT, signal_handler);
+    signal(SIGKILL, signal_handler);                /* kill -9 pid */
+    signal(SIGHUP, signal_handler);
+    signal(SIGSEGV, signal_handler);
 #endif
 
     /* Start polling function in metal eLab, or start the RTOS kernel in RTOS 
