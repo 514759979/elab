@@ -447,8 +447,10 @@ typedef struct shell_command
             const char *desc;                                   /**< 按键描述 */
         } key;                                                  /**< 按键定义 */
     } data;
-#ifdef __linux__
+#if defined(__x86_64__) || defined(__aarch64__)
     uint32_t data_add[7];
+#elif defined(__i386__) || defined(__arm__)
+    uint32_t data_add[10];
 #endif
     uint32_t magic_tail;
 } ShellCommand;

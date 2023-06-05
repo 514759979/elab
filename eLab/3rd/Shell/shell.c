@@ -14,7 +14,9 @@
 #include "stdio.h"
 #include "stdarg.h"
 #include "shell_ext.h"
+#include "elab_assert.h"
 
+ELAB_TAG("LetterShell");
 
 #if SHELL_USING_CMD_EXPORT == 1
 /**
@@ -74,13 +76,16 @@ static ShellCommand *_get_shell_cmd_base(void)
 
 static uint16_t _get_shell_cmd_count(void)
 {
+    printf("_get_shell_cmd_count.\n");
     uint16_t count = 0;
     ShellCommand *func_block = (ShellCommand *)_shell_command_start;
+    printf("_get_shell_cmd_count.\n");
     for (uint16_t i = 0; ; i ++)
     {
         if (func_block[i].magic_head == SHELL_MAGIC_NUM &&
             func_block[i].magic_tail == SHELL_MAGIC_NUM)
         {
+            printf("ShellCommand Block %d.\n", count);
             count ++;
         }
         else
@@ -220,6 +225,8 @@ void shellEcho(Shell *shell, unsigned int enable)
  */
 void shellInit(Shell *shell, char *buffer, unsigned short size)
 {
+    elab_assert(sizeof(ShellCommand) == 64);
+
     shell->parser.length = 0;
     shell->parser.cursor = 0;
     shell->info.user = NULL;
@@ -253,7 +260,8 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
                                 / sizeof(ShellCommand);
     #elif defined(__GNUC__)
         shell->commandList.base = _get_shell_cmd_base();
-        shell->commandList.count = _get_shell_cmd_count();
+        uint16_t count = _get_shell_cmd_count();
+        shell->commandList.count = count;
     #else
         #error not supported compiler, please use command table mode
     #endif
@@ -263,7 +271,6 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
 #endif
 
     shellAdd(shell);
-
     shellSetUser(shell, shellSeekCommand(shell,
                                          SHELL_DEFAULT_USER,
                                          shell->commandList.base,
@@ -330,14 +337,8 @@ static void shellWriteByte(Shell *shell, char data)
  */
 unsigned short shellWriteString(Shell *shell, const char *string)
 {
-    unsigned short count = 0;
-    const char *p = string;
     SHELL_ASSERT(shell->write, return 0);
-    while(*p++)
-    {
-        count ++;
-    }
-    return shell->write((char *)string, count);
+    return shell->write((char *)string, strlen(string));
 }
 
 
@@ -849,10 +850,10 @@ void shellInsertByte(Shell *shell, char data)
         shell->parser.buffer[shell->parser.length++] = data;
         shell->parser.buffer[shell->parser.length] = 0;
         shell->parser.cursor++;
-		if(shell->echo == 1)
-		{
-			shellWriteByte(shell, data);
-		}
+        if(shell->echo == 1)
+        {
+            shellWriteByte(shell, data);
+        }
     }
     else if (shell->parser.cursor < shell->parser.length)
     {
@@ -1319,14 +1320,13 @@ static void shellSetUser(Shell *shell, const ShellCommand *user)
  */
 static void shellWriteReturnValue(Shell *shell, int value)
 {
-    char buffer[12] = "00000000000";
+    char buffer[12];
+    memset(buffer, 0, 12);
+    sprintf(buffer, "%d", value);
     shellWriteString(shell, "Return: ");
-    shellWriteString(shell, &buffer[11 - shellToDec(value, buffer)]);
+    shellWriteString(shell, buffer);
     shellWriteString(shell, ", 0x");
-    for (short i = 0; i < 11; i++)
-    {
-        buffer[i] = '0';
-    }
+    memset(buffer, 0, 12);
     shellToHex(value, buffer);
     shellWriteString(shell, buffer);
     shellWriteString(shell, "\r\n");
