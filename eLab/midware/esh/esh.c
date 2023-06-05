@@ -132,7 +132,7 @@ void esh_key_register(uint8_t key, esh_func_t func, void *paras)
   */
 char esh_getch(void)
 {
-    char key_id;
+    uint8_t key_id;
 #if defined(__linux__)
     char buffer[16];
     uint32_t count_ch = 0;
@@ -150,7 +150,7 @@ char esh_getch(void)
     {
         key_id = getch();
 #ifdef __linux__
-        if (key_id < 0)
+        if (key_id == (uint8_t)osErrorTimeout)
         {
             if (count_ch == 0)
             {
