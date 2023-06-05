@@ -62,21 +62,25 @@ elab_err_t elab_motor_enable(elab_device_t *const me, bool status)
 
     elab_device_lock(me);
     elab_motor_t *motor = (elab_motor_t *)me;
-    if ((motor->state == EDEV_MOTOR_INIT || motor->state == EDEV_MOTOR_EMG_STOP) &&
-        status)
+    if (motor->ops->ready(motor))
     {
-        ret = motor->ops->enable(motor, status);
-        if (ret == ELAB_OK)
+        if ((motor->state == EDEV_MOTOR_INIT ||
+                motor->state == EDEV_MOTOR_EMG_STOP) &&
+                status)
         {
-            motor->state = EDEV_MOTOR_RUN;
+            ret = motor->ops->enable(motor, status);
+            if (ret == ELAB_OK)
+            {
+                motor->state = EDEV_MOTOR_RUN;
+            }
         }
-    }
-    else if (motor->state == EDEV_MOTOR_RUN && !status)
-    {
-        ret = motor->ops->enable(motor, status);
-        if (ret == ELAB_OK)
+        else if (motor->state == EDEV_MOTOR_RUN && !status)
         {
-            motor->state = EDEV_MOTOR_INIT;
+            ret = motor->ops->enable(motor, status);
+            if (ret == ELAB_OK)
+            {
+                motor->state = EDEV_MOTOR_INIT;
+            }
         }
     }
     elab_device_unlock(me);
@@ -122,12 +126,18 @@ elab_err_t elab_motor_set_speed(elab_device_t *const me, float speed)
     elab_device_lock(me);
 
     elab_motor_t *motor = (elab_motor_t *)me;
-    int32_t cmd_speed =
-        (int32_t)(speed / motor->diameter / M_PI * (float)motor->ratio);
-    if (cmd_speed != motor->speed_cmd)
+    if (motor->ops->ready(motor))
     {
-        motor->speed_cmd = cmd_speed;
-        ret = motor->ops->set_speed(motor, cmd_speed);
+        int32_t cmd_speed =
+            (int32_t)(speed / motor->diameter / M_PI * (float)motor->ratio);
+        if (cmd_speed != motor->speed_cmd)
+        {
+            ret = motor->ops->set_speed(motor, cmd_speed);
+            if (ret == ELAB_OK)
+            {
+                motor->speed_cmd = cmd_speed;
+            }
+        }
     }
 
     elab_device_unlock(me);
@@ -142,16 +152,19 @@ elab_err_t elab_motor_get_speed(elab_device_t *const me, float *speed)
     elab_device_lock(me);
 
     elab_motor_t *motor = (elab_motor_t *)me;
-    int32_t act_speed;
-    ret = motor->ops->get_speed(motor, &act_speed);
-    if (ret == ELAB_OK)
+    if (motor->ops->ready(motor))
     {
-        motor->speed_current = act_speed;
-        *speed = ((float)(act_speed / motor->ratio) * M_PI * motor->diameter);
-    }
-    else
-    {
-        *speed = 0.0;
+        int32_t act_speed;
+        ret = motor->ops->get_speed(motor, &act_speed);
+        if (ret == ELAB_OK)
+        {
+            motor->speed_current = act_speed;
+            *speed = ((float)(act_speed / motor->ratio) * M_PI * motor->diameter);
+        }
+        else
+        {
+            *speed = 0.0;
+        }
     }
 
     elab_device_unlock(me);
