@@ -126,12 +126,12 @@ int16_t elab_debug_uart_receive(void *buffer, uint16_t size)
     uint16_t count = 0;
     for (uint16_t i = 0; i < size; i ++)
     {
-        ret_mq = osMessageQueueGet(mq_ch, &buff[i], NULL, 0);
+        ret_mq = osMessageQueueGet(mq_ch, &buff[i], NULL, osWaitForever);
         if (ret_mq == osOK)
         {
             count ++;
         }
-    } 
+    }
 
     return count;
 }
