@@ -88,7 +88,7 @@ void elab_exit(void);
 #define INIT_EXPORT(_func, _level)                                             \
     ELAB_USED const elab_export_t init_##_func ELAB_SECTION("elab_export") =   \
     {                                                                          \
-        .name = "init",                                                        \
+        .name = #_func,                                                        \
         .func = (void *)&_func,                                                \
         .level = _level,                                                       \
         .type = (uint8_t)EXPORT_TYPE_INIT,                                     \
@@ -105,7 +105,7 @@ void elab_exit(void);
 #define EXIT_EXPORT(_func, _level)                                             \
     ELAB_USED const elab_export_t exit_##_func ELAB_SECTION("elab_export") =   \
     {                                                                          \
-        .name = "exit",                                                        \
+        .name = #_func,                                                        \
         .func = (void *)&_func,                                                \
         .level = _level,                                                       \
         .type = (uint8_t)EXPORT_TYPE_EXIT,                                     \

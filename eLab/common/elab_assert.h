@@ -39,7 +39,7 @@ void elab_assert_func(void);
 #define assert_id(test_, id_)               do                                 \
     {                                                                          \
         if (!(test_))                                                          \
-            _assert(#test_, 0, NULL, id_);                                     \
+            _assert(#test_, id_, NULL, __LINE__);                              \
     } while (0)
 
 /**

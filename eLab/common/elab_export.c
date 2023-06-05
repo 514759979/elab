@@ -98,6 +98,7 @@ static void signal_handler(int sig)
 
     elab_exit();
     system("stty echo");
+    printf("\033[0;0m\n");
 
     app_exit_end = true;
 }
@@ -115,7 +116,7 @@ void elab_run(void)
     signal(SIGABRT, signal_handler);
     signal(SIGKILL, signal_handler);                /* kill -9 pid */
     signal(SIGHUP, signal_handler);
-    signal(SIGSEGV, signal_handler);
+    // signal(SIGSEGV, signal_handler);
 #endif
 
     /* Start polling function in metal eLab, or start the RTOS kernel in RTOS 
@@ -213,15 +214,16 @@ static void _export_func_execute(int8_t level)
         if (export_table[i].magic_head == export_id &&
             export_table[i].magic_tail == export_id)
         {
-            // printf("export!\n");
             if (export_table[i].level == level && level <= EXPORT_APP)
             {
                 if (is_init && export_table[i].type == EXPORT_TYPE_INIT)
                 {
+                    printf("Export init %s.\n", export_table[i].name);
                     ((void (*)(void))export_table[i].func)();
                 }
                 if (!is_init && export_table[i].type == EXPORT_TYPE_EXIT)
                 {
+                    printf("Export exit %s.\n", export_table[i].name);
                     ((void (*)(void))export_table[i].func)();
                 }
             }
