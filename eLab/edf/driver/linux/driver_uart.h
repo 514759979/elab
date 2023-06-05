@@ -18,7 +18,9 @@ typedef struct driver_uart
     uint32_t baudrate;
 
     int32_t serial_fd;
+    const char * name_linux_serial;
     elab_device_t *pin_tx_switch;
+    elab_serial_t device;
 } driver_uart_t;
 
 /* public function ---------------------------------------------------------- */

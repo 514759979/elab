@@ -47,18 +47,21 @@ void driver_serial_init(driver_uart_t *me,
     if (name_gpio != NULL)
     {
         me->pin_tx_switch = elab_device_find(me->name_gpio);
+        assert(me->pin_tx_switch != NULL);
     }
     else
     {
         me->pin_tx_switch = NULL;
     }
-    assert(me->pin_tx_switch != NULL);
 
     me->serial_fd = INT32_MIN;
 
     elab_serial_attr_t _attr = (elab_serial_attr_t)ELAB_SERIAL_ATTR_DEFAULT;
     _attr.baud_rate = baudrate;
     elab_serial_register(serial_dev, name_dev, &_serial_ops, &_attr, (void *)me);
+    _enable(serial_dev, true);
+    _config(serial_dev, (elab_serial_config_t *)&_attr);
+    _enable(serial_dev, false);
 }
 
 /* private functions -------------------------------------------------------- */
@@ -73,7 +76,7 @@ static elab_err_t _enable(elab_serial_t *serial, bool status)
 
         /* Open the serial port. */
         driver->serial_fd = open(driver->name_serial, O_RDWR | O_NOCTTY);
-        if (driver->serial_fd != INT32_MIN && INT32_MIN < 0)
+        if (driver->serial_fd != INT32_MIN && driver->serial_fd < 0)
         {
             elog_error("Serial port %s opening fails.", driver->name_serial);
             goto exit;
@@ -120,6 +123,8 @@ static int32_t _write(elab_serial_t *serial, const void *buffer, uint32_t size)
     driver_uart_t *driver = (driver_uart_t *)serial->super.user_data;
     int32_t ret = size;
     int32_t ret_w = write(driver->serial_fd, buffer, size);
+    /* Wait the data transmitted completely. */
+    tcdrain(driver->serial_fd);
     if (ret_w < 0)
     {
         ret = ELAB_ERROR;
@@ -143,6 +148,7 @@ static elab_err_t _config(elab_serial_t *serial, elab_serial_config_t *config)
 {
     driver_uart_t *driver = (driver_uart_t *)serial->super.user_data;
     elab_err_t ret = ELAB_OK;
+    int ret_set = 0;
 
     /* Test if the serial port is a terminal-device. */
     if (0 == isatty(STDIN_FILENO))
@@ -163,9 +169,10 @@ static elab_err_t _config(elab_serial_t *serial, elab_serial_config_t *config)
     };
 
     struct termios options;
-    if (tcgetattr(driver->serial_fd, &options) != 0)
+    ret_set = tcgetattr(driver->serial_fd, &options);
+    if (ret_set != 0)
     {
-        elog_error("tcgetattr(serial_fd, &options) fails.");
+        elog_error("tcgetattr(serial_fd, &options) fails. ret_get: %d.", ret_set);
         ret = ELAB_ERROR;
         goto exit;
     }
@@ -246,9 +253,10 @@ static elab_err_t _config(elab_serial_t *serial, elab_serial_config_t *config)
     tcflush(driver->serial_fd, TCIFLUSH);
 
     /* config */
-    if (tcsetattr(driver->serial_fd, TCSANOW, &options) != 0)
+    ret_set = tcsetattr(driver->serial_fd, TCSANOW, &options);
+    if (ret_set != 0)
     {
-        elog_error("tcsetattr(serial_fd, &options) fails.");
+        elog_error("tcsetattr(serial_fd, &options) fails. ret_set: %d.", ret_set);
         ret = ELAB_ERROR;
         goto exit;
     }
