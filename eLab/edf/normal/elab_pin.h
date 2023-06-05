@@ -43,6 +43,8 @@ typedef struct elab_pin_ops
     void (* set_status)(elab_pin_t * const me, bool status);
 } elab_pin_ops_t;
 
+#define ELAB_PIN_CAST(_dev)             ((elab_pin_t *)_dev)
+
 /* public functions --------------------------------------------------------- */
 /* For low-level driver. */
 void elab_pin_register(elab_pin_t * const me,

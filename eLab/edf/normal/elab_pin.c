@@ -44,7 +44,7 @@ void elab_pin_register(elab_pin_t * const me,
 
     me->ops = ops;
     me->ops->init(me);
-    me->mode = PIN_MODE_OUTPUT_OD;
+    me->mode = PIN_MODE_MAX;
     me->status = me->ops->get_status(me);
 }
 
@@ -74,6 +74,8 @@ void elab_pin_set_mode(elab_device_t * const me, uint8_t mode)
 bool elab_pin_get_status(elab_device_t *const me)
 {
     assert(me != NULL);
+    assert(ELAB_PIN_CAST(me)->mode != PIN_MODE_MAX);
+
     elab_pin_t *pin = (elab_pin_t *)me;
 
     pin->status = pin->ops->get_status(pin);
@@ -90,17 +92,16 @@ bool elab_pin_get_status(elab_device_t *const me)
 void elab_pin_set_status(elab_device_t *const me, bool status)
 {
     assert(me != NULL);
+    assert_name(ELAB_PIN_CAST(me)->mode == PIN_MODE_OUTPUT_PP ||
+                ELAB_PIN_CAST(me)->mode == PIN_MODE_OUTPUT_OD,
+                me->attr.name);
 
-    elab_pin_t *pin = (elab_pin_t *)me;
-    assert_name(pin->mode == PIN_MODE_OUTPUT_PP || pin->mode == PIN_MODE_OUTPUT_OD,
-                pin->super.attr.name);
-    
-    if (status != pin->status)
-    {
-        pin->ops->set_status(pin, status);
+    // if (status != ELAB_PIN_CAST(me)->status)
+    // {
+        ELAB_PIN_CAST(me)->ops->set_status(ELAB_PIN_CAST(me), status);
         elab_pin_get_status(me);
-        assert_name(pin->status == status, me->attr.name);
-    }
+        assert_name(ELAB_PIN_CAST(me)->status == status, me->attr.name);
+    // }
 }
 
 #ifdef __cplusplus
