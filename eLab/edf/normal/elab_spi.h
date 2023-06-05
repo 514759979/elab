@@ -89,6 +89,9 @@ typedef struct elab_spi_ops
     void (* enable)(elab_spi_t * const me, bool status);
 } elab_spi_ops_t;
 
+#define ELAB_SPI_CAST(_dev)                 ((elab_spi_t *)_dev)
+#define ELAB_SPI_BUS_CAST(_dev)             ((elab_spi_bus_t *)_dev)
+
 /* Public functions --------------------------------------------------------- */
 void elab_spi_bus_register(elab_spi_bus_t *bus,
                             const char *name, const elab_spi_bus_ops_t *ops,
