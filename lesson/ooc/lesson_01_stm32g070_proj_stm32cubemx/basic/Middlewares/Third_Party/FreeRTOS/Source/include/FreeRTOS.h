@@ -61,6 +61,8 @@ extern "C" {
 /* Definitions specific to the port being used. */
 #include "portable.h"
 
+#define __free_rtos__
+
 /* Must be defaulted before configUSE_NEWLIB_REENTRANT is used below. */
 #ifndef configUSE_NEWLIB_REENTRANT
 	#define configUSE_NEWLIB_REENTRANT 0
