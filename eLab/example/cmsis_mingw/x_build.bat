@@ -15,7 +15,6 @@ test_malloc.c ^
 ..\..\3rd\FreeRTOS\timers.c ^
 ..\..\3rd\FreeRTOS\portable\MemMang\heap_4.c ^
 ..\..\3rd\FreeRTOS\portable\mingw\port.c ^
--I ..\..\boot\02-mcu ^
 -I ..\..\RTOS\CMSIS_OS_FreeRTOS ^
 -I ..\..\3rd\FreeRTOS\include ^
 -I ..\..\3rd\FreeRTOS\portable\mingw ^

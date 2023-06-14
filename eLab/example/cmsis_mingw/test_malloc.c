@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "test.h"
 #include "cmsis_os.h"
+#include "elab_common.h"
 
 /* private variables ---------------------------------------------------------*/
 /**
