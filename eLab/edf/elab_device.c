@@ -4,13 +4,11 @@
  */
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_assert.h"
 #include "elab_device.h"
-#include "elab_def.h"
-#include "cmsis_os.h"
 #include "elab_device_def.h"
-#include "elab_log.h"
-#include "elab_pin.h"
+#include "../common/elab_assert.h"
+#include "../common/elab_log.h"
+#include "../RTOS/cmsis_os.h"
 
 ELAB_TAG("EdfDevice");
 
@@ -19,8 +17,9 @@ static void _add_device(elab_device_t *me);
 static osMutexId_t _edf_mutex(void);
 
 /* private variables -------------------------------------------------------- */
-static elab_device_t *_edf_table[ELAB_DEV_NUM_MAX];
+static uint8_t _data[10240];
 static uint32_t _edf_device_count = 0;
+static elab_device_t *_edf_table[ELAB_DEV_NUM_MAX];
 static osMutexId_t _mutex_edf = NULL;
 
 /**
@@ -49,6 +48,7 @@ void elab_device_register(elab_device_t *me, elab_device_attr_t *attr)
         {
             _edf_table[i] = NULL;
         }
+        memset(_data, 0, 10240);
     }
 
     assert(me != NULL);
@@ -70,6 +70,7 @@ void elab_device_register(elab_device_t *me, elab_device_attr_t *attr)
     assert(me->mutex != NULL);
 
     /* Add the device the edf table. */
+    memcpy(&me->attr, attr, sizeof(elab_device_attr_t));
     _add_device(me);
 
     /* Edf mutex unlocking. */
@@ -84,6 +85,8 @@ void elab_device_register(elab_device_t *me, elab_device_attr_t *attr)
  */
 elab_device_t *elab_device_find(const char *name)
 {
+    if (_edf_table[0] != NULL)
+    assert_name(_edf_table[0]->attr.name != NULL, name);
     assert(name != NULL);
     
     /* Edf mutex locking. */
@@ -101,8 +104,9 @@ elab_device_t *elab_device_find(const char *name)
         {
             break;
         }
+        elab_assert(_edf_table[i]->attr.name != NULL);
         /* Device matching */
-        if (!strcmp(_edf_table[i]->attr.name, name))
+        if (strcmp(_edf_table[i]->attr.name, name) == 0)
         {
             me = _edf_table[i];
             break;
@@ -175,7 +179,7 @@ elab_err_t __device_enable(elab_device_t *me, bool status)
     {
         if (status)
         {
-            assert_name(me->enable_count == 0, me->attr.name);
+            // assert_name(me->enable_count == 0, me->attr.name);
         }
         else
         {

@@ -7,8 +7,8 @@
 #define DRIVER_UART_H
 
 /* include ------------------------------------------------------------------ */
-#include "elab_device.h"
-#include "elab_serial.h"
+#include "../../elab_device.h"
+#include "../../normal/elab_serial.h"
 
 /* private typedef ---------------------------------------------------------- */
 typedef struct driver_uart

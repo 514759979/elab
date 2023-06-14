@@ -4,16 +4,16 @@
  */
 
 /* includes ----------------------------------------------------------------- */
-#include "driver_uart.h"
-#include "elab_log.h"
-#include "elab_serial.h"
-#include "elab_pin.h"
-#include "elab_assert.h"
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "driver_uart.h"
+#include "../../../common/elab_log.h"
+#include "../../normal/elab_serial.h"
+#include "../../normal/elab_pin.h"
+#include "../../../common/elab_assert.h"
 
 ELAB_TAG("Bsp-Serial-Linux");
 
@@ -72,14 +72,15 @@ static elab_err_t _enable(elab_serial_t *serial, bool status)
 
     if (status)
     {
-        assert(driver->serial_fd == INT32_MIN);
-
-        /* Open the serial port. */
-        driver->serial_fd = open(driver->name_serial, O_RDWR | O_NOCTTY);
-        if (driver->serial_fd != INT32_MIN && driver->serial_fd < 0)
+        if (driver->serial_fd == INT32_MIN)
         {
-            elog_error("Serial port %s opening fails.", driver->name_serial);
-            goto exit;
+            /* Open the serial port. */
+            driver->serial_fd = open(driver->name_serial, O_RDWR | O_NOCTTY);
+            if (driver->serial_fd != INT32_MIN && driver->serial_fd < 0)
+            {
+                elog_error("Serial port %s opening fails.", driver->name_serial);
+                goto exit;
+            }
         }
     }
     else
@@ -124,7 +125,9 @@ static int32_t _write(elab_serial_t *serial, const void *buffer, uint32_t size)
     int32_t ret = size;
     int32_t ret_w = write(driver->serial_fd, buffer, size);
     /* Wait the data transmitted completely. */
+#if defined(__x86_64__) || defined(__i386__)
     tcdrain(driver->serial_fd);
+#endif
     if (ret_w < 0)
     {
         ret = ELAB_ERROR;

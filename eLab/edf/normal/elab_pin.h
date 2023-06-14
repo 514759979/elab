@@ -7,7 +7,7 @@
 #define ELAB_PIN_H
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_device.h"
+#include "../elab_device.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -7,7 +7,7 @@
 #define ELAB_WATCHDOG_H_
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_device.h"
+#include "../elab_device.h"
 
 #ifdef __cplusplus
 extern "C" {

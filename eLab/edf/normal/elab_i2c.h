@@ -7,9 +7,8 @@
 #define __ELAB_I2C_H
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_def.h"
-#include "elab_device.h"
-#include "cmsis_os.h"
+#include "../elab_device.h"
+#include "../../RTOS/cmsis_os.h"
 
 #ifdef __cplusplus
 extern "C" {

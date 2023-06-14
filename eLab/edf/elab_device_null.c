@@ -4,10 +4,10 @@
  */
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_export.h"
 #include "elab_device.h"
-#include "cmsis_os.h"
-#include "elab_assert.h"
+#include "../RTOS/cmsis_os.h"
+#include "../common/elab_assert.h"
+#include "../common/elab_export.h"
 
 ELAB_TAG("Edf_DevNull");
 

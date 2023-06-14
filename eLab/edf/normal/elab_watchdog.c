@@ -5,8 +5,8 @@
 
 /* includes ----------------------------------------------------------------- */
 #include "elab_watchdog.h"
-#include "elab_assert.h"
-#include "elab_log.h"
+#include "../../common/elab_assert.h"
+#include "../../common/elab_log.h"
 
 ELAB_TAG("Edf_WatchDog");
 

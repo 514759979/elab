@@ -8,8 +8,8 @@
 
 /* includes ----------------------------------------------------------------- */
 #include <stdint.h>
-#include "elab_device.h"
-#include "cmsis_os.h"
+#include "../elab_device.h"
+#include "../../RTOS/cmsis_os.h"
 
 #ifdef __cplusplus
 extern "C" {

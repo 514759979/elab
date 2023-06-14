@@ -7,8 +7,8 @@
 #define ELAB_SERIAL_H
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_device.h"
-#include "cmsis_os.h"
+#include "../elab_device.h"
+#include "../../RTOS/cmsis_os.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,16 +109,16 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
                             elab_serial_attr_t *attr,
                             void *user_data);
 
-#ifndef __linux__
+#if !defined(__linux__) && !defined(_WIN32)
 void elab_serial_isr_rx(elab_serial_t *serial, void *buffer, uint32_t size);
 void elab_serial_isr_tx_end(elab_serial_t *serial);
 #endif
 
 /* For high level program. */
-void elab_serial_set_mode(elab_serial_t *serial, uint8_t mode);
-void elab_serial_set_baudrate(elab_serial_t *serial, uint32_t baudrate);
-void elab_serial_set_attr(elab_serial_t *serial, elab_serial_attr_t *attr);
-elab_serial_attr_t elab_serial_get_attr(elab_serial_t *serial);
+void elab_serial_set_mode(elab_device_t * const me, uint8_t mode);
+void elab_serial_set_baudrate(elab_device_t * const me, uint32_t baudrate);
+void elab_serial_set_attr(elab_device_t * const me, elab_serial_attr_t *attr);
+elab_serial_attr_t elab_serial_get_attr(elab_device_t * const me);
 
 /* TODO Just for half duplex mode. */
 int32_t elab_serial_xfer(elab_device_t *me,

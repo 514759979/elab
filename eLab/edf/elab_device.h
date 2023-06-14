@@ -10,15 +10,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "elab_def.h"
-#include "cmsis_os.h"
+#include "../common/elab_def.h"
+#include "../RTOS/cmsis_os.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* public config ------------------------------------------------------------ */
-#define ELAB_DEV_NUM_MAX                (32)
+#define ELAB_DEV_NUM_MAX                (64)
 #define ELAB_DEV_PALTFORM               ELAB_PALTFORM_RTOS
 
 /* public define ------------------------------------------------------------ */
@@ -106,6 +106,7 @@ typedef struct elab_dev_ops
     int32_t (* write)(elab_device_t *me, uint32_t pos, const void *buffer, uint32_t size);
 #if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
     void (* poll)(elab_device_t *me);
+    elab_err_t (* isr_enable)(elab_device_t *me, bool status);
 #endif
 } elab_dev_ops_t;
 

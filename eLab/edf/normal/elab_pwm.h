@@ -7,7 +7,7 @@
 #define ELAB_PWM_H
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_device.h"
+#include "../elab_device.h"
 
 #ifdef __cplusplus
 extern "C" {

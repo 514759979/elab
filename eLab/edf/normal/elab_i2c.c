@@ -4,11 +4,11 @@
  */
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_device.h"
-#include "elab_assert.h"
 #include "elab_i2c.h"
-#include "cmsis_os.h"
-#include "elab_log.h"
+#include "../elab_device.h"
+#include "../../common/elab_assert.h"
+#include "../../common/elab_log.h"
+#include "../../RTOS/cmsis_os.h"
 
 ELAB_TAG("Edf_I2C");
 

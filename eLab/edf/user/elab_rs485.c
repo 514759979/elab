@@ -5,13 +5,19 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "elab_rs485.h"
-#include "elab_serial.h"
-#include "elab_pin.h"
-#include <stdbool.h>
-#include "elab_log.h"
-#include "elab_assert.h"
+#include "../../common/elab_log.h"
+#include "../../common/elab_assert.h"
+#include "../normal/elab_serial.h"
+#include "../normal/elab_pin.h"
 
 ELAB_TAG("rs485");
+
+#if (ELAB_RTOS_CMSIS_OS_EN != 0)
+static const osMutexAttr_t mutex_attr =
+{
+    "mutex_elog", osMutexRecursive | osMutexPrioInherit, NULL, 0U 
+};
+#endif
 
 /* Private function prototypes -----------------------------------------------*/
 static void rs485_tx_active(rs485_t *me, bool active);
@@ -34,28 +40,20 @@ elab_err_t rs485_init(rs485_t *me,
 {
     elab_err_t ret = ELAB_OK;
 
+    me->mutex = osMutexNew(&mutex_attr);
+    assert_name(NULL != me->mutex, serial_name);
+
     me->serial = elab_device_find(serial_name);
-    if (NULL == me->serial)
-    {
-        elog_error("Serial device %s not found.", serial_name);
-        ret = ELAB_ERROR;
-        goto exit;
-    }
+    assert_name(NULL != me->serial, serial_name);
 
     me->pin_tx_en = elab_device_find(pin_tx_en_name);
-    if (NULL == me->pin_tx_en)
-    {
-        elog_error("PIN device %s not found.", pin_tx_en_name);
-        ret = ELAB_ERROR;
-        goto exit;
-    }
+    assert_name(NULL != me->pin_tx_en, serial_name);
 
     me->tx_en_high_active = tx_en_high_active;
     me->user_data = user_data;
 
     /* Serial mode setting. */
-    elab_serial_set_mode((elab_serial_t *)me->serial,
-                            (uint8_t)ELAB_SERIAL_MODE_HALF_DUPLEX);
+    elab_serial_set_mode(me->serial, (uint8_t)ELAB_SERIAL_MODE_HALF_DUPLEX);
 
     /* Set the rx485 to receiving mode. */
     elab_pin_set_mode(me->pin_tx_en, PIN_MODE_OUTPUT_PP);
@@ -90,12 +88,13 @@ elab_device_t *rs485_get_serial(rs485_t *me)
   * @param  size Expected read length
   * @retval Auctual read length
   */
-uint32_t rs485_read(rs485_t *me, void *pbuf, uint32_t size)
+int32_t rs485_read(rs485_t *me, void *pbuf, uint32_t size)
 {
     elab_serial_t *serial = (elab_serial_t *)me->serial;
     elab_assert(serial->attr.mode == ELAB_SERIAL_MODE_HALF_DUPLEX);
+    int32_t ret = elab_device_read(me->serial, 0, pbuf, size);
 
-    return elab_device_read(me->serial, 0, pbuf, size);
+    return ret;
 }
 
 /**
@@ -105,18 +104,57 @@ uint32_t rs485_read(rs485_t *me, void *pbuf, uint32_t size)
   * @param  size Expected write length
   * @retval Auctual write length
   */
-uint32_t rs485_write(rs485_t *me, const void *pbuf, uint32_t size)
+int32_t rs485_write(rs485_t *me, const void *pbuf, uint32_t size)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(me->mutex, osWaitForever);
+    assert_name(ret_os == osOK, me->serial->attr.name);
+
     elab_serial_t *serial = (elab_serial_t *)me->serial;
     elab_assert(serial->attr.mode == ELAB_SERIAL_MODE_HALF_DUPLEX);
 
     /* Set the rx485 to sending mode. */
     rs485_tx_active(me, true);
 
-    uint32_t ret = elab_device_write(me->serial, 0, pbuf, size);
+    int32_t ret = elab_device_write(me->serial, 0, pbuf, size);
+
+    /*  On x86-64 simulator, data are transmitted to the other RS485 in very short
+        time, but on actual boards it takes some time. So on ARM platform, osDelay
+        will be invoked here. */
+#if defined(__arm__)
+    osDelay((size * 10000 / serial->attr.baud_rate) + 1);
+#endif
 
     /* Set the rx485 to receiving mode. */
     rs485_tx_active(me, false);
+
+    ret_os = osMutexRelease(me->mutex);
+    assert_name(ret_os == osOK, me->serial->attr.name);
+
+    return ret;
+}
+
+int32_t rs485_write_time(rs485_t *me, const void *pbuf, uint32_t size, uint32_t time)
+{
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(me->mutex, osWaitForever);
+    assert_name(ret_os == osOK, me->serial->attr.name);
+
+    elab_serial_t *serial = (elab_serial_t *)me->serial;
+    elab_assert(serial->attr.mode == ELAB_SERIAL_MODE_HALF_DUPLEX);
+
+    /* Set the rx485 to sending mode. */
+    rs485_tx_active(me, true);
+
+    int32_t ret = elab_device_write(me->serial, 0, pbuf, size);
+
+    osDelay(time);
+
+    /* Set the rx485 to receiving mode. */
+    rs485_tx_active(me, false);
+
+    ret_os = osMutexRelease(me->mutex);
+    assert_name(ret_os == osOK, me->serial->attr.name);
 
     return ret;
 }

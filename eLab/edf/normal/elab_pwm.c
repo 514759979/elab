@@ -7,7 +7,7 @@
 /* includes ----------------------------------------------------------------- */
 #include <string.h>
 #include "elab_pwm.h"
-#include "elab_assert.h"
+#include "../../common/elab_assert.h"
 
 ELAB_TAG("Edf_PWM");
 

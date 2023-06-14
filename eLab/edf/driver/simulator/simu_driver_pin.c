@@ -1,13 +1,13 @@
 /* include ------------------------------------------------------------------ */
 #include <stdbool.h>
 #include <string.h>
-#include "edf_simu_config.h"
-#include "elib_hash_table.h"
 #include "simu_driver_pin.h"
-#include "elab_pin.h"
-#include "elab_assert.h"
-#include "elab_common.h"
-#include "elab_log.h"
+#include "edf_simu_config.h"
+#include "../../../elib/elib_hash_table.h"
+#include "../../../edf/normal/elab_pin.h"
+#include "../../../common/elab_assert.h"
+#include "../../../common/elab_common.h"
+#include "../../../common/elab_log.h"
 
 ELAB_TAG("Simu_Pin");
 

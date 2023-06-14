@@ -8,9 +8,8 @@
 #define __RS485_H
 
 /* Includes ------------------------------------------------------------------*/
-#include <stdbool.h>
-#include "elab_def.h"
-#include "elab_device.h"
+#include "../elab_device.h"
+#include "../../RTOS/cmsis_os.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +21,7 @@ typedef struct
     elab_device_t *serial;
     elab_device_t *pin_tx_en;
     bool tx_en_high_active;
+    osMutexId_t mutex;
 
     void *user_data;
 } rs485_t;
@@ -34,8 +34,9 @@ elab_err_t rs485_init(rs485_t *me,
                         void *user_data);
 elab_device_t *rs485_get_serial(rs485_t *me);
 
-uint32_t rs485_read(rs485_t *me, void *pbuf, uint32_t size);
-uint32_t rs485_write(rs485_t *me, const void *pbuf, uint32_t size);
+int32_t rs485_read(rs485_t *me, void *pbuf, uint32_t size);
+int32_t rs485_write(rs485_t *me, const void *pbuf, uint32_t size);
+int32_t rs485_write_time(rs485_t *me, const void *pbuf, uint32_t size, uint32_t time);
 
 #ifdef __cplusplus
 }

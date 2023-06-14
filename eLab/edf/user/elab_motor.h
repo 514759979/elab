@@ -7,8 +7,7 @@
 #define ELAB_MOTOR_H
 
 /* include ------------------------------------------------------------------ */
-#include "elab_def.h"
-#include "elab_device.h"
+#include "../elab_device.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,12 +20,11 @@ typedef struct elab_motor
 
     /* private parameter. */
     uint32_t ratio;
-    float diameter;
 
     /* private data. */
     uint8_t state;
-    int32_t speed_cmd;
-    int32_t speed_current;
+    float speed_cmd;
+    float speed_current;
 
     struct elab_motor_ops *ops;
 } elab_motor_t;
@@ -38,8 +36,8 @@ typedef struct elab_motor_ops
     elab_err_t (* emg_stop)(elab_motor_t *const me);
     elab_err_t (* get_error)(elab_motor_t *const me, uint32_t *error_out);
     bool (* ready)(elab_motor_t *const me);
-    elab_err_t (* set_speed)(elab_motor_t *const me, int32_t speed);
-    elab_err_t (* get_speed)(elab_motor_t *const me, int32_t *speed);
+    elab_err_t (* set_speed)(elab_motor_t *const me, float speed);
+    elab_err_t (* get_speed)(elab_motor_t *const me, float *speed);
 } elab_motor_ops_t;
 
 #define ELAB_MOTOR_CAST(_dev)           ((elab_motor_t *)_dev)
@@ -47,7 +45,6 @@ typedef struct elab_motor_ops
 /* public function ---------------------------------------------------------- */
 /* Config functions, for lua script programming. */
 void elab_motor_config_ratio(const char *const name, uint32_t ratio);
-void elab_motor_config_diameter(const char *const name, float diameter);
 
 /* Motor class functions */
 elab_err_t elab_motor_enable(elab_device_t *const me, bool status);

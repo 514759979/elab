@@ -7,9 +7,7 @@
 #define ELAB_RTC_H_
 
 /* includes ----------------------------------------------------------------- */
-#include "time.h"
-#include "elab_def.h"
-#include "elab_device.h"
+#include "../elab_device.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -5,7 +5,7 @@
 
 /* includes ----------------------------------------------------------------- */
 #include "elab_serial.h"
-#include "elab_assert.h"
+#include "../../common/elab_assert.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,9 +55,9 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
                             elab_serial_attr_t *attr,
                             void *user_data)
 {
-    assert(serial != NULL);
-    assert(name != NULL);
-    assert(ops != NULL);
+    elab_assert(serial != NULL);
+    elab_assert(name != NULL);
+    elab_assert(ops != NULL);
 
     /* The serial class data */
     serial->ops = ops;
@@ -73,9 +73,9 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
     
     /* Apply buffer memory */
     serial->queue_rx = osMessageQueueNew(serial->attr.rx_bufsz, 1, NULL);
-    assert(serial->queue_rx != NULL);
+    elab_assert(serial->queue_rx != NULL);
     serial->queue_tx = osMessageQueueNew(serial->attr.tx_bufsz, 1, NULL);
-    assert(serial->queue_tx != NULL);
+    elab_assert(serial->queue_tx != NULL);
 
     /* The super class data */
     elab_device_t *device = &(serial->super);
@@ -92,7 +92,7 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
     elab_device_register(device, &_dev_attr);
 }
 
-#ifndef __linux__
+#if !defined(__linux__) && !defined(_WIN32)
 /**
   * @brief  The serial device rx ISR function.
   * @param  serial      elab serial device handle.
@@ -103,7 +103,7 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
 void elab_serial_isr_rx(elab_serial_t *serial, void *buffer, uint32_t size)
 {
     /* TODO not completed. */
-    assert(false);
+    elab_assert(false);
 }
 
 /**
@@ -114,7 +114,7 @@ void elab_serial_isr_rx(elab_serial_t *serial, void *buffer, uint32_t size)
 void elab_serial_isr_tx_end(elab_serial_t *serial)
 {
     /* TODO not completed. */
-    assert(false);
+    elab_assert(false);
 }
 #endif
 
@@ -124,19 +124,18 @@ void elab_serial_isr_tx_end(elab_serial_t *serial)
   * @param  mode        Serial mode, full duplex or half duplex.
   * @retval None.
   */
-void elab_serial_set_mode(elab_serial_t *serial, uint8_t mode)
+void elab_serial_set_mode(elab_device_t * const me, uint8_t mode)
 {
-    assert(serial != NULL);
-    assert(mode == ELAB_SERIAL_MODE_FULL_DUPLEX ||
+    elab_assert(me != NULL);
+    elab_assert(mode == ELAB_SERIAL_MODE_FULL_DUPLEX ||
             mode == ELAB_SERIAL_MODE_HALF_DUPLEX);
 
-
     elab_serial_attr_t attr;
-    elab_device_lock(serial);
-    attr = elab_serial_get_attr(serial);
+    elab_device_lock(me);
+    attr = elab_serial_get_attr(me);
     attr.mode = mode;
-    elab_serial_set_attr(serial, &attr);
-    elab_device_unlock(serial);
+    elab_serial_set_attr(me, &attr);
+    elab_device_unlock(me);
 }
 
 /**
@@ -147,9 +146,11 @@ void elab_serial_set_mode(elab_serial_t *serial, uint8_t mode)
   * @param  user_data   The pointer of private data
   * @retval See elab_err_t
   */
-void elab_serial_set_attr(elab_serial_t *serial, elab_serial_attr_t *attr)
+void elab_serial_set_attr(elab_device_t *me, elab_serial_attr_t *attr)
 {
-    assert(serial != NULL);
+    elab_assert(me != NULL);
+
+    elab_serial_t *serial = ELAB_SERAIL_CAST(me);
 
     elab_device_lock(serial);
     memcpy(&serial->attr, attr, sizeof(elab_serial_attr_t));
@@ -164,11 +165,12 @@ void elab_serial_set_attr(elab_serial_t *serial, elab_serial_attr_t *attr)
   * @param  user_data   The pointer of private data
   * @retval See elab_err_t
   */
-elab_serial_attr_t elab_serial_get_attr(elab_serial_t *serial)
+elab_serial_attr_t elab_serial_get_attr(elab_device_t *me)
 {
-    assert(serial != NULL);
+    elab_assert(me != NULL);
 
     elab_serial_attr_t attr;
+    elab_serial_t *serial = ELAB_SERAIL_CAST(me);
 
     elab_device_lock(serial);
     memcpy(&attr, &serial->attr, sizeof(elab_serial_attr_t));
@@ -189,24 +191,24 @@ int32_t elab_serial_xfer(elab_device_t *me,
                             void *buff_tx, uint32_t size_tx,
                             void *buff_rx, uint32_t size_rx)
 {
-    assert(me != NULL);
-    assert(ELAB_SERAIL_CAST(me)->ops != NULL);
-    assert(ELAB_SERAIL_CAST(me)->ops->write != NULL);
+    elab_assert(me != NULL);
+    elab_assert(ELAB_SERAIL_CAST(me)->ops != NULL);
+    elab_assert(ELAB_SERAIL_CAST(me)->ops->write != NULL);
 
     elab_serial_t *serial = ELAB_SERAIL_CAST(me);
-    assert(serial->attr.mode == ELAB_SERIAL_MODE_HALF_DUPLEX);
+    elab_assert(serial->attr.mode == ELAB_SERIAL_MODE_HALF_DUPLEX);
 
     elab_device_lock(serial);
 
     int32_t ret = 0;
 
-#ifdef __linux__
+#if defined(__linux__) || defined(_WIN32)
     serial->is_sending = true;
     serial->ops->write(serial, buff_tx, size_tx);
     ret = serial->ops->read(serial, buff_rx, size_rx);
 #else
     /* TODO Not completed. */
-    assert(false);
+    elab_assert(false);
 #endif
 
     elab_device_unlock(serial);
@@ -224,11 +226,11 @@ static elab_err_t _device_enable(elab_device_t *me, bool status)
 {
     elab_err_t ret = ELAB_OK;
 
-    assert(me != NULL);
+    elab_assert(me != NULL);
 
     elab_serial_t *serial = (elab_serial_t *)me;
-    assert(serial->ops != NULL);
-    assert(serial->ops->enable != NULL);
+    elab_assert(serial->ops != NULL);
+    elab_assert(serial->ops->enable != NULL);
 
     return serial->ops->enable(serial, status);;
 }
@@ -244,9 +246,9 @@ static elab_err_t _device_enable(elab_device_t *me, bool status)
 static int32_t _device_read(elab_device_t *me,
                             uint32_t pos, void *buffer, uint32_t size)
 {
-    assert(me != NULL);
-    assert(ELAB_SERAIL_CAST(me)->ops != NULL);
-    assert(ELAB_SERAIL_CAST(me)->ops->read != NULL);
+    elab_assert(me != NULL);
+    elab_assert(ELAB_SERAIL_CAST(me)->ops != NULL);
+    elab_assert(ELAB_SERAIL_CAST(me)->ops->read != NULL);
 
     return ELAB_SERAIL_CAST(me)->ops->read(ELAB_SERAIL_CAST(me), buffer, size);
 }
@@ -262,9 +264,9 @@ static int32_t _device_read(elab_device_t *me,
 static int32_t _device_write(elab_device_t *me,
                                 uint32_t pos, const void *buffer, uint32_t size)
 {
-    assert(me != NULL);
-    assert(ELAB_SERAIL_CAST(me)->ops != NULL);
-    assert(ELAB_SERAIL_CAST(me)->ops->write != NULL);
+    elab_assert(me != NULL);
+    elab_assert(ELAB_SERAIL_CAST(me)->ops != NULL);
+    elab_assert(ELAB_SERAIL_CAST(me)->ops->write != NULL);
 
     return ELAB_SERAIL_CAST(me)->ops->write(ELAB_SERAIL_CAST(me), buffer, size);
 }

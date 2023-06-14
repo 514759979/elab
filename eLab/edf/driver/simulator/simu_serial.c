@@ -4,32 +4,23 @@
  */
 
 /* include ------------------------------------------------------------------ */
-#include "simu_driver_serial.h"
+#include "simu_serial.h"
 #include "edf_simu_config.h"
-#include "elib_hash_table.h"
-#include "cmsis_os.h"
-#include "elab_def.h"
-#include "elab_serial.h"
-#include "elab_common.h"
-#include "elab_assert.h"
-#include "elab_def.h"
+#include "../../../elib/elib_hash_table.h"
+#include "../../../RTOS/cmsis_os.h"
+#include "../../../edf/normal/elab_serial.h"
+#include "../../../common/elab_common.h"
+#include "../../../common/elab_assert.h"
+#include "../../../common/elab_def.h"
 
-ELAB_TAG("SimuDriverSerial");
-
-/* private define ----------------------------------------------------------- */
-enum simu_serial_mode
-{
-    SIMU_SERAIL_MODE_SINGLE = 0,
-    SIMU_SERAIL_MODE_PAIR,
-    SIMU_SERAIL_MODE_MASTER,
-    SIMU_SERAIL_MODE_SLAVE,
-};
+ELAB_TAG("SimuSerial");
 
 /* private typedef ---------------------------------------------------------- */
 typedef struct simu_serial
 {
     const char *name;
     uint8_t mode;
+    uint32_t baudrate;
     bool enable;
     bool tx_mode;
     
@@ -39,6 +30,7 @@ typedef struct simu_serial
     elab_serial_t serial;
 
     struct simu_serial *partner;
+    struct simu_serial *master;
     struct simu_serial *slave[SIMU_SERAIL_SLAVE_NUM_MAX];
     uint32_t count_slave;
 } simu_serial_t;
@@ -71,7 +63,7 @@ static const osMutexAttr_t mutex_attr_simu_serial =
 };
 
 /* public function ---------------------------------------------------------- */
-static simu_serial_t *_simu_serial_new(const char *name)
+static simu_serial_t *_simu_serial_new(const char *name, uint8_t mode, uint32_t baudrate)
 {
     elab_err_t ret = ELAB_OK;
 
@@ -86,8 +78,11 @@ static simu_serial_t *_simu_serial_new(const char *name)
     simu_serial_t *serial = elab_malloc(sizeof(simu_serial_t));
     assert(serial != NULL);
     serial->enable = false;
+    serial->tx_mode = false;
+    serial->baudrate = baudrate;
+    serial->name = name;
 
-    serial->mode = SIMU_SERAIL_MODE_SINGLE;
+    serial->mode = mode;
     serial->queue_rx = osMessageQueueNew(SIMU_SERIAL_BUFFER_MAX, 1, NULL);
     serial->queue_tx = osMessageQueueNew(SIMU_SERIAL_BUFFER_MAX, 1, NULL);
     serial->mutex = osMutexNew(&mutex_attr_simu_serial);
@@ -95,54 +90,91 @@ static simu_serial_t *_simu_serial_new(const char *name)
                 serial->queue_tx != NULL &&
                 serial->mutex != NULL);
 
+    serial->master = NULL;
+    serial->partner = NULL;
+    for (uint32_t i = 0; i < SIMU_SERAIL_SLAVE_NUM_MAX; i ++)
+    {
+        serial->slave[i] = NULL;
+    }
+    serial->count_slave = 0;
+
     elib_hash_table_add(ht_simu, (char *)name, (void *)serial);
     elab_serial_register(&serial->serial, name, &simu_serial_ops, NULL, serial);
 
     return serial;
 }
 
-void simu_serial_new(const char *name)
+void simu_serial_new(const char *name, uint8_t mode, uint32_t baudrate)
 {
-    _simu_serial_new(name);
+    elab_assert(name != NULL);
+    assert_name(mode < SIMU_SERIAL_MODE_MAX, name);
+
+    _simu_serial_new(name, mode, baudrate);
 }
 
-void simu_serial_new_pair(const char *name_one, const char *name_two)
+void simu_serial_new_pair(const char *name_one, const char *name_two, uint32_t baudrate)
 {
     simu_serial_t *serial_one = NULL;
     simu_serial_t *serial_two = NULL;
 
-    serial_one = _simu_serial_new(name_one);
+    serial_one = _simu_serial_new(name_one, SIMU_SERIAL_MODE_UART, baudrate);
     assert(serial_one != NULL);
-    serial_one->mode = SIMU_SERAIL_MODE_PAIR;
 
-    serial_two = _simu_serial_new(name_two);
+    serial_two = _simu_serial_new(name_two, SIMU_SERIAL_MODE_UART, baudrate);
     assert(serial_two != NULL);
-    serial_two->mode = SIMU_SERAIL_MODE_PAIR;
     
     serial_one->partner = serial_two;
     serial_two->partner = serial_one;
 }
 
-void simu_serial_new_add_slave(const char *name_master, const char *name_slave)
+void simu_serial_add_slave(const char *name, const char *name_slave)
 {
-    assert(false);
+    /* Get the simulated serial master device.*/
+    simu_serial_t *serial = elib_hash_table_get(ht_simu, (char *)name);
+    elab_assert(serial != NULL);
+    elab_assert(serial->mode == SIMU_SERIAL_MODE_485_M);
+    elab_assert(serial->count_slave < SIMU_SERAIL_SLAVE_NUM_MAX);
+
+    /* Get the simulated serial slave device.*/
+    simu_serial_t *serial_s = elib_hash_table_get(ht_simu, (char *)name_slave);
+    elab_assert(serial_s != NULL);
+    elab_assert(serial_s->mode == SIMU_SERIAL_MODE_485_S);
+    elab_assert(serial->baudrate == serial_s->baudrate);
+
+    /* Add master to slave. */
+    serial_s->master = serial;
+    serial_s->partner = NULL;
+    for (uint32_t i = 0; i < SIMU_SERAIL_SLAVE_NUM_MAX; i ++)
+    {
+        serial_s->slave[i] = NULL;
+    }
+    serial_s->count_slave = 0;
+
+    /* Add slave to master. */
+    serial->slave[serial->count_slave ++] = serial_s;
+    serial->master = NULL;
+    serial->partner = NULL;
 }
 
 void simu_serial_make_rx_data(const char *name, void *buffer, uint32_t size)
 {
     simu_serial_t *serial = elib_hash_table_get(ht_simu, (char *)name);
     assert(serial != NULL);
-    assert(serial->mode == SIMU_SERAIL_MODE_SINGLE);
+    assert(serial->mode == SIMU_SERIAL_MODE_SINGLE);
 
     /* TODO Add osDelay function to simulate the serial port transmitting
             process. Start one specific thread to send rx data.
+            It depends on thread-pool module.
     */
-    osStatus_t ret = osOK;
-    uint8_t *buff = (uint8_t *)buffer;
-    for (uint32_t i = 0; i < size; i ++)
+    if (!serial->tx_mode)
     {
-        ret = osMessageQueuePut(serial->queue_rx, &buff[i], 0, 0);
-        assert(ret == osOK);
+        osStatus_t ret = osOK;
+        uint8_t *buff = (uint8_t *)buffer;
+        for (uint32_t i = 0; i < size; i ++)
+        {
+            ret = osMessageQueuePut(serial->queue_rx, &buff[i], 0, osWaitForever);
+            assert(ret == osOK);
+        }
     }
 }
 
@@ -163,7 +195,6 @@ uint32_t simu_serial_read_tx_data(const char *name,
 
     simu_serial_t *serial = elib_hash_table_get(ht_simu, (char *)name);
     assert(serial != NULL);
-    assert(serial->mode == SIMU_SERAIL_MODE_SINGLE);
 
     uint8_t *buff = (uint8_t *)buffer;
     for (uint32_t i = 0; i < size; i ++)
@@ -212,10 +243,14 @@ static int32_t _read(elab_serial_t *serial, void *pbuf, uint32_t size)
 
     uint32_t read_cnt = 0;
     uint8_t *buffer = (uint8_t *)pbuf;
+    buffer[0] = 0;
     for (uint32_t i = 0; i < size; i ++)
     {
         ret = osMessageQueueGet(simu_serial->queue_rx, &buffer[i], NULL, osWaitForever);
-        assert(ret == osOK);
+        if (ret != osOK)
+        {
+            break;
+        }
         read_cnt ++;
     }
 
@@ -230,23 +265,22 @@ static int32_t _write(elab_serial_t *serial, const void *pbuf, uint32_t size)
     simu_serial_t *simu_serial = container_of(serial, simu_serial_t, serial);
     assert(simu_serial->enable);
 
-    if (simu_serial->mode == SIMU_SERAIL_MODE_SINGLE)
-    {
-        ret = osMutexAcquire(simu_serial->mutex, osWaitForever);
-        assert(ret == osOK);
+    ret = osMutexAcquire(simu_serial->mutex, osWaitForever);
+    assert(ret == osOK);
 
+    simu_serial->tx_mode = true;
+
+    if (simu_serial->mode == SIMU_SERIAL_MODE_SINGLE)
+    {
         /* Write the buffer data into message queue. */
         uint8_t *buffer = (uint8_t *)pbuf;
         for (uint32_t i = 0; i < size; i ++)
         {
-            ret = osMessageQueuePut(simu_serial->queue_tx, &buffer[i], 0, 0);
+            ret = osMessageQueuePut(simu_serial->queue_tx, &buffer[i], 0, osWaitForever);
             assert(ret == osOK);
         }
-
-        ret = osMutexRelease(simu_serial->mutex);
-        assert(ret == osOK);
     }
-    else if (simu_serial->mode == SIMU_SERAIL_MODE_PAIR)
+    else if (simu_serial->mode == SIMU_SERIAL_MODE_UART)
     {
         simu_serial_t *partner = simu_serial->partner;
         ret = osMutexAcquire(partner->mutex, osWaitForever);
@@ -256,13 +290,63 @@ static int32_t _write(elab_serial_t *serial, const void *pbuf, uint32_t size)
         uint8_t *buffer = (uint8_t *)pbuf;
         for (uint32_t i = 0; i < size; i ++)
         {
-            ret = osMessageQueuePut(partner->queue_rx, &buffer[i], 0, 0);
+            ret = osMessageQueuePut(partner->queue_rx, &buffer[i], 0, osWaitForever);
             assert(ret == osOK);
         }
 
         ret = osMutexRelease(partner->mutex);
         assert(ret == osOK);
     }
+    else if (simu_serial->mode == SIMU_SERIAL_MODE_485_M)
+    {
+        simu_serial_t *slave;
+        for (uint32_t i = 0; i < simu_serial->count_slave; i ++)
+        {
+            slave = simu_serial->slave[i];
+            ret = osMutexAcquire(slave->mutex, osWaitForever);
+            assert(ret == osOK);
+
+            /* Write the buffer data into message queue. */
+            uint8_t *buffer = (uint8_t *)pbuf;
+            for (uint32_t i = 0; i < size; i ++)
+            {
+                ret = osMessageQueuePut(slave->queue_rx, &buffer[i], 0, osWaitForever);
+                assert(ret == osOK);
+            }
+
+            ret = osMutexRelease(slave->mutex);
+            assert(ret == osOK);
+        }
+    }
+    else if (simu_serial->mode == SIMU_SERIAL_MODE_485_S)
+    {
+        simu_serial_t *master = simu_serial->master;
+        ret = osMutexAcquire(master->mutex, osWaitForever);
+        assert(ret == osOK);
+
+        /* Write the buffer data into message queue. */
+        if (!master->tx_mode)
+        {
+            uint8_t *buffer = (uint8_t *)pbuf;
+            for (uint32_t i = 0; i < size; i ++)
+            {
+                ret = osMessageQueuePut(master->queue_rx, &buffer[i], 0, osWaitForever);
+                assert(ret == osOK);
+            }
+        }
+
+        ret = osMutexRelease(master->mutex);
+        assert(ret == osOK);
+    }
+
+#if !defined(__arm__)
+    osDelay((size * 10000 / simu_serial->baudrate) + 10);
+#endif
+
+    simu_serial->tx_mode = false;
+
+    ret = osMutexRelease(simu_serial->mutex);
+    assert(ret == osOK);
 
 exit:
     return size;
@@ -270,7 +354,8 @@ exit:
 
 static void _set_tx(elab_serial_t *serial, bool status)
 {
-
+    simu_serial_t *simu_serial = container_of(serial, simu_serial_t, serial);
+    assert(simu_serial->enable);
 }
 
 static elab_err_t _config(elab_serial_t *serial, elab_serial_config_t *config)

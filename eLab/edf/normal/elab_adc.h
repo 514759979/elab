@@ -7,10 +7,9 @@
 #define __ELAB_ADC_H
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_def.h"
-#include "elab_device.h"
-#include "cmsis_os.h"
-#include "elib_queue.h"
+#include "../elab_device.h"
+#include "../../RTOS/cmsis_os.h"
+#include "../../elib/elib_queue.h"
 
 #ifdef __cplusplus
 extern "C" {

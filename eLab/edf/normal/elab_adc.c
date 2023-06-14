@@ -6,7 +6,7 @@
 
 /* includes ----------------------------------------------------------------- */
 #include "elab_adc.h"
-#include "elab_assert.h"
+#include "../../common/elab_assert.h"
 
 ELAB_TAG("Edf_ADC");
 
