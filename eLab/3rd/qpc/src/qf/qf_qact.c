@@ -1,13 +1,13 @@
 /**
 * @file
-* @brief QMActive_ctor() definition
+* @brief QActive_ctor() definition
 *
 * @description
 * This file must remain separate from the rest to avoid pulling in the
 * "virtual" functions QHsm_init_() and QHsm_dispatch_() in case they
 * are not used by the application.
 *
-* @sa qf_qact.c
+* @sa qf_qmact.c
 *
 * @ingroup qf
 * @cond
@@ -47,9 +47,9 @@
 */
 #define QP_IMPL           /* this is QP implementation */
 #include "qf_port.h"      /* QF port */
-#include "qf_pkg.h"       /* QF package-scope interface */
+#include "../qf_pkg.h"       /* QF package-scope interface */
 
-/*Q_DEFINE_THIS_MODULE("qf_qmact")*/
+/*Q_DEFINE_THIS_MODULE("qf_qact")*/
 
 /****************************************************************************/
 /**
@@ -60,40 +60,28 @@
 * @param[in,out] me       pointer (see @ref oop)
 * @param[in]     initial  pointer to the event to be dispatched to the MSM
 *
-* @note  Must be called only ONCE before QMSM_INIT().
-*
-* @sa QHsm_ctor()
+* @note  Must be called only __once__ before QMSM_INIT().
+* @sa QMsm_ctor() and QHsm_ctor()
 */
-void QMActive_ctor(QMActive * const me, QStateHandler initial) {
-    static QMActiveVtable const vtable = { /* QMActive virtual table */
-        { &QMsm_init_,
-          &QMsm_dispatch_
+void QActive_ctor(QActive * const me, QStateHandler initial) {
+    static QActiveVtable const vtable = {  /* QActive virtual table */
+        { &QHsm_init_,
+          &QHsm_dispatch_
 #ifdef Q_SPY
-         ,&QMsm_getStateHandler_
+          ,&QHsm_getStateHandler_
 #endif
         },
         &QActive_start_,
         &QActive_post_,
         &QActive_postLIFO_
     };
-
     /* clear the whole QActive object, so that the framework can start
     * correctly even if the startup code fails to clear the uninitialized
     * data (as is required by the C Standard).
     */
     QF_bzero(me, sizeof(*me));
 
-    /**
-    * @note QMActive inherits QActive, so by the @ref oop convention
-    * it should call the constructor of the superclass, i.e., QActive_ctor().
-    * However, this would pull in the QActiveVtable, which in turn will pull
-    * in the code for QHsm_init_() and QHsm_dispatch_() implemetations,
-    * which is expensive. To avoid this code size penalty, in case QHsm is
-    * not used in a given project, the call to QMsm_ctor() avoids pulling
-    * in the code for QHsm.
-    */
-    QMsm_ctor((QMsm *)&me->super.super, initial);
-
-    me->super.super.vptr = &vtable.super; /* hook vptr to QMActive vtable */
+    QHsm_ctor(&me->super, initial); /* explicitly call superclass' ctor */
+    me->super.vptr = &vtable.super; /* hook the vptr to QActive vtable */
 }
 

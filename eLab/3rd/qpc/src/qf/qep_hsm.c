@@ -39,12 +39,12 @@
 */
 #define QP_IMPL           /* this is QP implementation */
 #include "qep_port.h"     /* QEP port */
-#include "qassert.h"      /* QP embedded systems-friendly assertions */
+#include "../../include/qassert.h"      /* QP embedded systems-friendly assertions */
 #ifdef Q_SPY              /* QS software tracing enabled? */
     #include "qs_port.h"  /* QS port */
-    #include "qs_pkg.h"   /* QS facilities for pre-defined trace records */
+    #include "../qs_pkg.h" /* QS facilities for pre-defined trace records */
 #else
-    #include "qs_dummy.h" /* disable the QS software tracing */
+    #include "../../include/qs_dummy.h" /* disable the QS software tracing */
 #endif /* Q_SPY */
 
 Q_DEFINE_THIS_MODULE("qep_hsm")

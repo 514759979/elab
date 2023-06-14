@@ -39,13 +39,13 @@
 */
 #define QP_IMPL           /* this is QP implementation */
 #include "qf_port.h"      /* QF port */
-#include "qf_pkg.h"       /* QF package-scope interface */
-#include "qassert.h"      /* QP embedded systems-friendly assertions */
+#include "../qf_pkg.h"       /* QF package-scope interface */
+#include "../../include/qassert.h"      /* QP embedded systems-friendly assertions */
 #ifdef Q_SPY              /* QS software tracing enabled? */
     #include "qs_port.h"  /* QS port */
-    #include "qs_pkg.h"   /* QS facilities for pre-defined trace records */
+    #include "../qs_pkg.h"   /* QS facilities for pre-defined trace records */
 #else
-    #include "qs_dummy.h" /* disable the QS software tracing */
+    #include "../../include/qs_dummy.h" /* disable the QS software tracing */
 #endif /* Q_SPY */
 
 Q_DEFINE_THIS_MODULE("qf_ps")

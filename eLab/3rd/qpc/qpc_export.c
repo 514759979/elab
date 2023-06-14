@@ -5,9 +5,12 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdio.h>
+#include <stdlib.h>
 #include "event_def.h"
-#include "qpc.h"
-#include "elab.h"
+#include "include/qpc.h"
+#include "eLab/elab.h"
+
+ELAB_TAG("QpExport");
 
 /* Private defines -----------------------------------------------------------*/
 #define QPC_TIMER_PERIOD_MS                     (10)
@@ -18,10 +21,20 @@ static uint32_t time_ms_backup;
 static elab_event_t event_poll[ELAB_EVENT_POOL_SIZE];
 #endif
 
-/* Private function prototypes -----------------------------------------------*/
-static void func_timer_qpc(void *parameter);
+static const osThreadAttr_t thread_attr =
+{
+    .name = "qp_export",
+    .attr_bits = osThreadDetached,
+    .priority = osPriorityRealtime,
+    .stack_size = 2048,
+};
 
 /* Exported functions --------------------------------------------------------*/
+static void _thread_entry(void *para)
+{
+    QF_run();
+}
+
 static void qpc_export(void)
 {
 #if (ELAB_QPC_EN != 0)
@@ -34,8 +47,13 @@ static void qpc_export(void)
     
     /* Initialize event pool. */
     QF_poolInit(event_poll, sizeof(event_poll), sizeof(elab_event_t));
+
+    osThreadNew(_thread_entry, NULL, &thread_attr);
+    elog_debug("QPC export end.");
 #endif
 }
+
+INIT_COMPONENT_EXPORT(qpc_export);
 
 /* Exported functions --------------------------------------------------------*/
 /**
@@ -48,6 +66,10 @@ void Q_onAssert(char_t const * const module, int_t const location)
     printf("Q_onAssert module: %s, location: %u.\n", module, location);
 
     elab_assert(false);
+
+#if defined(__linux__)
+    exit(0);
+#endif
 }
 
 /**
