@@ -16,8 +16,8 @@
 #include <conio.h>
 #endif
 #include "esh.h"
-#include "elab_common.h"
-#include "elab_assert.h"
+#include "../../common/elab_common.h"
+#include "../../common/elab_assert.h"
 
 ELAB_TAG("esh");
 
@@ -57,7 +57,7 @@ typedef struct esh
 } esh_t;
 
 #if defined(__linux__)
-#include "cmsis_os.h"
+#include "../../RTOS/cmsis_os.h"
 
 static int getch(void);
 static void _entry_getch(void *parameter);
@@ -73,14 +73,10 @@ static const osThreadAttr_t thread_attr_getch =
     .stack_size = 2048,
 };
 
+static bool init_end = false;
+
 static osMessageQueueId_t mq_getch = NULL;
 #endif
-
-/* private variables -------------------------------------------------------- */
-static esh_t esh =
-{
-    .init_end = false,
-};
 
 /* public function ---------------------------------------------------------- */
 /**
@@ -90,15 +86,6 @@ static esh_t esh =
   */
 void esh_init(esh_key_parser_t func_parser)
 {
-    esh.func_parser = func_parser;
-
-    for (uint32_t i = 0; i < ESH_KEY_REG_TABLE; i ++)
-    {
-        esh.key_reg_table[i].key_id = Esh_Null;
-        esh.key_reg_table[i].func = NULL;
-        esh.key_reg_table[i].para = NULL;
-    }
-
 #if defined(__linux__)
     /*  On Linux, one specific thread is created for the function getch which 
         can check the data is timeout or not. */
@@ -106,23 +93,7 @@ void esh_init(esh_key_parser_t func_parser)
     assert(_thread != NULL);
 #endif
 
-    esh.init_end = true;
-}
-
-/**
-  * @brief  Esh F-key function registering.
-  * @param  key     f-key ID.
-  * @param  func    Ther F-key function.
-  * @param  paras   Parameters.
-  * @retval None
-  */
-void esh_key_register(uint8_t key, esh_func_t func, void *paras)
-{
-    uint32_t i = key - Esh_Null;
-
-    esh.key_reg_table[i].key_id = key;
-    esh.key_reg_table[i].func = func;
-    esh.key_reg_table[i].para = paras;
+    init_end = true;
 }
 
 /**
@@ -139,14 +110,14 @@ char esh_getch(void)
 #endif
 
     /* If esh is not initialed, prevent the code enter assert. */
-    if (!esh.init_end)
+    if (!init_end)
     {
         osDelay(100);
         key_id = Esh_Null;
         goto exit;
     }
 
-    while (esh.init_end)
+    while (init_end)
     {
         key_id = getch();
 #ifdef __linux__
@@ -165,44 +136,7 @@ char esh_getch(void)
 #endif
 
         key_id = buffer[0];
-
-        if (key_id == KEY_ENTER)
-        {
-            key_id = '\n';
-            break;
-        }
-        /* Ctrl + A -> Z. */
-        else if (key_id >= 0x01 && key_id <= 0x1A &&
-                    key_id != KEY_CTRL_C && key_id != KEY_TABLE &&
-                    KEY_ESC != key_id)
-        {
-            /* Ignore the key Ctrl + A -> Z. */
-        }
-        /*
-        else if ((KEY_FUNCTION == key_id) || (KEY_Fn == key_id))
-        {
-#ifndef __linux__
-            buffer[1] = getch();
-            count_ch = 2;
-#endif
-            uint8_t key_func = esh.func_parser(buffer, count_ch);
-            uint8_t index = key_func - Esh_Null;
-            void *para = esh.key_reg_table[index].para;
-            if (esh.key_reg_table[index].func != NULL)
-            {
-                esh.key_reg_table[index].func(key_func, para);
-            }
-
-            count_ch = 0;
-            memset(buffer, 0, 16);
-
-            continue;
-        }
-        */
-        else
-        {
-            break;
-        }
+        break;
     }
 
     count_ch = 0;
