@@ -7,12 +7,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "elab_port.h"
-#include "elab_common.h"
-#include "elab_assert.h"
-#include "cmsis_os.h"
-#include "elab_def.h"
-#include "elab_assert.h"
+#include "../elab_port.h"
+#include "../../RTOS/cmsis_os.h"
+#include "../../common/elab_common.h"
+#include "../../common/elab_def.h"
+#include "../../common/elab_assert.h"
 
 ELAB_TAG("eLabPortPOSIX");
 
@@ -31,7 +30,7 @@ static char buff_tx[ELAB_DEBUG_BUFF_SIZE];
 uint32_t elab_time_ms(void)
 {
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-    return osKernelSysTick();
+    return osKernelGetTickCount();
 #else
     return 0;
 #endif
