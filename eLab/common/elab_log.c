@@ -11,7 +11,7 @@
 #include "elab_common.h"
 #include "elab_config.h"
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#include "cmsis_os.h"
+#include "../RTOS/cmsis_os.h"
 #endif
 
 #ifdef __cplusplus

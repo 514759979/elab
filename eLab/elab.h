@@ -11,15 +11,15 @@
 #include "common/elab_assert.h"
 #include "common/elab_export.h"
 #include "common/elab_common.h"
-#include "elab_port.h"
+#include "port/elab_port.h"
 
 #if (ELAB_QPC_EN != 0)
-#include "qpc.h"
+#include "3rd/qpc/include/qpc.h"
 #include "event_def.h"
 #endif
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#include "cmsis_os.h"
+#include "RTOS/cmsis_os.h"
 #endif
 
 #if (ELAB_RTOS_BASIC_OS_EN != 0)

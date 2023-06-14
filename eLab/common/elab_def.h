@@ -11,7 +11,7 @@
 #include "elab_config.h"
 
 #if (ELAB_QPC_EN != 0)
-#include "qpc.h"
+#include "../3rd/qpc/include/qpc.h"
 #endif
 
 #ifdef __cplusplus

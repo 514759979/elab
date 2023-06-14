@@ -4,7 +4,8 @@
  */
 
 /* include ------------------------------------------------------------------ */
-#include "elab.h"
+#include <stdlib.h>
+#include "../elab.h"
 
 /* public function ---------------------------------------------------------- */
 uint32_t elab_version(void)

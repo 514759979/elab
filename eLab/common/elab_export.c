@@ -13,15 +13,15 @@
 #include "elab_common.h"
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#include "cmsis_os.h"
+#include "../RTOS/cmsis_os.h"
 #endif
 #if (ELAB_RTOS_BASIC_OS_EN != 0)
 #include "basic_os.h"
 #endif
 
 #if (ELAB_QPC_EN != 0)
+#include "../3rd/qpc/include/qpc.h"
 Q_DEFINE_THIS_FILE
-#include "qpc.h"
 #endif
 
 #ifdef __cplusplus
@@ -93,14 +93,15 @@ static bool app_exit_end = false;
 static void signal_handler(int sig)
 {
     printf("Elab Signal: %d.\n", sig);
+
     app_exit = true;
-    osKernelEnd();
 
     elab_exit();
     system("stty echo");
     printf("\033[0;0m\n");
 
     app_exit_end = true;
+    exit(-1);
 }
 #endif
 
@@ -116,7 +117,7 @@ void elab_run(void)
     signal(SIGABRT, signal_handler);
     signal(SIGKILL, signal_handler);                /* kill -9 pid */
     signal(SIGHUP, signal_handler);
-    // signal(SIGSEGV, signal_handler);
+    signal(SIGSEGV, signal_handler);
 #endif
 
     /* Start polling function in metal eLab, or start the RTOS kernel in RTOS 

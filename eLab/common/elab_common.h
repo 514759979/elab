@@ -10,8 +10,8 @@
 #include <stdint.h>
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#include "elab_port.h"
-#include "cmsis_os.h"
+#include "../port/elab_port.h"
+#include "../RTOS/cmsis_os.h"
 #endif
 
 #ifdef __cplusplus

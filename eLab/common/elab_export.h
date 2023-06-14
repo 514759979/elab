@@ -10,11 +10,11 @@
 #include <stdint.h>
 #include "elab_def.h"
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#include "elab_port.h"
+#include "../port/elab_port.h"
 #endif
 
 #if (ELAB_QPC_EN != 0)
-#include "qpc.h"
+#include "../3rd/qpc/include/qpc.h"
 #endif
 
 #ifdef __cplusplus
