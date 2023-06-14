@@ -14,7 +14,29 @@
 
 #include <stdint.h>
 #include "shell_cfg.h"
-#include "elab_def.h"
+#include "eLab/common/elab_def.h"
+
+#define ESH_KEY_F1                      (0x1B4F5000)
+#define ESH_KEY_F2                      (0x1B4F5100)
+#define ESH_KEY_F3                      (0x1B4F5200)
+#define ESH_KEY_F4                      (0x1B4F5300)
+#define ESH_KEY_F5                      (0x1B5B3135) // 7E
+#define ESH_KEY_F6                      (0x1B5B3137) // 7E
+#define ESH_KEY_F7                      (0x1B5B3138) // 7E
+#define ESH_KEY_F8                      (0x1B5B3139) // 7E
+#define ESH_KEY_F9                      (0x1B5B3230) // 7E
+#define ESH_KEY_F10                     (0x1B5B3231) // 7E
+#define ESH_KEY_F12                     (0x1B5B3234) // 7E
+#define ESH_KEY_UP                      (0x1B5B4100)
+#define ESH_KEY_DOWN                    (0x1B5B4200)
+#define ESH_KEY_LEFT                    (0x1B5B4300)
+#define ESH_KEY_RIGHT                   (0x1B5B4400)
+#define ESH_KEY_HOME                    (0x1B5B317E)
+#define ESH_KEY_INSERT                  (0x1B5B327E)
+#define ESH_KEY_DELETE                  (0x1B5B337E)
+#define ESH_KEY_END                     (0x1B5B347E)
+#define ESH_KEY_PAGEUP                  (0x1B5B357E)
+#define ESH_KEY_PAGEDOWN                (0x1B5B367E)
 
 #define shell_pointer_t                 elab_pointer_t
 

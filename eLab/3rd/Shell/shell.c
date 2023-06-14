@@ -9,12 +9,12 @@
  */
 
 #include <stdint.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include "shell.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdarg.h"
 #include "shell_ext.h"
-#include "elab_assert.h"
+#include "eLab/common/elab_assert.h"
 
 ELAB_TAG("LetterShell");
 
@@ -76,16 +76,13 @@ static ShellCommand *_get_shell_cmd_base(void)
 
 static uint16_t _get_shell_cmd_count(void)
 {
-    printf("_get_shell_cmd_count.\n");
     uint16_t count = 0;
     ShellCommand *func_block = (ShellCommand *)_shell_command_start;
-    printf("_get_shell_cmd_count.\n");
     for (uint16_t i = 0; ; i ++)
     {
         if (func_block[i].magic_head == SHELL_MAGIC_NUM &&
             func_block[i].magic_tail == SHELL_MAGIC_NUM)
         {
-            printf("ShellCommand Block %d.\n", count);
             count ++;
         }
         else
@@ -93,7 +90,7 @@ static uint16_t _get_shell_cmd_count(void)
             break;
         }
     }
-    printf("count: %u.\n", count);
+    printf("ShellCommand block count: %u.\n", count);
 
     return count;
 }
@@ -491,16 +488,8 @@ signed char shellCheckPermission(Shell *shell, ShellCommand *command)
  */
 signed char shellToHex(unsigned int value, char *buffer)
 {
-    char byte;
-    unsigned char i = 8;
-    buffer[8] = 0;
-    while (value)
-    {
-        byte = value & 0x0000000F;
-        buffer[--i] = (byte > 9) ? (byte + 87) : (byte + 48);
-        value >>= 4;
-    }
-    return 8 - i;
+    sprintf(buffer, "%08x", value);
+    return strlen(buffer);
 }
 
 
@@ -1487,7 +1476,7 @@ void shellUp(Shell *shell)
 {
     shellHistory(shell, 1);
 }
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x1B5B4100, shellUp, up);
+SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_HOME, shellUp, up);
 
 
 /**
@@ -1499,7 +1488,7 @@ void shellDown(Shell *shell)
 {
     shellHistory(shell, -1);
 }
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x1B5B4200, shellDown, down);
+SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_END, shellDown, down);
 #endif /** SHELL_HISTORY_MAX_NUMBER > 0 */
 
 
@@ -1954,6 +1943,11 @@ SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
 clear, shellClear, clear console);
 
+static void fkey_null_func(Shell *shell)
+{
+    (void)shell;
+}
+SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x7E000000, fkey_null_func, fkey_tail);
 
 /**
  * @brief shell执行命令
