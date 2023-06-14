@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "shell.h"
-#include "elab_log.h"
+#include "../3rd/Shell/shell.h"
+#include "../common/elab_log.h"
 
 ELAB_TAG("eLogTest");
 
