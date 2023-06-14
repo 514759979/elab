@@ -4,7 +4,7 @@
 
 uint32_t elab_time_ms(void)
 {
-    return osKernelSysTick();
+    return osKernelGetTickCount();
 }
 
 void *elab_malloc(uint32_t size)
