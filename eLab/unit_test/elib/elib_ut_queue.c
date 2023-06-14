@@ -5,11 +5,11 @@
 
 /* include ------------------------------------------------------------------ */
 #include <string.h>
-#include "elab_def.h"
-#include "elab_export.h"
-#include "elib_queue.h"
-#include "unity.h"
-#include "unity_fixture.h"
+#include "../../common/elab_def.h"
+#include "../../common/elab_export.h"
+#include "../../elib/elib_queue.h"
+#include "../../3rd/Unity/unity.h"
+#include "../../3rd/Unity/unity_fixture.h"
 
 /* private config ----------------------------------------------------------- */
 #define ELIB_QUEUE_CAPACITY                     (64)
