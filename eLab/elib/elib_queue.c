@@ -5,7 +5,7 @@
 
 /* includes ----------------------------------------------------------------- */
 #include "elib_queue.h"
-#include "elab_def.h"
+#include "../common/elab_def.h"
 
 /* public functions --------------------------------------------------------- */
 /**

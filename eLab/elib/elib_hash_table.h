@@ -9,7 +9,7 @@
 /* includes ----------------------------------------------------------------- */
 #include <stdint.h>
 #include <stdbool.h>
-#include "elab_def.h"
+#include "../common/elab_def.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include "elib_hash_table.h"
 #include "elib_hash.h"
-#include "elab_assert.h"
-#include "elab_common.h"
+#include "../common/elab_assert.h"
+#include "../common/elab_common.h"
 
 ELAB_TAG("eLibHashTable");
 
