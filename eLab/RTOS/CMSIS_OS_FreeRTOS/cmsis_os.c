@@ -1,5 +1,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <stdio.h>
+#include <stdbool.h>
+#include <assert.h>
 #include "cmsis_os.h"
 #include "FreeRTOS.h"                   // ARM.FreeRTOS::RTOS:Core
 #include "task.h"                       // ARM.FreeRTOS::RTOS:Core
