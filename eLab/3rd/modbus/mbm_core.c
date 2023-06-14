@@ -33,6 +33,9 @@
 
 #define    MBM_MODULE
 #include  "mb.h"
+#include "../../common/elab_assert.h"
+
+ELAB_TAG("MbmCore");
 
 
 #if (MODBUS_CFG_MASTER_EN == DEF_ENABLED)
@@ -205,6 +208,10 @@ uint16_t  MBM_FC01_CoilRd (elab_mb_channel_t   *pch,
                              uint8_t  *p_coil_tbl,
                              uint16_t   nbr_coils)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
 
@@ -233,6 +240,9 @@ uint16_t  MBM_FC01_CoilRd (elab_mb_channel_t   *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -286,10 +296,12 @@ uint16_t  MBM_FC02_DIRd (elab_mb_channel_t   *pch,
                            uint8_t  *p_di_tbl,
                            uint16_t   nbr_di)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
-
-
 
     MBM_TX_FRAME_NBYTES             = 4;
     MBM_TX_FRAME_SLAVE_ADDR         = slave_node;                               /* Setup command                     */
@@ -316,6 +328,9 @@ uint16_t  MBM_FC02_DIRd (elab_mb_channel_t   *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -359,10 +374,12 @@ uint16_t  MBM_FC03_HoldingRegRd (elab_mb_channel_t   *pch,
                                    uint16_t  *p_reg_tbl,
                                    uint16_t   nbr_regs)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
-
-
 
     MBM_TX_FRAME_NBYTES             = 4;
     MBM_TX_FRAME_SLAVE_ADDR         = slave_node;                               /* Setup command                     */
@@ -389,6 +406,9 @@ uint16_t  MBM_FC03_HoldingRegRd (elab_mb_channel_t   *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -429,9 +449,12 @@ uint16_t  MBM_FC03_HoldingRegRdFP (elab_mb_channel_t   *pch,
                                      float    *p_reg_tbl,
                                      uint16_t   nbr_regs)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
-
 
     MBM_TX_FRAME_NBYTES             = 4;
     MBM_TX_FRAME_SLAVE_ADDR         = slave_node;                               /* Setup command                     */
@@ -458,6 +481,9 @@ uint16_t  MBM_FC03_HoldingRegRdFP (elab_mb_channel_t   *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -501,10 +527,12 @@ uint16_t  MBM_FC04_InRegRd (elab_mb_channel_t   *pch,
                               uint16_t  *p_reg_tbl,
                               uint16_t   nbr_regs)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
-
-
 
     MBM_TX_FRAME_NBYTES             = 4;
     MBM_TX_FRAME_SLAVE_ADDR         = slave_node;                               /* Setup command                     */
@@ -531,6 +559,9 @@ uint16_t  MBM_FC04_InRegRd (elab_mb_channel_t   *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -603,6 +634,10 @@ uint16_t elab_mbm_fc05_wirte_coil(elab_mb_channel_t *pch,
                                     uint16_t slave_addr,
                                     bool coil_val)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
 
@@ -639,6 +674,9 @@ uint16_t elab_mbm_fc05_wirte_coil(elab_mb_channel_t *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -677,6 +715,10 @@ uint16_t MBM_FC06_HoldingRegWr(elab_mb_channel_t   *pch,
                                 uint16_t   slave_addr,
                                 uint16_t   reg_val)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
 
@@ -704,6 +746,44 @@ uint16_t MBM_FC06_HoldingRegWr(elab_mb_channel_t   *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
+
+    return (err);
+}
+
+uint16_t  MBM_FC06_HoldingRegWr_NoAck(elab_mb_channel_t   *pch,
+                                      uint8_t   slave_node,
+                                      uint16_t   slave_addr,
+                                      uint16_t   reg_val,
+                                      uint32_t timeout_ms)
+{
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
+    uint16_t err;
+    bool ok;
+
+    MBM_TX_FRAME_NBYTES       = 4;
+    MBM_TX_FRAME_SLAVE_ADDR   = slave_node;                                     /* Setup command                     */
+    MBM_TX_FRAME_FC           = 6;
+    MBM_TX_FRAME_FC06_ADDR_HI = (uint8_t)((slave_addr >> 8) & 0x00FF);
+    MBM_TX_FRAME_FC06_ADDR_LO = (uint8_t) (slave_addr       & 0x00FF);
+    MBM_TX_FRAME_FC06_DATA_HI = (uint8_t)((reg_val >> 8)    & 0x00FF);
+    MBM_TX_FRAME_FC06_DATA_LO = (uint8_t) (reg_val          & 0x00FF);
+
+    pch->no_ack = true;
+    pch->no_ack_timeout_ms = timeout_ms;
+
+    MBM_TxCmd(pch);                                                             /* Send command to the slave         */
+
+    pch->no_ack = 0;
+    pch->no_ack_timeout_ms = 0;
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -743,6 +823,10 @@ uint16_t MBM_FC06_HoldingRegWrFP(elab_mb_channel_t *pch,
                                      uint16_t   slave_addr,
                                      float     reg_val_fp)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
     uint8_t   i;
@@ -795,6 +879,9 @@ uint16_t MBM_FC06_HoldingRegWrFP(elab_mb_channel_t *pch,
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
 
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
+
     return (err);
 }
 #endif
@@ -832,10 +919,12 @@ uint16_t  MBM_FC08_Diag (elab_mb_channel_t   *pch,
                            uint16_t   fnct_data,
                            uint16_t  *pval)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
-
-
 
     MBM_TX_FRAME_NBYTES            = 4;
     MBM_TX_FRAME_SLAVE_ADDR        = slave_node;                                /* Setup command                     */
@@ -864,6 +953,9 @@ uint16_t  MBM_FC08_Diag (elab_mb_channel_t   *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -917,6 +1009,10 @@ uint16_t  MBM_FC15_CoilWr (elab_mb_channel_t   *pch,
                              uint8_t  *p_coil_tbl,
                              uint16_t   nbr_coils)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     uint8_t   nbr_bytes;
     uint8_t   i;
@@ -959,6 +1055,9 @@ uint16_t  MBM_FC15_CoilWr (elab_mb_channel_t   *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -1005,13 +1104,15 @@ uint16_t  MBM_FC16_HoldingRegWrN (elab_mb_channel_t   *pch,
                                     uint16_t  *p_reg_tbl,
                                     uint16_t   nbr_regs)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
     uint8_t   nbr_bytes;
     uint8_t   i;
     uint8_t  *p_data;
-
-
 
     MBM_TX_FRAME_NBYTES             =  nbr_regs * sizeof(uint16_t) + 5;
     MBM_TX_FRAME_SLAVE_ADDR         = slave_node;                               /* Setup command                     */
@@ -1046,6 +1147,9 @@ uint16_t  MBM_FC16_HoldingRegWrN (elab_mb_channel_t   *pch,
 
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
+
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
 
     return (err);
 }
@@ -1093,6 +1197,10 @@ uint16_t  MBM_FC16_HoldingRegWrNFP (elab_mb_channel_t   *pch,
                                       float    *p_reg_tbl,
                                       uint16_t   nbr_regs)
 {
+    osStatus_t ret_os = osOK;
+    ret_os = osMutexAcquire(pch->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+
     uint16_t err;
     bool ok;
     uint8_t   nbr_bytes;
@@ -1100,8 +1208,6 @@ uint16_t  MBM_FC16_HoldingRegWrNFP (elab_mb_channel_t   *pch,
     uint16_t   n;
     uint8_t  *p_data;
     float    *p_fp;
-
-
 
     MBM_TX_FRAME_NBYTES           =  4;
     MBM_TX_FRAME_SLAVE_ADDR       = slave_node;                                 /* Setup command                     */
@@ -1146,6 +1252,9 @@ uint16_t  MBM_FC16_HoldingRegWrNFP (elab_mb_channel_t   *pch,
     pch->RxBufByteCtr = 0;
     pch->RxBufPtr     = &pch->RxBuf[0];
 
+    ret_os = osMutexRelease(pch->mutex);
+    elab_assert(ret_os == osOK);
+
     return (err);
 }
 #endif
@@ -1183,8 +1292,6 @@ static  uint16_t  MBM_Coil_DI_Rd_Resp (elab_mb_channel_t *pch, uint8_t *ptbl)
     uint8_t       nbr_points;
     uint8_t       i;
     uint8_t      *psrc;
-
-
 
     slave_addr = MBM_TX_FRAME_SLAVE_ADDR;                     /* Validate slave address                      */
     if (slave_addr != pch->RxFrameData[0]) {
@@ -1376,8 +1483,6 @@ static  uint16_t  MBM_CoilWr_Resp (elab_mb_channel_t *pch)
     uint8_t   fnct_code;
     uint8_t   coil_addr_hi;
     uint8_t   coil_addr_lo;
-
-
 
     slave_addr = MBM_TX_FRAME_SLAVE_ADDR;                     /* Validate slave address                      */
     if (slave_addr != pch->RxFrameData[0]) {
@@ -1672,7 +1777,7 @@ static  bool  MBM_RxReply (elab_mb_channel_t *pch)
         }
 #endif
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
         if (pch->Mode == MODBUS_MODE_RTU) {
             ok = MB_RTU_Rx(pch);
         }
@@ -1707,7 +1812,7 @@ static  void  MBM_TxCmd (elab_mb_channel_t *pch)
         }
 #endif
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
         if (pch->Mode == MODBUS_MODE_RTU) {
             MB_RTU_Tx(pch);
         }

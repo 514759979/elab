@@ -32,7 +32,7 @@
 
 #define   MBS_MODULE
 
-#include "elab_assert.h"
+#include "eLab/common/elab_assert.h"
 #include "mb.h"
 
 ELAB_TAG("ModbusSlaveCore");
@@ -1756,7 +1756,7 @@ void  MBS_RxTask (elab_mb_channel_t *pch)
         }
 #endif
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
         if (pch->Mode == MODBUS_MODE_RTU) {
             MBS_RTU_Task(pch);
         }

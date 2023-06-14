@@ -3,6 +3,7 @@
  * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
  */
 
+#if 0
 /* includes ----------------------------------------------------------------- */
 #include "mb_def.h"
 #include "mb.h"
@@ -10,7 +11,7 @@
 #include "elab_device.h"
 #include "elab_serial.h"
 #include "elab_pin.h"
-#include "cmsis_os.h"
+#include "../../RTOS/cmsis_os.h"
 #include "elab_def.h"
 #include "elab_rs485.h"
 #include "elab_log.h"
@@ -390,3 +391,5 @@ static uint32_t mb_port_read(elab_mb_channel_t *pch, void *pbuf, uint32_t size)
 }
 
 /* ----------------------------- end of file -------------------------------- */
+
+#endif

@@ -202,7 +202,7 @@
 *********************************************************************************************************
 */
 
-#if     (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if     (MODBUS_CFG_RTU_EN != 0)
 #define  MODBUS_RTU_MIN_MSG_SIZE                    4
 #endif
 

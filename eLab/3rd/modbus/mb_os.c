@@ -8,9 +8,9 @@
 #define MB_OS_MODULE
 
 #include "mb.h"
-#include "cmsis_os.h"
-#include "elab_log.h"
-#include "elab_assert.h"
+#include "../../RTOS/cmsis_os.h"
+#include "../../common/elab_log.h"
+#include "../../common/elab_assert.h"
 
 ELAB_TAG("modbus_os");
 

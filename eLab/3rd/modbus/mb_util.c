@@ -189,7 +189,7 @@ uint8_t  MB_ASCII_TxCalcLRC (elab_mb_channel_t  *pch, uint16_t tx_bytes)
 *********************************************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 uint16_t  MB_RTU_RxCalcCRC (elab_mb_channel_t  *pch)
 {
     uint16_t      crc;
@@ -238,7 +238,7 @@ uint16_t  MB_RTU_RxCalcCRC (elab_mb_channel_t  *pch)
 *********************************************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 uint16_t  MB_RTU_TxCalcCRC (elab_mb_channel_t *pch)
 {
     uint16_t      crc;

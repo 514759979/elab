@@ -52,6 +52,7 @@
 
 #include  "mb_cfg.h"
 #include  "mb_def.h"
+#include "../../RTOS/cmsis_os.h"
 
 /*
 ********************************************************************************
@@ -98,7 +99,7 @@ typedef  struct  elab_mb_channel_t {
 
     uint16_t       Err;                              /* Internal code to indicate the source of MBS_ErrRespSet()         */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
     uint16_t       RTU_TimeoutCnts;                  /* Counts to reload in .RTU_TimeoutCtr when byte received           */
     uint16_t       RTU_TimeoutCtr;                   /* Counts left before RTU timer times out for the channel           */
     bool      RTU_TimeoutEn;                    /* Enable (when TRUE) or Disable (when FALSE) RTU timer             */
@@ -134,6 +135,9 @@ typedef  struct  elab_mb_channel_t {
     uint16_t       TxFrameCRC;                       /* Error check value (LRC or CRC-16).                               */
 
     elab_mb_channel_cb_t cb;
+    osMutexId_t mutex;
+    bool no_ack;
+    uint32_t no_ack_timeout_ms;
 } elab_mb_channel_t;
 
  
@@ -143,7 +147,7 @@ typedef  struct  elab_mb_channel_t {
 ********************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 extern uint16_t MB_RTU_Freq;                  /* Frequency at which RTU timer is running                          */
 extern uint32_t MB_RTU_TmrCtr;                /* Incremented every Modbus RTU timer interrupt                     */
 #endif
@@ -189,7 +193,7 @@ void          MB_ASCII_RxByte  (elab_mb_channel_t   *pch,
                                          uint8_t   rx_byte);
 #endif
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 void MB_RTU_RxByte(elab_mb_channel_t *pch, uint8_t rx_byte);
 
 void MB_RTU_TmrReset(elab_mb_channel_t *pch);       /* Resets the Frame Sync timer.                                 */
@@ -213,7 +217,7 @@ void         MB_ASCII_Tx    (elab_mb_channel_t   *pch);
 #endif
 
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 bool MB_RTU_Rx(elab_mb_channel_t *pch);
 void MB_RTU_Tx(elab_mb_channel_t *pch);
 #endif
@@ -251,7 +255,7 @@ uint8_t MB_ASCII_TxCalcLRC(elab_mb_channel_t *pch, uint16_t tx_bytes);
 ********************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 uint16_t MB_RTU_CalcCRC(elab_mb_channel_t  *pch);
 
 uint16_t MB_RTU_TxCalcCRC(elab_mb_channel_t  *pch);
@@ -335,7 +339,7 @@ void MB_CommTxIntEn(elab_mb_channel_t   *pch);           /* Enable  Tx interrupt
 void MB_CommTxIntDis(elab_mb_channel_t   *pch);           /* Disable Tx interrupts                                        */
 
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 void elab_mb_rtu_timer_init (void);                       /* Initialize the timer used for RTU framing                    */
 void elab_mb_rtu_timer_exit (void);
 void MB_RTU_TmrISR_Handler(void);
@@ -416,6 +420,12 @@ uint16_t  MBM_FC06_HoldingRegWr (elab_mb_channel_t   *pch,
                                       uint8_t   slave_node,
                                       uint16_t   slave_addr,
                                       uint16_t   reg_val);
+
+uint16_t  MBM_FC06_HoldingRegWr_NoAck(elab_mb_channel_t   *pch,
+                                      uint8_t   slave_node,
+                                      uint16_t   slave_addr,
+                                      uint16_t   reg_val,
+                                      uint32_t timeout_ms);
 #endif
 
 #if (MODBUS_CFG_FC06_EN == DEF_ENABLED) && (MODBUS_CFG_FP_EN   == DEF_ENABLED)

@@ -31,15 +31,15 @@
 
 #define    MB_MODULE
 
-#include "elab_assert.h"
 #include <stdlib.h>
+#include "../../common/elab_assert.h"
 #include "mb.h"
 
 static uint8_t MB_ChCtr = 0;
 
 ELAB_TAG("MB");
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 uint32_t  const  MB_TotalRAMSize = sizeof(MB_RTU_Freq)
                                    + sizeof(MB_RTU_TmrCtr)
                                    + sizeof(modbus_channel_table);
@@ -49,6 +49,10 @@ uint32_t  const  MB_TotalRAMSize = sizeof(modbus_channel_table);
 
 uint16_t  const  MB_ChSize       = sizeof(elab_mb_channel_t);
 
+static const osMutexAttr_t mutex_attr_mbm =
+{
+    "mutex_elog", osMutexRecursive | osMutexPrioInherit, NULL, 0U 
+};
 
 /*
 *********************************************************************************************************
@@ -85,7 +89,7 @@ void elab_mb_init(uint32_t freq)
     uint8_t   ch;
     elab_mb_channel_t   *pch;
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
     MB_RTU_Freq = freq;                                         /* Save the RTU frequency                             */
 #endif
 
@@ -99,7 +103,7 @@ void elab_mb_init(uint32_t freq)
         pch->RxBufPtr      = &pch->RxBuf[0];
         pch->write_en          = MODBUS_WR_EN;
         pch->WrCtr         = 0;
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
         pch->RTU_TimeoutEn = true;
 #endif
 
@@ -115,7 +119,7 @@ void elab_mb_init(uint32_t freq)
     elab_mb_os_init();                                               /* Initialize OS interface functions                  */
 
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)                         /* MODBUS 'RTU' Initialization                         */
+#if (MODBUS_CFG_RTU_EN != 0)                         /* MODBUS 'RTU' Initialization                         */
     elab_mb_rtu_timer_init();
 #else
     (void)&freq;
@@ -140,7 +144,7 @@ void elab_mb_init(uint32_t freq)
 
 void  elab_mb_exit (void)
 {
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
     elab_mb_rtu_timer_exit();                                           /* Stop the RTU timer interrupts                      */
 #endif
 
@@ -205,19 +209,24 @@ elab_mb_channel_t  *elab_mb_config_channel (uint8_t  node_addr,
                       uint8_t  wr_en)
 {
     elab_mb_channel_t   *pch;
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
     uint16_t   cnts;
 #endif
 
     if (MB_ChCtr < MODBUS_CFG_MAX_CH) {
         pch = &modbus_channel_table[MB_ChCtr];
-        elab_mb_master_set_timeout(pch, rx_timeout);
-        elab_mb_set_node_addr(pch, node_addr);
+        elab_assert(pch != NULL);
+
+        pch->mutex = osMutexNew(&mutex_attr_mbm);
+        elab_assert(pch->mutex != NULL);
+
+        pch->RxTimeout = rx_timeout;
+        pch->NodeAddr = node_addr;
         elab_mb_set_mode(pch, master_slave, modbus_mode);
-        elab_mb_set_write_en(pch, wr_en);
-        elab_mb_channel_map_port(pch, port_nbr);
+        pch->write_en = wr_en;
+        pch->PortNbr = port_nbr;
         MB_CommPortCfg(pch, port_nbr, baud, bits, parity, stops);
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
         if (pch->m_or_s == MODBUS_MASTER) {
             pch->RTU_TimeoutEn = false;
         }
@@ -242,6 +251,8 @@ elab_mb_channel_t  *elab_mb_config_channel (uint8_t  node_addr,
         pch->cb.holding_reg_write_fp = NULL;
         pch->cb.file_read = NULL;
         pch->cb.file_write = NULL;
+        pch->no_ack = false;
+        pch->no_ack_timeout_ms = 0;
 
         return (pch);
     }
@@ -340,102 +351,20 @@ void  elab_mb_set_mode (elab_mb_channel_t  *pch,
                  break;
 #endif
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
             case MODBUS_MODE_RTU:
                  pch->Mode = MODBUS_MODE_RTU;
                  break;
 #endif
 
             default:
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
                  pch->Mode = MODBUS_MODE_RTU;
 #else
                  pch->Mode = MODBUS_MODE_ASCII;
 #endif
                  break;
         }
-    }
-}
-
-/*
-*********************************************************************************************************
-*                                           elab_mb_set_node_addr()
-*
-* Description : This function is called to change the Modbus node address that the channel will respond to.
-*
-* Argument(s) : pch          is a pointer to the Modbus channel to change
-*
-*               node_addr    is the Modbus node address that the channel is assigned to.
-*
-* Return(s)   : none.
-*
-* Caller(s)   : Application.
-*
-* Note(s)     : none.
-*********************************************************************************************************
-*/
-
-void elab_mb_set_node_addr(elab_mb_channel_t *pch, uint8_t node_addr)
-{
-    if (pch != (elab_mb_channel_t *)0)
-    {
-        pch->NodeAddr = node_addr;
-    }
-}
-
-/*
-*********************************************************************************************************
-*                                             elab_mb_set_write_en()
-*
-* Description : This function is called to enable or disable write accesses to the data.
-*
-* Argument(s) : ch           is the Modbus channel to change
-*
-*               wr_en        This argument determines whether a Modbus WRITE request will be accepted.
-*                            The choices are:
-*                            MODBUS_WR_EN
-*                            MODBUS_WR_DIS
-*
-* Return(s)   : none.
-*
-* Caller(s)   : Application.
-*
-* Note(s)     : none.
-*********************************************************************************************************
-*/
-
-void  elab_mb_set_write_en (elab_mb_channel_t  *pch,
-                  uint8_t  wr_en)
-{
-    if (pch != (elab_mb_channel_t *)0) {
-        pch->write_en = wr_en;
-    }
-}
-
-
-/*
-*********************************************************************************************************
-*                                           elab_mb_channel_map_port()
-*
-* Description : This function is called to change the physical port number of the Modbus channel.
-*
-* Argument(s) : pch          is a pointer to the Modbus channel to change
-*
-*               port_nbr     This argument determines the physical port number of the Modbus channel
-*
-* Return(s)   : none.
-*
-* Caller(s)   : Application.
-*
-* Note(s)     : none.
-*********************************************************************************************************
-*/
-
-void  elab_mb_channel_map_port (elab_mb_channel_t  *pch,
-                      uint8_t  port_nbr)
-{
-    if (pch != (elab_mb_channel_t *)0) {
-        pch->PortNbr = port_nbr;
     }
 }
 
@@ -468,7 +397,7 @@ void MB_RxByte(elab_mb_channel_t *pch, uint8_t rx_byte)
              break;
 #endif
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
         case MODBUS_MODE_RTU:
              MB_RTU_RxByte(pch, rx_byte);
              break;
@@ -563,7 +492,7 @@ void MB_TxByte(elab_mb_channel_t  *pch)
                    c);
 #if (MODBUS_CFG_MASTER_EN == DEF_ENABLED)
         if (pch->m_or_s == MODBUS_MASTER) {
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
             pch->RTU_TimeoutEn = MODBUS_FALSE;                  /* Disable RTU timeout timer until we start receiving */
 #endif
             pch->RxBufByteCtr  = 0;                             /* Flush Rx buffer                                    */
@@ -758,7 +687,7 @@ void  MB_ASCII_Tx (elab_mb_channel_t  *pch)
 *********************************************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 void  MB_RTU_RxByte (elab_mb_channel_t  *pch,
                      uint8_t  rx_byte)
 {
@@ -795,7 +724,7 @@ void  MB_RTU_RxByte (elab_mb_channel_t  *pch,
 *********************************************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 bool  MB_RTU_Rx (elab_mb_channel_t  *pch)
 {
     uint8_t  *prx_data;
@@ -854,7 +783,7 @@ bool  MB_RTU_Rx (elab_mb_channel_t  *pch)
 *********************************************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 void  MB_RTU_Tx (elab_mb_channel_t  *pch)
 {
     uint8_t  *ptx_data;
@@ -902,7 +831,7 @@ void  MB_RTU_Tx (elab_mb_channel_t  *pch)
 *********************************************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 void  MB_RTU_TmrReset (elab_mb_channel_t  *pch)
 {
     pch->RTU_TimeoutCtr = pch->RTU_TimeoutCnts;
@@ -926,7 +855,7 @@ void  MB_RTU_TmrReset (elab_mb_channel_t  *pch)
 *********************************************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 void  MB_RTU_TmrResetAll (void)
 {
     uint8_t ch;
@@ -959,7 +888,7 @@ void  MB_RTU_TmrResetAll (void)
 *********************************************************************************************************
 */
 
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
 void  MB_RTU_TmrUpdate (void)
 {
     uint8_t   ch;
@@ -972,7 +901,7 @@ void  MB_RTU_TmrUpdate (void)
                 if (pch->RTU_TimeoutCtr > 0) {
                     pch->RTU_TimeoutCtr--;
                     if (pch->RTU_TimeoutCtr == 0) {
-#if (MODBUS_CFG_RTU_EN == DEF_ENABLED)
+#if (MODBUS_CFG_RTU_EN != 0)
                         if (pch->m_or_s == MODBUS_MASTER) {
                             pch->RTU_TimeoutEn = false;
                         }

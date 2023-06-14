@@ -49,7 +49,7 @@
 *********************************************************************************************************
 */
 
-#define  MODBUS_CFG_MAX_CH                           2           /* Maximum number of Modbus channels.                 */
+#define  MODBUS_CFG_MAX_CH                           3           /* Maximum number of Modbus channels.                 */
 
 #define  MODBUS_CFG_BUF_SIZE                       255           /* Maximum outgoing message size.                     */
 
