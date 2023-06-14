@@ -17,7 +17,6 @@
 *.dep
 *.axf
 *.lnp
-*.ini
 *.cmake
 
 core
