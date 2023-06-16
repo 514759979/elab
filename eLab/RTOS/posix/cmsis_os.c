@@ -14,9 +14,9 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <string.h>
+#include <termios.h>
 #include "../cmsis_os.h"
 #include "../../common/elab_assert.h"
-#include "../../midware/esh/esh.h"
 
 ELAB_TAG("CmsisOSPosix");
 
@@ -25,6 +25,7 @@ ELAB_TAG("CmsisOSPosix");
 
 static int get_pthread_priority(osPriority_t prio);
 static void _thread_entry_timer(void *para);
+static int getch(void);
 
 /* -----------------------------------------------------------------------------
 Data structure
@@ -136,20 +137,11 @@ uint32_t osKernelGetSysTimerCount(void)
 
 int16_t elab_debug_uart_receive(void *buffer, uint16_t size);
 
-static osMessageQueueId_t mq_ch = NULL;
 osStatus_t osKernelStart(void)
 {
-    osStatus_t ret_mq = osOK;
-
-    mq_ch = osMessageQueueNew(1024, 1, NULL);
-    assert(mq_ch != NULL);
-
     while (true)
     {
-        osDelay(10);
-        char ch = esh_getch();
-        ret_mq = osMessageQueuePut(mq_ch, &ch, 0, osWaitForever);
-        assert(ret_mq == osOK);
+        osDelay(1000);
     }
 
     return osOK;
@@ -157,19 +149,12 @@ osStatus_t osKernelStart(void)
 
 int16_t elab_debug_uart_receive(void *buffer, uint16_t size)
 {
-    osStatus_t ret_mq;
-    uint8_t *buff = (uint8_t *)buffer;
-    uint16_t count = 0;
-    for (uint16_t i = 0; i < size; i ++)
-    {
-        ret_mq = osMessageQueueGet(mq_ch, &buff[i], NULL, osWaitForever);
-        if (ret_mq == osOK)
-        {
-            count ++;
-        }
-    }
+    assert(size == 1);
 
-    return count;
+    uint8_t *buff = (uint8_t *)buffer;
+    buff[0] = (uint8_t)getch();
+
+    return 1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -937,6 +922,27 @@ static void _thread_entry_timer(void *para)
 
         osDelay(RTOS_TIMER_VALUE_MIN);
     }
+}
+
+/* private function --------------------------------------------------------- */
+/**
+  * @brief  The original getch function for Linux which can get the input char
+  *         in the terminal.
+  * @retval Key id.
+  */
+static int getch(void)
+{
+    int ch;
+
+    struct termios tm, tm_old;
+    tcgetattr(STDIN_FILENO, &tm);
+    tm_old = tm;
+    tm.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &tm);
+    ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &tm_old);
+
+    return ch;
 }
 
 /* ----------------------------- end of file -------------------------------- */
