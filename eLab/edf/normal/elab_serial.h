@@ -51,9 +51,7 @@ enum elab_serail_mode
     ELAB_SERIAL_PARITY_NONE,                        /* No parity  */           \
     ELAB_SERIAL_MODE_FULL_DUPLEX,                   /* Full / half duplex */   \
     0,                                                                         \
-    1000,                                           /* Timeout in ms */        \
     256,                                            /* rx buffer size */       \
-    1024,                                           /* tx buffer size */       \
 }
 
 /* public types ------------------------------------------------------------- */
@@ -65,9 +63,7 @@ typedef struct elab_serial_attr
     uint32_t parity                     : 2;
     uint32_t mode                       : 1;
     uint32_t reserved                   : 7;
-    uint32_t timeout_read               : 16;
     uint32_t rx_bufsz                   : 16;
-    uint32_t tx_bufsz                   : 16;
 } elab_serial_attr_t;
 
 typedef struct elab_serial_config
@@ -84,8 +80,10 @@ typedef struct elab_serail
 {
     elab_device_t super;
 
+#if defined(__linux__) || defined(_WIN32)
     osMessageQueueId_t queue_rx;
-    osMessageQueueId_t queue_tx;
+    osThreadId_t thread_rx;
+#endif
     bool is_sending;
 
     const struct elab_serial_ops *ops;
@@ -95,8 +93,10 @@ typedef struct elab_serail
 typedef struct elab_serial_ops
 {
     elab_err_t (* enable)(elab_serial_t *serial, bool status);
+#if defined(__linux__) || defined(_WIN32)
     int32_t (* read)(elab_serial_t *serial, void *buffer, uint32_t size);
     int32_t (* write)(elab_serial_t *serial, const void *buffer, uint32_t size);
+#endif
     void (* set_tx)(elab_serial_t *serial, bool status);
     elab_err_t (* config)(elab_serial_t *serial, elab_serial_config_t *config);
 } elab_serial_ops_t;
@@ -115,6 +115,9 @@ void elab_serial_isr_tx_end(elab_serial_t *serial);
 #endif
 
 /* For high level program. */
+int32_t elab_serial_write(elab_device_t * const me, void *buff, uint32_t size);
+int32_t elab_serial_read(elab_device_t * const me, void *buff,
+                            uint32_t size, uint32_t timeout);
 void elab_serial_set_mode(elab_device_t * const me, uint8_t mode);
 void elab_serial_set_baudrate(elab_device_t * const me, uint32_t baudrate);
 void elab_serial_set_attr(elab_device_t * const me, elab_serial_attr_t *attr);

@@ -19,6 +19,7 @@ static int32_t _device_read(elab_device_t *me,
                                 uint32_t pos, void *buffer, uint32_t size);
 static int32_t _device_write(elab_device_t *me,
                                 uint32_t pos, const void *buffer, uint32_t size);
+static void _thread_entry(void *parameter);
 
 #if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
 static void _device_poll(elab_device_t *me);
@@ -37,7 +38,18 @@ static const elab_dev_ops_t _device_ops =
 
 static const osMutexAttr_t _mutex_attr =
 {
-    "mutex_serial_half_duplex", osMutexRecursive | osMutexPrioInherit, NULL, 0U 
+    "mutex_serial_half_duplex",
+    osMutexRecursive | osMutexPrioInherit,
+    NULL,
+    0U 
+};
+
+static const osThreadAttr_t thread_attr_serial_rx = 
+{
+    .name = "ThreadSerailRx",
+    .attr_bits = osThreadDetached,
+    .priority = osPriorityNormal,
+    .stack_size = 2048,
 };
 
 /* public functions --------------------------------------------------------- */
@@ -72,10 +84,10 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
     }
     
     /* Apply buffer memory */
+#if defined(__linux__) || defined(_WIN32)
     serial->queue_rx = osMessageQueueNew(serial->attr.rx_bufsz, 1, NULL);
     elab_assert(serial->queue_rx != NULL);
-    serial->queue_tx = osMessageQueueNew(serial->attr.tx_bufsz, 1, NULL);
-    elab_assert(serial->queue_tx != NULL);
+#endif
 
     /* The super class data */
     elab_device_t *device = &(serial->super);
@@ -90,6 +102,12 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
         .type = ELAB_DEVICE_UART,
     };
     elab_device_register(device, &_dev_attr);
+
+    /* Apply buffer memory */
+#if defined(__linux__) || defined(_WIN32)
+    serial->thread_rx = osThreadNew(_thread_entry, serial, &thread_attr_serial_rx);
+    elab_assert(serial->thread_rx != NULL);
+#endif
 }
 
 #if !defined(__linux__) && !defined(_WIN32)
@@ -102,8 +120,17 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
   */
 void elab_serial_isr_rx(elab_serial_t *serial, void *buffer, uint32_t size)
 {
-    /* TODO not completed. */
-    elab_assert(false);
+    osStatus_t ret_os = osOK;
+    uint8_t *buff = (uint8_t *)buffer;
+
+    if (elab_device_is_enabled(&serial->super))
+    {
+        for (uint32_t i = 0; i < size; i ++)
+        {
+            ret_os = osMessageQueuePut(serial->queue_rx, &buff[i], 0, 0);
+            elab_assert(ret_os == osOK);
+        }
+    }
 }
 
 /**
@@ -117,6 +144,60 @@ void elab_serial_isr_tx_end(elab_serial_t *serial)
     elab_assert(false);
 }
 #endif
+
+/**
+  * @brief  elab serial device write function.
+  * @param  me      The elab device handle.
+  * @param  buff    The pointer of buffer
+  * @param  size    Expected write length
+  * @retval Auctual write length or error ID.
+  */
+int32_t elab_serial_write(elab_device_t * const me, void *buff, uint32_t size)
+{
+    elab_assert(me != NULL);
+    elab_assert(ELAB_SERAIL_CAST(me)->ops != NULL);
+    elab_assert(ELAB_SERAIL_CAST(me)->ops->write != NULL);
+
+    return ELAB_SERAIL_CAST(me)->ops->write(ELAB_SERAIL_CAST(me), buff, size);
+}
+
+/**
+  * @brief  elab device read function
+  * @param  me      The elab device handle.
+  * @param  buffer  The pointer of buffer
+  * @param  size    Expected read length
+  * @retval Auctual write length or error ID.
+  */
+int32_t elab_serial_read(elab_device_t * const me, void *buff,
+                            uint32_t size, uint32_t timeout)
+{
+    int32_t ret = ELAB_OK;
+    elab_serial_t *serial = ELAB_SERAIL_CAST(me);
+    osStatus_t ret_os = osOK;
+    uint8_t *buffer = (uint8_t *)buff;
+    uint32_t time_start = osKernelGetTickCount();
+
+    for (uint32_t i = 0; i < size; i ++)
+    {
+        if (timeout != osWaitForever)
+        {
+            timeout -= (osKernelGetTickCount() - time_start);
+        }
+        ret_os = osMessageQueueGet(serial->queue_rx, &buffer[i], NULL, timeout);
+        if (ret_os != osOK)
+        {
+            if (ret_os == osErrorTimeout)
+            {
+                ret = ELAB_ERR_TIMEOUT;
+                break;
+            }
+            elab_assert(false);
+        }
+        ret ++;
+    }
+
+    return ret;
+}
 
 /**
   * @brief  Set the mode of elab serial device.
@@ -232,7 +313,7 @@ static elab_err_t _device_enable(elab_device_t *me, bool status)
     elab_assert(serial->ops != NULL);
     elab_assert(serial->ops->enable != NULL);
 
-    return serial->ops->enable(serial, status);;
+    return serial->ops->enable(serial, status);
 }
 
 /**
@@ -247,10 +328,9 @@ static int32_t _device_read(elab_device_t *me,
                             uint32_t pos, void *buffer, uint32_t size)
 {
     elab_assert(me != NULL);
-    elab_assert(ELAB_SERAIL_CAST(me)->ops != NULL);
-    elab_assert(ELAB_SERAIL_CAST(me)->ops->read != NULL);
+    elab_assert(buffer != NULL);
 
-    return ELAB_SERAIL_CAST(me)->ops->read(ELAB_SERAIL_CAST(me), buffer, size);
+    return elab_serial_read(me, buffer, size, osWaitForever);
 }
 
 /**
@@ -270,6 +350,32 @@ static int32_t _device_write(elab_device_t *me,
 
     return ELAB_SERAIL_CAST(me)->ops->write(ELAB_SERAIL_CAST(me), buffer, size);
 }
+
+
+/**
+  * @brief  The entry function for serial device data receiving.
+  */
+#if defined(__linux__) || defined(_WIN32)
+static void _thread_entry(void *parameter)
+{
+    elab_serial_t *serial = (elab_serial_t *)parameter;
+    elab_assert(serial->ops != NULL);
+    elab_assert(serial->ops->read != NULL);
+
+    uint8_t data;
+    osStatus_t ret_os = osOK;
+
+    while (1)
+    {
+        if (elab_device_is_enabled(&serial->super))
+        {
+            serial->ops->read(serial, &data, 1);
+            ret_os = osMessageQueuePut(serial->queue_rx, &data, 0, osWaitForever);
+            elab_assert(ret_os == osOK);
+        }
+    }
+}
+#endif
 
 #ifdef __cplusplus
 }

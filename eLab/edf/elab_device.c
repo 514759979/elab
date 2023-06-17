@@ -131,6 +131,24 @@ bool elab_device_valid(const char *name)
 }
 
 /**
+ * @brief This function check one device is enabled or not.
+ * @param name  Device name.
+ * @return Valid if true and invalid if false.
+ */
+bool elab_device_is_enabled(elab_device_t *me)
+{
+    assert(me != NULL);
+    assert(me->ops != NULL);
+    assert(me->ops->enable != NULL);
+
+    elab_device_lock(me);
+    bool enable_status = me->enable_count > 0 ? true : false;
+    elab_device_unlock(me);
+
+    return enable_status;
+}
+
+/**
  * Lock or unlock one device to ensure its thread-safety.
  * @param me        Device handle.
  * @param status    The locking status.

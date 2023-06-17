@@ -239,7 +239,6 @@ static int32_t _read(elab_serial_t *serial, void *pbuf, uint32_t size)
     osStatus_t ret = osOK;
 
     simu_serial_t *simu_serial = container_of(serial, simu_serial_t, serial);
-    assert(simu_serial->enable);
 
     uint32_t read_cnt = 0;
     uint8_t *buffer = (uint8_t *)pbuf;
