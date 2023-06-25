@@ -58,6 +58,6 @@ static void shell_init(void)
 /**
   * @brief  Export pin device board level init and exit function
   */
-INIT_IO_DRIVER_EXPORT(shell_init);
+INIT_EXPORT(shell_init, 0);
 
 /* ----------------------------- end of file -------------------------------- */

@@ -5,6 +5,7 @@
  */
 
 #if 0
+#if defined(__linux__) || defined(_WIN32)
 /* include ------------------------------------------------------------------ */
 #include <stdbool.h>
 #include "../edf/driver/linux/driver_uart.h"
@@ -86,7 +87,9 @@ static void _serial_export(void)
 /**
   * @brief  Export pin device board level init and exit function
   */
-INIT_BSP_EXPORT(_serial_export);
+INIT_EXPORT(_serial_export, 0);
+
+#endif
 
 /* ----------------------------- end of file -------------------------------- */
 

@@ -53,7 +53,7 @@ static void qpc_export(void)
 #endif
 }
 
-INIT_COMPONENT_EXPORT(qpc_export);
+INIT_EXPORT(qpc_export, 0);
 
 /* Exported functions --------------------------------------------------------*/
 /**

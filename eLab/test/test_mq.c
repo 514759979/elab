@@ -13,7 +13,6 @@
 #include "eLab/common/elab_log.h"
 #include "eLab/common/elab_assert.h"
 #include "eLab/edf/elab_device.h"
-#include "export/rbc_export.h"
 
 ELAB_TAG("MotorTest");
 
