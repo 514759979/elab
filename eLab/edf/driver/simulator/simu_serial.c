@@ -22,7 +22,6 @@ typedef struct simu_serial
     uint8_t mode;
     uint32_t baudrate;
     bool enable;
-    bool tx_mode;
     
     osMutexId_t mutex;
     osMessageQueueId_t queue_tx;
@@ -78,7 +77,6 @@ static simu_serial_t *_simu_serial_new(const char *name, uint8_t mode, uint32_t 
     simu_serial_t *serial = elab_malloc(sizeof(simu_serial_t));
     assert(serial != NULL);
     serial->enable = false;
-    serial->tx_mode = false;
     serial->baudrate = baudrate;
     serial->name = name;
 
@@ -166,15 +164,12 @@ void simu_serial_make_rx_data(const char *name, void *buffer, uint32_t size)
             process. Start one specific thread to send rx data.
             It depends on thread-pool module.
     */
-    if (!serial->tx_mode)
+    osStatus_t ret = osOK;
+    uint8_t *buff = (uint8_t *)buffer;
+    for (uint32_t i = 0; i < size; i ++)
     {
-        osStatus_t ret = osOK;
-        uint8_t *buff = (uint8_t *)buffer;
-        for (uint32_t i = 0; i < size; i ++)
-        {
-            ret = osMessageQueuePut(serial->queue_rx, &buff[i], 0, osWaitForever);
-            assert(ret == osOK);
-        }
+        ret = osMessageQueuePut(serial->queue_rx, &buff[i], 0, osWaitForever);
+        assert(ret == osOK);
     }
 }
 
@@ -267,8 +262,6 @@ static int32_t _write(elab_serial_t *serial, const void *pbuf, uint32_t size)
     ret = osMutexAcquire(simu_serial->mutex, osWaitForever);
     assert(ret == osOK);
 
-    simu_serial->tx_mode = true;
-
     if (simu_serial->mode == SIMU_SERIAL_MODE_SINGLE)
     {
         /* Write the buffer data into message queue. */
@@ -324,25 +317,16 @@ static int32_t _write(elab_serial_t *serial, const void *pbuf, uint32_t size)
         assert(ret == osOK);
 
         /* Write the buffer data into message queue. */
-        if (!master->tx_mode)
+        uint8_t *buffer = (uint8_t *)pbuf;
+        for (uint32_t i = 0; i < size; i ++)
         {
-            uint8_t *buffer = (uint8_t *)pbuf;
-            for (uint32_t i = 0; i < size; i ++)
-            {
-                ret = osMessageQueuePut(master->queue_rx, &buffer[i], 0, osWaitForever);
-                assert(ret == osOK);
-            }
+            ret = osMessageQueuePut(master->queue_rx, &buffer[i], 0, osWaitForever);
+            assert(ret == osOK);
         }
 
         ret = osMutexRelease(master->mutex);
         assert(ret == osOK);
     }
-
-#if !defined(__arm__)
-    osDelay((size * 10000 / simu_serial->baudrate) + 10);
-#endif
-
-    simu_serial->tx_mode = false;
 
     ret = osMutexRelease(simu_serial->mutex);
     assert(ret == osOK);
