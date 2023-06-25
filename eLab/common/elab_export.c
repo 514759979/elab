@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include "elab_export.h"
 #include "elab_common.h"
+#include "elab_assert.h"
+
+ELAB_TAG("eLabExport");
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
 #include "../RTOS/cmsis_os.h"
@@ -40,28 +43,12 @@ static void _entry_start_poll(void *para);
 #endif
 
 /* private variables -------------------------------------------------------- */
-INIT_BSP_EXPORT(module_null_init);
+INIT_EXPORT(module_null_init, 0);
 POLL_EXPORT(module_null_init, (1000 * 60 * 60));
-
-static const uint32_t export_id_table[EXPORT_MAX + 1] =
-{
-    EXPORT_ID_INIT,
-    EXPORT_ID_INIT,
-    EXPORT_ID_INIT,
-    EXPORT_ID_INIT,
-    EXPORT_ID_INIT,
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
-    EXPORT_ID_INIT,
-#endif
-#if (ELAB_QPC_EN != 0)
-    EXPORT_ID_INIT,
-#endif
-    EXPORT_ID_INIT,
-    EXPORT_ID_POLL,
-};
 
 static elab_export_t *export_init_table = NULL;
 static elab_export_t *export_poll_table = NULL;
+static uint8_t export_level_max = (EXPORT_THREAD - 1);
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
 /**
@@ -137,7 +124,8 @@ void elab_run(void)
     }
 #else
     /* Initialize all module in eLab. */
-    for (uint8_t level = EXPORT_BSP; level <= EXPORT_APP; level ++)
+    for (uint8_t level = EXPORT_LEVEL_HW_INDEPNEDENT;
+            level <= EXPORT_APP; level ++)
     {
         _export_func_execute(level);
     }
@@ -153,7 +141,8 @@ void elab_run(void)
 void elab_exit(void)
 {
     /* Initialize all module in eLab. */
-    for (int32_t level = -EXPORT_APP; level <= -EXPORT_BSP; level ++)
+    for (int32_t level = -(EXPORT_THREAD - 1);
+            level <= -EXPORT_LEVEL_HW_INDEPNEDENT; level ++)
     {
         _export_func_execute(level - 1);
     }
@@ -170,13 +159,14 @@ static elab_export_t * _get_export_table(uint8_t level)
                     ((elab_export_t *)&init_module_null_init) :
                     ((elab_export_t *)&poll_module_null_init);
     elab_pointer_t address_last;
+    uint32_t export_id = level == EXPORT_MAX ? EXPORT_ID_POLL : EXPORT_ID_INIT;
     
     while (1)
     {
         address_last = ((elab_pointer_t)func_block - sizeof(elab_export_t));
         elab_export_t *table = (elab_export_t *)address_last;
-        if (table->magic_head != export_id_table[level] ||
-            table->magic_tail != export_id_table[level])
+        if (table->magic_head != export_id ||
+            table->magic_tail != export_id)
         {
             break;
         }
@@ -193,14 +183,15 @@ static elab_export_t * _get_export_table(uint8_t level)
   */
 static void _export_func_execute(int8_t level)
 {
-    uint32_t export_id = export_id_table[level];
     bool is_init = level >= 0 ? true : false;
     level = level < 0 ? (-level - 1) : level;
+    elab_assert(level <= EXPORT_MAX);
+    uint32_t export_id = level == EXPORT_MAX ? EXPORT_ID_POLL : EXPORT_ID_INIT;
 
     /* Get the start address of exported poll table. */
     if (export_init_table == NULL)
     {
-        export_init_table = _get_export_table(EXPORT_BSP);
+        export_init_table = _get_export_table(EXPORT_LEVEL_HW_INDEPNEDENT);
     }
     if (export_poll_table == NULL)
     {
@@ -215,7 +206,7 @@ static void _export_func_execute(int8_t level)
         if (export_table[i].magic_head == export_id &&
             export_table[i].magic_tail == export_id)
         {
-            if (export_table[i].level == level && level <= EXPORT_APP)
+            if (export_table[i].level == level && level < EXPORT_THREAD)
             {
                 if (is_init && export_table[i].type == EXPORT_TYPE_INIT)
                 {
@@ -274,8 +265,10 @@ static void _export_func_execute(int8_t level)
   */
 static void _entry_start_poll(void *para)
 {
+    printf("===============\n");
     /* Initialize all module in eLab. */
-    for (uint8_t level = EXPORT_BSP; level <= EXPORT_APP; level ++)
+    for (uint8_t level = EXPORT_LEVEL_HW_INDEPNEDENT;
+            level < EXPORT_THREAD; level ++)
     {
         _export_func_execute(level);
     }

@@ -32,24 +32,6 @@ enum elab_export_type
     EXPORT_TYPE_EXIT,
 };
 
-enum elab_export_level
-{
-    EXPORT_BSP = 0,
-    EXPORT_IO_DRIVER,
-    EXPORT_COMPONENT,
-    EXPORT_DEVICE,
-    EXPORT_APP,
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
-    EXPORT_THREAD,
-#endif
-#if (ELAB_QPC_EN != 0)
-    EXPORT_HSM,
-#endif
-    EXPORT_TEST,
-
-    EXPORT_MAX,
-};
-
 /* public typedef ----------------------------------------------------------- */
 typedef struct elab_export_poll_data
 {
@@ -223,84 +205,6 @@ void elab_exit(void);
         .magic_head = EXPORT_ID_POLL,                                          \
         .magic_tail = EXPORT_ID_POLL,                                          \
     }
-
-/* public function ---------------------------------------------------------- */
-/**
-  * @brief  Initialization function in BSP layer.
-  * @param  _func       The initialization function.
-  * @retval None.
-  */
-#define INIT_BSP_EXPORT(_func)              INIT_EXPORT(_func, EXPORT_BSP)
-
-/**
-  * @brief  Initialization function in IO driver layer.
-  * @param  _func       The initialization function.
-  * @retval None.
-  */
-#define INIT_IO_DRIVER_EXPORT(_func)        INIT_EXPORT(_func, EXPORT_IO_DRIVER)
-
-/**
-  * @brief  Initialization function in component layer.
-  * @param  _func       The initialization function.
-  * @retval None.
-  */
-#define INIT_COMPONENT_EXPORT(_func)        INIT_EXPORT(_func, EXPORT_COMPONENT)
-
-/**
-  * @brief  Initialization function in device layer.
-  * @param  _func       The initialization function.
-  * @retval None.
-  */
-#define INIT_DEV_EXPORT(_func)              INIT_EXPORT(_func, EXPORT_DEVICE)
-
-/**
-  * @brief  Initialization function in appliation layer.
-  * @param  _func       The initialization function.
-  * @retval None.
-  */
-#define INIT_APP_EXPORT(_func)              INIT_EXPORT(_func, EXPORT_APP)
-
-/**
-  * @brief  Exit function in BSP layer.
-  * @param  _func       The exit function.
-  * @retval None.
-  */
-#define EXIT_BSP_EXPORT(_func)              EXIT_EXPORT(_func, EXPORT_BSP)
-
-/**
-  * @brief  Exit function in IO driver layer.
-  * @param  _func       The exit function.
-  * @retval None.
-  */
-#define EXIT_IO_DRIVER_EXPORT(_func)        EXIT_EXPORT(_func, EXPORT_IO_DRIVER)
-
-/**
-  * @brief  Exit function in component layer.
-  * @param  _func       The exit function.
-  * @retval None.
-  */
-#define EXIT_COMPONENT_EXPORT(_func)        EXIT_EXPORT(_func, EXPORT_COMPONENT)
-
-/**
-  * @brief  Exit function in device layer.
-  * @param  _func       The exit function.
-  * @retval None.
-  */
-#define EXIT_DEV_EXPORT(_func)              EXIT_EXPORT(_func, EXPORT_DEVICE)
-
-/**
-  * @brief  Exit function in appliation layer.
-  * @param  _func       The exit function.
-  * @retval None.
-  */
-#define EXIT_APP_EXPORT(_func)              EXIT_EXPORT(_func, EXPORT_APP)
-
-/**
-  * @brief  Testing function in unit test layer.
-  * @param  _func       The unit testing entry function.
-  * @retval None.
-  */
-#define INIT_EXPORT_TEST(_func)             INIT_EXPORT(_func, EXPORT_TEST)
 
 #ifdef __cplusplus
 }
