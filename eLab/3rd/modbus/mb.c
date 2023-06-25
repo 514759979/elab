@@ -233,7 +233,7 @@ elab_mb_channel_t  *elab_mb_config_channel (uint8_t  node_addr,
 
         cnts = ((uint32_t)MB_RTU_Freq * 5L * 10L) / baud;     /* Freq * 5 char * 10 bits/char * 1/baud_rate          */
         if (cnts <= 1) {
-            cnts = 2;
+            cnts = 5;
         }
         pch->RTU_TimeoutCnts = cnts;
         pch->RTU_TimeoutCtr  = cnts;
