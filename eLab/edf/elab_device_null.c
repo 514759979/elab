@@ -56,7 +56,7 @@ static void uart_null_init(void)
 /**
   * @brief  Export null uart device initialization function.
   */
-INIT_IO_DRIVER_EXPORT(uart_null_init);
+INIT_EXPORT(uart_null_init, 0);
 
 /* Private functions ---------------------------------------------------------*/
 /**

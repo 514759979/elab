@@ -48,7 +48,7 @@ static const osThreadAttr_t thread_attr_serial_rx =
 {
     .name = "ThreadSerailRx",
     .attr_bits = osThreadDetached,
-    .priority = osPriorityNormal,
+    .priority = osPriorityRealtime,
     .stack_size = 2048,
 };
 
@@ -372,6 +372,10 @@ static void _thread_entry(void *parameter)
             serial->ops->read(serial, &data, 1);
             ret_os = osMessageQueuePut(serial->queue_rx, &data, 0, osWaitForever);
             elab_assert(ret_os == osOK);
+        }
+        else
+        {
+            osDelay(10);
         }
     }
 }
