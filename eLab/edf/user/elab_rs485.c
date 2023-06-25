@@ -121,8 +121,8 @@ int32_t rs485_write(rs485_t *me, const void *pbuf, uint32_t size)
     /*  On x86-64 simulator, data are transmitted to the other RS485 in very short
         time, but on actual boards it takes some time. So on ARM platform, osDelay
         will be invoked here. */
-#if defined(__arm__)
-    osDelay((size * 10000 / serial->attr.baud_rate) + 1);
+#if defined(__arm__) && (EALB_SIMU_EN == 0)
+    osDelayUs((size * 10000000 / serial->attr.baud_rate) + 1000);
 #endif
 
     /* Set the rx485 to receiving mode. */
