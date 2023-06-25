@@ -61,13 +61,13 @@ OS Basic
 ----------------------------------------------------------------------------- */
 osStatus_t osKernelInitialize(void)
 {
-    /* Create one thread for timer function. */
-    osThreadId_t thread = osThreadNew(_thread_entry_timer, NULL, NULL);
-    assert(thread != NULL);
-
     /* Create one thread for mutex function. */
     mutex_timer = osMutexNew(&mutex_attr_timer);
     assert(mutex_timer != NULL);
+
+    /* Create one thread for timer function. */
+    osThreadId_t thread = osThreadNew(_thread_entry_timer, NULL, NULL);
+    assert(thread != NULL);
 
     return osOK;
 }
@@ -175,21 +175,24 @@ osThreadId_t osThreadNew(osThreadFunc_t func, void *argument, const osThreadAttr
     ret = pthread_attr_setinheritsched(&thread_attr, PTHREAD_EXPLICIT_SCHED);
     assert(ret == 0);
 
-    ret = pthread_attr_setschedpolicy(&thread_attr, SCHED_FIFO);
+    ret = pthread_attr_setschedpolicy(&thread_attr, SCHED_RR);
     assert(ret == 0);
 
+    uint32_t stack_size = 40960;
     if (attr != NULL)
     {
         param.sched_priority = get_pthread_priority(attr->priority);
+        stack_size = attr->stack_size * 20;
     }
     else
     {
         param.sched_priority = get_pthread_priority(osPriorityNormal);
     }
+    ret = pthread_attr_setstacksize(&thread_attr, stack_size);
+    assert(ret == 0);
     ret = pthread_attr_setschedparam(&thread_attr, &param);
     assert(ret == 0);
-
-    ret = pthread_create(&thread, NULL, (os_pthread_func_t)func, argument);
+    ret = pthread_create(&thread, &thread_attr, (os_pthread_func_t)func, argument);
     assert(ret == 0);
 
     pthread_attr_destroy(&thread_attr);
