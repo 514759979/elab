@@ -12,6 +12,8 @@
 
 ELAB_TAG("EdfMotor");
 
+#define ELAB_MOTOR_UPDATE_PERIOD                (1000)
+
 /* private typedef ---------------------------------------------------------- */
 enum edev_motor_state
 {
@@ -118,12 +120,15 @@ elab_err_t elab_motor_set_speed(elab_device_t *const me, float speed)
     if (motor->ops->ready(motor))
     {
         float cmd_speed = speed * (float)motor->ratio;
-        if (fabs(cmd_speed - motor->speed_cmd) >= 0.0001)
+        if (fabs(cmd_speed - motor->speed_cmd) >= 0.0001 ||
+            (osKernelGetTickCount() - motor->time_speed_update)
+                    >= ELAB_MOTOR_UPDATE_PERIOD)
         {
             elog_debug("Motor %s cmd_speed: %f.", me->attr.name, cmd_speed);
             ret = motor->ops->set_speed(motor, cmd_speed);
             if (ret == ELAB_OK)
             {
+                motor->time_speed_update = osKernelGetTickCount();
                 motor->speed_cmd = cmd_speed;
             }
             else

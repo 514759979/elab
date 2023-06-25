@@ -25,6 +25,7 @@ typedef struct elab_motor
     uint8_t state;
     float speed_cmd;
     float speed_current;
+    uint32_t time_speed_update;
 
     struct elab_motor_ops *ops;
 } elab_motor_t;
