@@ -46,6 +46,24 @@ void edb_init(const char *path)
     elab_assert(mutex_edb != NULL);
 }
 
+uint32_t edb_get_hex32(const char *section, const char *key)
+{
+    uint32_t value_u32 = 0;
+    osStatus_t ret_os = osOK;
+
+    ret_os = osMutexAcquire(mutex_edb, osWaitForever);
+    elab_assert(ret_os == osOK);
+
+    int ret_ini = 0;
+    ret_ini = ini_sget(edb_ini, section, key, "%x", &value_u32);
+    elab_assert(ret_ini == 1);
+
+    ret_os = osMutexRelease(mutex_edb);
+    elab_assert(ret_os == osOK);
+
+    return value_u32;
+}
+
 uint32_t edb_get_u32(const char *section, const char *key)
 {
     uint32_t value_u32 = 0;
@@ -55,7 +73,7 @@ uint32_t edb_get_u32(const char *section, const char *key)
     elab_assert(ret_os == osOK);
 
     int ret_ini = 0;
-    ini_sget(edb_ini, section, key, "%u", &value_u32);
+    ret_ini = ini_sget(edb_ini, section, key, "%u", &value_u32);
     elab_assert(ret_ini == 1);
 
     ret_os = osMutexRelease(mutex_edb);
@@ -73,7 +91,7 @@ int32_t edb_get_s32(const char *section, const char *key)
     elab_assert(ret_os == osOK);
 
     int ret_ini = 0;
-    ini_sget(edb_ini, section, key, "%d", &value_s32);
+    ret_ini = ini_sget(edb_ini, section, key, "%d", &value_s32);
     elab_assert(ret_ini == 1);
 
     ret_os = osMutexRelease(mutex_edb);
@@ -91,7 +109,7 @@ uint64_t edb_get_u64(const char *section, const char *key)
     elab_assert(ret_os == osOK);
 
     int ret_ini = 0;
-    ini_sget(edb_ini, section, key, "%lu", &value_u64);
+    ret_ini = ini_sget(edb_ini, section, key, "%lu", &value_u64);
     elab_assert(ret_ini == 1);
 
     ret_os = osMutexRelease(mutex_edb);
@@ -109,7 +127,7 @@ int64_t edb_get_s64(const char *section, const char *key)
     elab_assert(ret_os == osOK);
 
     int ret_ini = 0;
-    ini_sget(edb_ini, section, key, "%ld", &value_s64);
+    ret_ini = ini_sget(edb_ini, section, key, "%ld", &value_s64);
     elab_assert(ret_ini == 1);
 
     ret_os = osMutexRelease(mutex_edb);
@@ -157,7 +175,7 @@ float edb_get_float(const char *section, const char *key)
     elab_assert(ret_os == osOK);
 
     int ret_ini = 0;
-    ini_sget(edb_ini, section, key, "%f", &value);
+    ret_ini = ini_sget(edb_ini, section, key, "%f", &value);
     elab_assert(ret_ini == 1);
 
     ret_os = osMutexRelease(mutex_edb);
@@ -175,7 +193,7 @@ double edb_get_double(const char *section, const char *key)
     elab_assert(ret_os == osOK);
 
     int ret_ini = 0;
-    ini_sget(edb_ini, section, key, "%lf", &value);
+    ret_ini = ini_sget(edb_ini, section, key, "%lf", &value);
     elab_assert(ret_ini == 1);
 
     ret_os = osMutexRelease(mutex_edb);

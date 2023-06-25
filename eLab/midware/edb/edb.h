@@ -13,6 +13,7 @@
 
 /* public define ------------------------------------------------------------ */
 void edb_init(const char *path);
+uint32_t edb_get_hex32(const char *section, const char *key);
 uint32_t edb_get_u32(const char *section, const char *key);
 int32_t edb_get_s32(const char *section, const char *key);
 uint64_t edb_get_u64(const char *section, const char *key);
