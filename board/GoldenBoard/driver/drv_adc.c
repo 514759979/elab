@@ -6,10 +6,10 @@
 
 /* includes ----------------------------------------------------------------- */
 #include <string.h>
-#include "elab_adc.h"
-#include "elab_assert.h"
-#include "elab_def.h"
-#include "elab_export.h"
+#include "eLab/edf/normal/elab_adc.h"
+#include "eLab/common/elab_assert.h"
+#include "eLab/common/elab_def.h"
+#include "eLab/common/elab_export.h"
 #include "stm32g0xx_hal.h"
 
 #ifdef __cplusplus
@@ -45,7 +45,7 @@ static const elab_adc_ops_t _driver_ops =
 static elab_adc_data_t _adc_driver_data[] =
 {
     { &adc_a00, "PwmAdc", GPIOA, GPIO_PIN_0, },
-    // { &adc_a01, "ButtonAdc", GPIOC, GPIO_PIN_9, },
+    { &adc_a01, "ButtonAdc", GPIOC, GPIO_PIN_9, },
 };
 
 /* public functions --------------------------------------------------------- */
@@ -122,7 +122,7 @@ static void _adc_dirver_init(void)
     HAL_ADCEx_Calibration_Start(&hadc1);
     HAL_ADC_Start(&hadc1);
 }
-INIT_IO_DRIVER_EXPORT(_adc_dirver_init);
+INIT_EXPORT(_adc_dirver_init, 1);
 
 /* private functions -------------------------------------------------------- */
 /**

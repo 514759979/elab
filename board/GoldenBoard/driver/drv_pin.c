@@ -6,10 +6,10 @@
 
 /* includes ----------------------------------------------------------------- */
 #include <string.h>
-#include "elab_pin.h"
-#include "elab_assert.h"
-#include "elab_def.h"
-#include "elab_export.h"
+#include "eLab/edf/normal/elab_pin.h"
+#include "eLab/common/elab_assert.h"
+#include "eLab/common/elab_def.h"
+#include "eLab/common/elab_export.h"
 #include "stm32g0xx_hal.h"
 
 #ifdef __cplusplus
@@ -49,8 +49,8 @@ static const elab_pin_ops_t pin_driver_ops =
 
 static eio_pin_data_t eio_pin_driver_data[] =
 {
-    // { &pin_c_08, "LED1", GPIOC, GPIO_PIN_8, },
-    // { &pin_c_09, "LED2", GPIOC, GPIO_PIN_9, },
+    { &pin_c_08, "LED1", GPIOC, GPIO_PIN_8, },
+    { &pin_c_09, "LED2", GPIOC, GPIO_PIN_9, },
     { &pin_a_03, "OLED_DC", GPIOA, GPIO_PIN_3, },
     { &pin_a_04, "OLED_RST", GPIOA, GPIO_PIN_4, },
 };
@@ -86,7 +86,7 @@ static void _pin_dirver_init(void)
                             &eio_pin_driver_data[i]);
     }
 }
-INIT_IO_DRIVER_EXPORT(_pin_dirver_init);
+INIT_EXPORT(_pin_dirver_init, 1);
 
 /* private functions -------------------------------------------------------- */
 /**

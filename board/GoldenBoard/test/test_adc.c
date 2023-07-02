@@ -8,11 +8,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "shell.h"
-#include "elab_adc.h"
+#include "eLab/3rd/Shell/shell.h"
+#include "eLab/edf/normal/elab_adc.h"
 
 #define TAG                                 "AdcTest"
-#include "elab_log.h"
+#include "eLab/common/elab_log.h"
 
 #ifdef __cplusplus
 extern "C" {

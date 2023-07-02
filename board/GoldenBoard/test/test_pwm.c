@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "shell.h"
-#include "elab_pwm.h"
+#include "eLab/3rd/Shell/shell.h"
+#include "eLab/edf/normal/elab_pwm.h"
 
 #ifdef __cplusplus
 extern "C" {

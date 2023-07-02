@@ -5,16 +5,14 @@
  */
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_pwm.h"
+#include "eLab/edf/normal/elab_pwm.h"
 #include "stm32g0xx_hal.h"
-#include "elab_export.h"
-#include "elab_assert.h"
+#include "eLab/common/elab_export.h"
+#include "eLab/common/elab_assert.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-ELAB_TAG("DriverPwm");
 
 /* public typedef ----------------------------------------------------------- */
 typedef struct eio_pwm_data
@@ -106,7 +104,7 @@ static void driver_pwm_init(void)
                             &pwm_driver_data[i]);
     }
 }
-INIT_IO_DRIVER_EXPORT(driver_pwm_init);
+INIT_EXPORT(driver_pwm_init, 1);
 
 /* private functions -------------------------------------------------------- */
 static void _init(elab_pwm_t * const me)

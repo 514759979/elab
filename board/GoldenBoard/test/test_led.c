@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "shell.h"
-#include "elab_pin.h"
+#include "eLab/3rd/Shell/shell.h"
+#include "eLab/edf/normal/elab_pin.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +37,8 @@ static int32_t test_func_led(int32_t argc, char *argv[])
         ret = -2;
         goto exit;
     }
+    
+    elab_pin_set_mode(led, PIN_MODE_OUTPUT_OD);
 
     if (strcmp(argv[2], "0") == 0)
     {

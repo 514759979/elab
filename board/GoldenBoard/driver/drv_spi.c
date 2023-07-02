@@ -6,10 +6,10 @@
 
 /* includes ----------------------------------------------------------------- */
 #include <string.h>
-#include "elab_spi.h"
-#include "elab_assert.h"
-#include "elab_def.h"
-#include "elab_export.h"
+#include "eLab/edf/normal/elab_spi.h"
+#include "eLab/common/elab_assert.h"
+#include "eLab/common/elab_def.h"
+#include "eLab/common/elab_export.h"
 #include "stm32g0xx_hal.h"
 
 #ifdef __cplusplus
@@ -205,8 +205,9 @@ static void _spi_dirver_init(void)
     }
 
 }
-INIT_IO_DRIVER_EXPORT(_spi_dirver_init);
+INIT_EXPORT(_spi_dirver_init, 1);
 
+/* private functions -------------------------------------------------------- */
 elab_err_t _config(elab_spi_t *const me, elab_spi_config_t *config)
 {
     elab_assert(me != NULL);
