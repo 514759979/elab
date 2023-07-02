@@ -18,8 +18,6 @@
 extern "C" {
 #endif
 
-ELAB_TAG("eLab_Log");
-
 /* private config ----------------------------------------------------------- */
 #define ELAB_LOG_BUFF_SIZE                          (256)
 
@@ -72,8 +70,6 @@ void _elog_printf(const char *name, uint8_t level, const char * s_format, ...)
     if (mutex_elog == NULL)
     {
         mutex_elog = osMutexNew(&mutex_attr_elog);
-        /* TODO It's better not to user assert function here. */
-        elab_assert(mutex_elog != NULL);
     }
     osMutexAcquire(mutex_elog, osWaitForever);
 #endif
@@ -81,7 +77,8 @@ void _elog_printf(const char *name, uint8_t level, const char * s_format, ...)
     if (elog_level >= level)
     {
 #if (ELAB_RTOS_CMSIS_OS_EN == 0 && ELAB_RTOS_BASIC_OS_EN == 0)
-        printf("[%c/%s %u] ", elog_level_lable[level], name, elab_time_ms());
+        printf("%s[%c/%s %u] ", elog_color_table[level],
+                                elog_level_lable[level], name, elab_time_ms());
         va_list param_list;
         va_start(param_list, s_format);
         int count = vsnprintf(_buff, (ELAB_LOG_BUFF_SIZE - 1), s_format, param_list);

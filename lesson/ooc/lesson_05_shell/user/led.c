@@ -29,7 +29,7 @@ void led_init(void)
     eio_pin_init(&pin_led, "C.08", PIN_MODE_OUTPUT_PP);
     led = &pin_led;
 }
-INIT_IO_DRIVER_EXPORT(led_init);
+INIT_EXPORT(led_init, 1);
 
 /**
   * @brief  LED polling function.

@@ -96,7 +96,7 @@ static void driver_pwm_init(void)
                             &pwm_driver_data[i]);
     }
 }
-INIT_IO_DRIVER_EXPORT(driver_pwm_init);
+INIT_EXPORT(driver_pwm_init, 0);
 
 /* private functions -------------------------------------------------------- */
 static void _init(eio_pwm_t * const me)

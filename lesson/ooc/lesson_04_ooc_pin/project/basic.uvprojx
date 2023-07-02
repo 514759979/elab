@@ -403,6 +403,11 @@
               <FileType>1</FileType>
               <FilePath>..\user\bsp.c</FilePath>
             </File>
+            <File>
+              <FileName>elab_assert.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\common\elab_assert.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

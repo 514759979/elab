@@ -26,6 +26,10 @@
 #include "basic_os.h"
 #endif
 
+#if (ELAB_RTOS_BASIC_OS_EN != 0)
+#include "basic_os.h"
+#endif
+
 #endif
 
 /* ----------------------------- end of file -------------------------------- */

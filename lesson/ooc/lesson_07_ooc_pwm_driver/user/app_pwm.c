@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+ELAB_TAG("APP_PWM");
+
 /* private config ----------------------------------------------------------- */
 #define LED_POLL_PERIOD_MS                  (5)
 
@@ -33,7 +35,7 @@ void led_init(void)
     led4 = eio_pwm_find("pwmled4");
     elab_assert(led4 != NULL);
 }
-INIT_COMPONENT_EXPORT(led_init);
+INIT_EXPORT(led_init, 2);
 
 /**
   * @brief  LED polling function.

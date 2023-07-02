@@ -22,6 +22,9 @@ ELAB_TAG("eLabExport");
 #if (ELAB_RTOS_BASIC_OS_EN != 0)
 #include "basic_os.h"
 #endif
+#if (ELAB_RTOS_BASIC_OS_EN != 0)
+#include "basic_os.h"
+#endif
 
 #if (ELAB_QPC_EN != 0)
 #include "../3rd/qpc/include/qpc.h"
@@ -32,8 +35,15 @@ Q_DEFINE_THIS_FILE
 extern "C" {
 #endif
 
+/* private defines ---------------------------------------------------------- */
 #if (ELAB_RTOS_BASIC_OS_EN != 0)
 #define ELAB_GLOBAL_STACK_SIZE                      (4096)
+#endif
+
+#if defined(__linux__)
+#define STR_ENTER                                   "\n"
+#else
+#define STR_ENTER                                   "\r\n"
 #endif
 
 /* private function prototype ----------------------------------------------- */
@@ -115,6 +125,7 @@ void elab_run(void)
     osKernelInitialize();
 #endif
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
+    osKernelInitialize();
     osThreadNew(_entry_start_poll, NULL, &thread_attr_start_poll);
 #endif
 #if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
@@ -124,6 +135,10 @@ void elab_run(void)
     {
         elab_exit();
     }
+#elif (ELAB_RTOS_BASIC_OS_EN != 0)
+    static uint32_t stack[1024];
+    eos_init(stack, 4096);
+    eos_run();
 #else
     /* Initialize all module in eLab. */
     for (uint8_t level = EXPORT_LEVEL_HW_INDEPNEDENT;
@@ -211,12 +226,12 @@ static void _export_func_execute(int8_t level)
             {
                 if (is_init && export_table[i].type == EXPORT_TYPE_INIT)
                 {
-                    printf("Export init %s.\n", export_table[i].name);
+                    printf("Export init %s." STR_ENTER, export_table[i].name);
                     ((void (*)(void))export_table[i].func)();
                 }
                 if (!is_init && export_table[i].type == EXPORT_TYPE_EXIT)
                 {
-                    printf("Export exit %s.\n", export_table[i].name);
+                    printf("Export exit %s." STR_ENTER, export_table[i].name);
                     ((void (*)(void))export_table[i].func)();
                 }
             }
@@ -274,7 +289,9 @@ static void _entry_start_poll(void *para)
         _export_func_execute(level);
     }
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
+#if (ELAB_RTOS_CMSIS_OS_EN != 0)
     _export_func_execute(EXPORT_THREAD);
+#endif
 #endif
 #if (ELAB_QPC_EN != 0)
     _export_func_execute(EXPORT_HSM);

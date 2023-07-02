@@ -191,7 +191,7 @@ void elab_exit(void);
   * @retval None.
   */
 #define POLL_EXPORT(_func, _period_ms)                                         \
-    static elab_export_poll_data_t poll_##_data =                              \
+    static elab_export_poll_data_t poll_##_func##_data =                       \
     {                                                                          \
         .timeout_ms = 0,                                                       \
     };                                                                         \
@@ -199,7 +199,7 @@ void elab_exit(void);
     {                                                                          \
         .name = "poll",                                                        \
         .func = &_func,                                                        \
-        .data = (void *)&poll_##_data,                                         \
+        .data = (void *)&poll_##_func##_data,                                  \
         .level = EXPORT_MAX,                                                   \
         .period_ms = (uint32_t)(_period_ms),                                   \
         .magic_head = EXPORT_ID_POLL,                                          \

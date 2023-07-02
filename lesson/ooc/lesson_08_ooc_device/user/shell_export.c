@@ -29,7 +29,7 @@ static void shell_uart_init(void)
     shell_uart.write = (int16_t (*)(char *, uint16_t))elab_debug_uart_send;
     shellInit(&shell_uart, shell_uart_buffer, SHELL_BUFFER_SIZE);
 }
-INIT_BSP_EXPORT(shell_uart_init);
+INIT_EXPORT(shell_uart_init, 0);
 
 /**
   * @brief  Shell polling function.

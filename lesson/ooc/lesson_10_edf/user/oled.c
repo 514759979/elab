@@ -1,9 +1,9 @@
 #include "oled.h"
-#include "elab_spi.h"
-#include "elab_pin.h"
-#include "cmsis_os.h"
-#include "elab_assert.h"
-#include "elab_export.h"
+#include "eLab/edf/normal/elab_spi.h"
+#include "eLab/edf/normal/elab_pin.h"
+#include "eLab/RTOS/cmsis_os.h"
+#include "eLab/common/elab_assert.h"
+#include "eLab/common/elab_export.h"
 
 ELAB_TAG("OLED");
 
@@ -20,9 +20,11 @@ void oled_init(void)
 
     oled_dc = elab_device_find("OLED_DC");
     elab_assert(spi != NULL);
+    elab_pin_set_mode(oled_dc, PIN_MODE_OUTPUT_OD);
 
     oled_rst = elab_device_find("OLED_RST");
     elab_assert(spi != NULL);
+    elab_pin_set_mode(oled_rst, PIN_MODE_OUTPUT_OD);
 
     osDelay(100);
 
@@ -62,7 +64,7 @@ void oled_init(void)
     oled_clear();
 }
 
-INIT_APP_EXPORT(oled_init);
+INIT_EXPORT(oled_init, 2);
 
 void oled_open(void)
 {

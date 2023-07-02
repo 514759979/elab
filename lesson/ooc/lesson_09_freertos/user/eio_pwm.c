@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-ELAB_TAG("EIO_PWM")
+ELAB_TAG("EIO_PWM");
 
 /* private variables -------------------------------------------------------- */
 static eio_ops_t _obj_ops =

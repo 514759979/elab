@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-ELAB_TAG("EIO_PIN")
+ELAB_TAG("EIO_PIN");
 
 /* private variables -------------------------------------------------------- */
 static eio_pin_t *pin_list = NULL;
@@ -91,7 +91,8 @@ bool eio_pin_get_status(eio_pin_t * const me)
 void eio_pin_set_status(eio_pin_t * const me, bool status)
 {
     elab_assert(me != NULL);
-    elab_assert(me->mode == PIN_MODE_OUTPUT || me->mode == PIN_MODE_OUTPUT_OD);
+    elab_assert(me->mode == PIN_MODE_OUTPUT_PP ||
+                me->mode == PIN_MODE_OUTPUT_OD);
     
     if (status != me->status)
     {
@@ -99,6 +100,15 @@ void eio_pin_set_status(eio_pin_t * const me, bool status)
         eio_pin_get_status(me);
         elab_assert(me->status == status);
     }
+}
+
+
+void eio_pin_set_mode(eio_pin_t * const me, uint8_t mode)
+{
+    elab_assert(me != NULL);
+    
+    me->mode = mode;
+    me->ops->set_mode(me, mode);
 }
 
 /* ----------------------------- end of file -------------------------------- */

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "shell.h"
+#include "eLab/3rd/Shell/shell.h"
 #include "oled.h"
 
 #ifdef __cplusplus

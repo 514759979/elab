@@ -337,9 +337,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_HAL_DRIVER,STM32G070xx</Define>
+              <Define>USE_HAL_DRIVER,STM32G070xx, __free_rtos__</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\eLab\common;..\..\..\..\eLab\elib;..\..\..\..\eLab\3rd\Shell;..\..\..\..\eLab;..\..\..\..\eLab\port\FreeRTOS;..\..\..\..\eLab\3rd\FreeRTOS\include;..\..\..\..\eLab\3rd\FreeRTOS\portable\RVDS\ARM_CM0;..\..\..\..\eLab\RTOS\CMSIS_OS_ARM</IncludePath>
+              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\eLab\common;..\..\..\..\eLab\elib;..\..\..\..\eLab\3rd\Shell;..\..\..\..\eLab;..\..\..\..\eLab\port\FreeRTOS;..\..\..\..\eLab\3rd\FreeRTOS\include;..\..\..\..\eLab\3rd\FreeRTOS\portable\RVDS\ARM_CM0;..\..\..\..\eLab\RTOS\CMSIS_OS_ARM;..\..\..\..</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -462,6 +462,11 @@
               <FileName>elab_port.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\eLab\port\FreeRTOS\elab_port.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_assert.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\common\elab_assert.c</FilePath>
             </File>
           </Files>
         </Group>

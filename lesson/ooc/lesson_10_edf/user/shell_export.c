@@ -5,10 +5,10 @@
 
 /* include ------------------------------------------------------------------ */
 #include <stdio.h>
-#include "elab_common.h"
-#include "elab_export.h"
-#include "shell.h"
-#include "elab_log.h"
+#include "eLab/common/elab_common.h"
+#include "eLab/common/elab_export.h"
+#include "eLab/3rd/Shell/shell.h"
+#include "eLab/common/elab_log.h"
 
 ELAB_TAG("ShellExport");
 
@@ -35,8 +35,9 @@ static void shell_uart_init(void)
     
     elog_debug("Shell uart init end.\r\n");
 }
-INIT_BSP_EXPORT(shell_uart_init);
+INIT_EXPORT(shell_uart_init, 0);
 
+/* private functions -------------------------------------------------------- */
 /**
   * @brief  Shell polling function.
   * @retval None

@@ -8,6 +8,8 @@
 #include "eio_object.h"
 #include "elab_assert.h"
 
+ELAB_TAG("EIO_OBJECT");
+
 /* private variables -------------------------------------------------------- */
 static eio_object_t *eio_list = NULL;
 

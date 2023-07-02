@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+ELAB_TAG("APP_LED");
+
 /* private config ----------------------------------------------------------- */
 #define LED_POLL_PERIOD_MS                  (100)
 
@@ -29,7 +31,7 @@ void led_init(void)
     led = eio_find("LED1");
     elab_assert(led != NULL);
 }
-INIT_COMPONENT_EXPORT(led_init);
+INIT_EXPORT(led_init, 2);
 
 /**
   * @brief  LED polling function.

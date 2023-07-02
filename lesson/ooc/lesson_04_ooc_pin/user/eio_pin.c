@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-ELAB_TAG("EIO_PIN")
+ELAB_TAG("EIO_PIN");
 
 /* private variables -------------------------------------------------------- */
 static const GPIO_TypeDef *gpio_table[] =

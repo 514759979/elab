@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-ELAB_TAG("Driver_PIN")
+ELAB_TAG("Driver_PIN");
 
 /* public typedef ----------------------------------------------------------- */
 typedef struct eio_pin_data
@@ -82,7 +82,7 @@ static void eio_pin_dirver_init(void)
                             &eio_pin_driver_data[i]);
     }
 }
-INIT_IO_DRIVER_EXPORT(eio_pin_dirver_init);
+INIT_EXPORT(eio_pin_dirver_init, 1);
 
 /* private functions -------------------------------------------------------- */
 /**
@@ -159,7 +159,6 @@ static void _set_mode(eio_pin_t * const me, uint8_t mode)
 static bool _get_status(eio_pin_t * const me)
 {
     elab_assert(me != NULL);
-    elab_assert(mode < PIN_MODE_MAX);
 
     eio_pin_data_t *driver_data = (eio_pin_data_t *)me->user_data;
 
@@ -177,7 +176,6 @@ static bool _get_status(eio_pin_t * const me)
 static void _set_status(eio_pin_t * const me, bool status)
 {
     elab_assert(me != NULL);
-    elab_assert(mode < PIN_MODE_MAX);
 
     eio_pin_data_t *driver_data = (eio_pin_data_t *)me->user_data;
 

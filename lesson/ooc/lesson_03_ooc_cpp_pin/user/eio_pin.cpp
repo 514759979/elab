@@ -9,7 +9,7 @@
 #include "eio_pin.h"
 #include "elab_assert.h"
 
-ELAB_TAG("EIO_PIN")
+ELAB_TAG("EIO_PIN");
 
 /* private variables -------------------------------------------------------- */
 static const GPIO_TypeDef *gpio_table[] =
@@ -97,8 +97,6 @@ void eio_pin_t::set_status(bool status)
   */
 bool eio_pin_t::get_status(void)
 {
-    elab_assert(me != NULL);
-
     GPIO_PinState status = HAL_GPIO_ReadPin(data_.gpio_x, data_.pin);
     status_ = (status == GPIO_PIN_SET) ? true : false;
 

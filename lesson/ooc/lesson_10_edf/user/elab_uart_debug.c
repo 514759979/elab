@@ -4,8 +4,8 @@
  */
 
 /* includes ----------------------------------------------------------------- */
-#include "elab_common.h"
-#include "elib_queue.h"
+#include "eLab/common/elab_common.h"
+#include "eLab/elib/elib_queue.h"
 #include "stm32g0xx_hal.h"
 
 /* private config ----------------------------------------------------------- */

@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-ELAB_TAG("EIO_PIN")
+ELAB_TAG("EIO_PIN");
 
 /* private variables -------------------------------------------------------- */
 static eio_ops_t _obj_ops =
@@ -99,7 +99,8 @@ void eio_pin_set_status(eio_object_t * const me, bool status)
     elab_assert(me != NULL);
 
     eio_pin_t *pin = (eio_pin_t *)me;
-    elab_assert(pin->mode == PIN_MODE_OUTPUT || pin->mode == PIN_MODE_OUTPUT_OD);
+    elab_assert(pin->mode == PIN_MODE_OUTPUT_PP ||
+                pin->mode == PIN_MODE_OUTPUT_OD);
     
     if (status != pin->status)
     {

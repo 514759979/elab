@@ -5,7 +5,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "bsp.h"
-#include "elab_export.h"
+#include "eLab/common/elab_export.h"
 
 /* public functions --------------------------------------------------------- */
 /**

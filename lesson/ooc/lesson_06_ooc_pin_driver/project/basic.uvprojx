@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32G070xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\eLab\common;..\..\..\..\eLab\elib;..\..\..\..\eLab\3rd\Shell;..\..\..\..\eLab;..\..\..\..\eLab\port\Metal</IncludePath>
+              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\eLab\common;..\..\..\..\eLab\elib;..\..\..\..\eLab\3rd\Shell;..\..\..\..\eLab;..\..\..\..\eLab\port\Metal;..\..\..\..</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -442,6 +442,16 @@
               <FileName>elab_common.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\eLab\common\elab_common.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_assert.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\common\elab_assert.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_log.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\eLab\common\elab_log.c</FilePath>
             </File>
           </Files>
         </Group>
