@@ -1,9 +1,5 @@
 # 关于本项目
 -------
-eLesson项目，是狗哥专门针对在自媒体上推出的视频例程，所配合的源代码。
-
-目前，eLab尚未独立，包含在eLesson项目里。就在未来的两到三个月内，eLab项目将正式独立，而且会被提升比较重要的位置上去。
-
 ## 一、eLab项目是什么？
 
 简而言之，就是一个开发平台。
@@ -67,10 +63,10 @@ eLesson项目，是狗哥专门针对在自媒体上推出的视频例程，所�
 
 ### Q群二维码
 
-<img src="docs/images/pic_qq_group.jpg" width="30%"  />
+<img src="docs/images/pic_qq_group.jpg" width="20%"  />
 
 ### 微信二维码
-<img src="docs/images/wechat_gouge.jpg" width="30%"  />
+<img src="docs/images/wechat_gouge.jpg" width="20%"  />
 
 ### B站二维码
-<img src="docs/images/pic_bilibili.jpg" width="30%"  />
+<img src="docs/images/pic_bilibili.jpg" width="20%"  />
