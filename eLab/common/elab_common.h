@@ -8,6 +8,7 @@
 
 /* includes ----------------------------------------------------------------- */
 #include <stdint.h>
+#include "elab_config.h"
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
 #include "../port/elab_port.h"

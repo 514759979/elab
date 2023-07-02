@@ -40,8 +40,12 @@ typedef enum elab_err
 enum elab_export_level
 {
     EXPORT_LEVEL_HW_INDEPNEDENT         = 0,
+    EXPORT_DRVIVER,
+    EXPORT_COM,
+    EXPORT_APP,
+    EXPORT_LEVEL_MAX,
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-    EXPORT_THREAD = 101,
+    EXPORT_THREAD = EXPORT_LEVEL_MAX,
 #endif
 #if (ELAB_QPC_EN != 0)
     EXPORT_HSM,
@@ -67,9 +71,9 @@ typedef struct elab_time
 } elab_time_t;
 
 #if defined(__x86_64__) || defined(__aarch64__)
-typedef uint64_t                        elab_pointer_t;
+typedef int64_t                         elab_pointer_t;
 #elif defined(__i386__) || defined(__arm__)
-typedef uint32_t                        elab_pointer_t;
+typedef int32_t                         elab_pointer_t;
 #else
     #error The currnet CPU is NOT supported!
 #endif

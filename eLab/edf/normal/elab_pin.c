@@ -96,12 +96,12 @@ void elab_pin_set_status(elab_device_t *const me, bool status)
                 ELAB_PIN_CAST(me)->mode == PIN_MODE_OUTPUT_OD,
                 me->attr.name);
 
-    // if (status != ELAB_PIN_CAST(me)->status)
-    // {
+    if (status != ELAB_PIN_CAST(me)->status)
+    {
         ELAB_PIN_CAST(me)->ops->set_status(ELAB_PIN_CAST(me), status);
         elab_pin_get_status(me);
         assert_name(ELAB_PIN_CAST(me)->status == status, me->attr.name);
-    // }
+    }
 }
 
 #ifdef __cplusplus

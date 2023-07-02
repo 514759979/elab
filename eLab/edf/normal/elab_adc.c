@@ -172,7 +172,7 @@ void elab_adc_set_attr(elab_device_t *const me, elab_adc_attr_t *attr)
   */
 static void _timer_cb(void *argument)
 {
-    elab_adc_t *const adc = (elab_adc_t *const)argument;
+    elab_adc_t *adc = (elab_adc_t *)argument;
     
     adc->cb(adc, adc->buffer);
 }

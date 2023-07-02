@@ -50,6 +50,7 @@ SHELL_USED const ShellCommand shellUserDefault SHELL_SECTION("shellCommand") =
     extern const unsigned short shellCommandCount;
 #endif
 
+#if defined(__GNUC__)
 static shell_pointer_t _shell_command_start;
 static shell_pointer_t _shell_command_end;
 
@@ -94,6 +95,7 @@ static uint16_t _get_shell_cmd_count(void)
 
     return count;
 }
+#endif
 
 /**
  * @brief shell 常量文本索引
@@ -1476,8 +1478,11 @@ void shellUp(Shell *shell)
 {
     shellHistory(shell, 1);
 }
+#if defined(__linux__)
 SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_HOME, shellUp, up);
-
+#else
+SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_UP, shellUp, up);
+#endif
 
 /**
  * @brief shell下方向键输入
@@ -1488,7 +1493,11 @@ void shellDown(Shell *shell)
 {
     shellHistory(shell, -1);
 }
+#if defined(__linux__)
 SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_END, shellDown, down);
+#else
+SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_DOWN, shellDown, up);
+#endif
 #endif /** SHELL_HISTORY_MAX_NUMBER > 0 */
 
 

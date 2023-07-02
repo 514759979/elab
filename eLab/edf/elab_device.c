@@ -17,7 +17,6 @@ static void _add_device(elab_device_t *me);
 static osMutexId_t _edf_mutex(void);
 
 /* private variables -------------------------------------------------------- */
-static uint8_t _data[10240];
 static uint32_t _edf_device_count = 0;
 static elab_device_t *_edf_table[ELAB_DEV_NUM_MAX];
 static osMutexId_t _mutex_edf = NULL;
@@ -42,15 +41,6 @@ static const osMutexAttr_t _mutex_attr_edf =
  */
 void elab_device_register(elab_device_t *me, elab_device_attr_t *attr)
 {
-    if (_edf_device_count == 0)
-    {
-        for (uint32_t i = 0; i < ELAB_DEV_NUM_MAX; i ++)
-        {
-            _edf_table[i] = NULL;
-        }
-        memset(_data, 0, 10240);
-    }
-
     assert(me != NULL);
     assert(attr != NULL);
     assert(attr->name != NULL);
@@ -197,6 +187,7 @@ elab_err_t __device_enable(elab_device_t *me, bool status)
     {
         if (status)
         {
+            /* TODO */
             // assert_name(me->enable_count == 0, me->attr.name);
         }
         else

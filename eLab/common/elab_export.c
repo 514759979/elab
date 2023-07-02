@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include "elab_def.h"
 #include "elab_export.h"
 #include "elab_common.h"
 #include "elab_assert.h"
@@ -48,7 +49,6 @@ POLL_EXPORT(module_null_init, (1000 * 60 * 60));
 
 static elab_export_t *export_init_table = NULL;
 static elab_export_t *export_poll_table = NULL;
-static uint8_t export_level_max = (EXPORT_THREAD - 1);
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
 /**
@@ -73,15 +73,17 @@ void elab_unit_test(void)
     _export_func_execute(EXPORT_TEST);
 }
 
+#if (ELAB_RTOS_CMSIS_OS_EN == 0 && ELAB_RTOS_BASIC_OS_EN == 0)
 static bool app_exit = false;
+#endif
+#if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
 static bool app_exit_end = false;
+#endif
 
 #if defined(__linux__)
 static void signal_handler(int sig)
 {
     printf("Elab Signal: %d.\n", sig);
-
-    app_exit = true;
 
     elab_exit();
     system("stty echo");
@@ -141,8 +143,7 @@ void elab_run(void)
 void elab_exit(void)
 {
     /* Initialize all module in eLab. */
-    for (int32_t level = -(EXPORT_THREAD - 1);
-            level <= -EXPORT_LEVEL_HW_INDEPNEDENT; level ++)
+    for (int32_t level = -EXPORT_APP; level <= -EXPORT_LEVEL_HW_INDEPNEDENT; level ++)
     {
         _export_func_execute(level - 1);
     }
@@ -206,7 +207,7 @@ static void _export_func_execute(int8_t level)
         if (export_table[i].magic_head == export_id &&
             export_table[i].magic_tail == export_id)
         {
-            if (export_table[i].level == level && level < EXPORT_THREAD)
+            if (export_table[i].level == level && level <= EXPORT_APP)
             {
                 if (is_init && export_table[i].type == EXPORT_TYPE_INIT)
                 {
@@ -259,16 +260,16 @@ static void _export_func_execute(int8_t level)
     }
 }
 
+#if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
 /**
   * @brief  eLab startup and poll function.
   * @retval None
   */
 static void _entry_start_poll(void *para)
 {
-    printf("===============\n");
     /* Initialize all module in eLab. */
     for (uint8_t level = EXPORT_LEVEL_HW_INDEPNEDENT;
-            level < EXPORT_THREAD; level ++)
+            level < EXPORT_LEVEL_MAX; level ++)
     {
         _export_func_execute(level);
     }
@@ -288,6 +289,7 @@ static void _entry_start_poll(void *para)
 #endif
     }
 }
+#endif
 
 #if (ELAB_RTOS_BASIC_OS_EN != 0)
 bos_task_export(poll, _entry_start_poll, 1, NULL);

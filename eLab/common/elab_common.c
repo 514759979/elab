@@ -50,7 +50,7 @@ ELAB_WEAK void *elab_malloc(uint32_t size)
 
 ELAB_WEAK void elab_free(void *memory)
 {
-    return free(memory);
+    free(memory);
 }
 
 /* ----------------------------- end of file -------------------------------- */

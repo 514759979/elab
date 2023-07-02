@@ -104,51 +104,6 @@ typedef struct {
 /* Kernel initialization state */
 static osKernelState_t KernelState = osKernelInactive;
 
-/*
-  Heap region definition used by heap_5 variant
-
-  Define configAPPLICATION_ALLOCATED_HEAP as nonzero value in FreeRTOSConfig.h if
-  heap regions are already defined and vPortDefineHeapRegions is called in application.
-
-  Otherwise vPortDefineHeapRegions will be called by osKernelInitialize using
-  definition configHEAP_5_REGIONS as parameter. Overriding configHEAP_5_REGIONS
-  is possible by defining it globally or in FreeRTOSConfig.h.
-*/
-#if defined(USE_FreeRTOS_HEAP_5)
-#if (configAPPLICATION_ALLOCATED_HEAP == 0)
-  /*
-    FreeRTOS heap is not defined by the application.
-    Single region of size configTOTAL_HEAP_SIZE (defined in FreeRTOSConfig.h)
-    is provided by default. Define configHEAP_5_REGIONS to provide custom
-    HeapRegion_t array.
-  */
-  #define HEAP_5_REGION_SETUP   1
-  
-  #ifndef configHEAP_5_REGIONS
-    #define configHEAP_5_REGIONS xHeapRegions
-    #define EXT_SDRAM_ADDR  	((uint32_t)0xC0000000)
-    #define EXT_SDRAM_SIZE		(32 * 1024 * 1024)
-
-    static uint8_t ucHeap[configTOTAL_HEAP_SIZE]__attribute__((section(".RamD1Heap")));
-
-    static HeapRegion_t xHeapRegions[] = {
-      { ucHeap, configTOTAL_HEAP_SIZE },
-      { (uint8_t *)EXT_SDRAM_ADDR, EXT_SDRAM_SIZE },
-      { NULL,   0                     }
-    };
-  #else
-    /* Global definition is provided to override default heap array */
-    extern HeapRegion_t configHEAP_5_REGIONS[];
-  #endif
-#else
-  /*
-    The application already defined the array used for the FreeRTOS heap and
-    called vPortDefineHeapRegions to initialize heap.
-  */
-  #define HEAP_5_REGION_SETUP   0
-#endif /* configAPPLICATION_ALLOCATED_HEAP */
-#endif /* USE_FreeRTOS_HEAP_5 */
-
 #if defined(SysTick)
 #undef SysTick_Handler
 

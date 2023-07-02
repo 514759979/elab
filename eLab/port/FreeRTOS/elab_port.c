@@ -4,7 +4,7 @@
  */
 
 /* include ------------------------------------------------------------------ */
-#include "elab.h"
+#include "eLab/elab.h"
 
 ELAB_TAG("eLab_Port_FreeRTOS");
 

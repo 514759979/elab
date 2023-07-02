@@ -9,15 +9,15 @@
 #include "../common/elab_assert.h"
 #include "../common/elab_export.h"
 
-ELAB_TAG("Edf_DevNull");
-
 /* Private function prototypes -----------------------------------------------*/
 static elab_err_t _null_enable(elab_device_t *me, bool status);
 static int32_t _null_read(elab_device_t *me,
                             uint32_t pos, void *buffer, uint32_t size);
 static int32_t _null_write(elab_device_t *me,
                             uint32_t pos, const void *buffer, uint32_t size);
+#if (ELAB_DEV_PALTFORM == ELAB_PALTFORM_POLL)
 static void _null_poll(elab_device_t *me);
+#endif
 
 /* Private variables ---------------------------------------------------------*/
 /**
