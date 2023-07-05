@@ -5,10 +5,10 @@
  */
 
 /* includes ----------------------------------------------------------------- */
-#include "eLab/edf/normal/elab_pwm.h"
+#include "elab/edf/normal/elab_pwm.h"
 #include "stm32g0xx_hal.h"
-#include "eLab/common/elab_export.h"
-#include "eLab/common/elab_assert.h"
+#include "elab/common/elab_export.h"
+#include "elab/common/elab_assert.h"
 
 #ifdef __cplusplus
 extern "C" {

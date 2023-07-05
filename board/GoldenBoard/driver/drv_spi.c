@@ -6,10 +6,10 @@
 
 /* includes ----------------------------------------------------------------- */
 #include <string.h>
-#include "eLab/edf/normal/elab_spi.h"
-#include "eLab/common/elab_assert.h"
-#include "eLab/common/elab_def.h"
-#include "eLab/common/elab_export.h"
+#include "elab/edf/normal/elab_spi.h"
+#include "elab/common/elab_assert.h"
+#include "elab/common/elab_def.h"
+#include "elab/common/elab_export.h"
 #include "stm32g0xx_hal.h"
 
 #ifdef __cplusplus
