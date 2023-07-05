@@ -9,12 +9,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "eLab/3rd/Shell/shell.h"
-#include "eLab/common/elab_log.h"
-#include "eLab/edf/elab_device.h"
-#include "eLab/edf/normal/elab_serial.h"
-#include "eLab/RTOS/cmsis_os.h"
-#include "eLab/common/elab_assert.h"
+#include "elab/3rd/Shell/shell.h"
+#include "elab/common/elab_log.h"
+#include "elab/edf/elab_device.h"
+#include "elab/edf/normal/elab_serial.h"
+#include "elab/os/cmsis_os.h"
+#include "elab/common/elab_assert.h"
 
 ELAB_TAG("Rs232Test");
 

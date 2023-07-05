@@ -9,9 +9,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "eLab/3rd/Shell/shell.h"
-#include "eLab/common/elab_log.h"
-#include "eLab/edf/elab_device.h"
+#include "elab/3rd/Shell/shell.h"
+#include "elab/common/elab_log.h"
+#include "elab/edf/elab_device.h"
 #include "export/rbc_export.h"
 
 ELAB_TAG("MotorTest");

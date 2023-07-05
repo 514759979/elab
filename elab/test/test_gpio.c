@@ -9,10 +9,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "eLab/3rd/Shell/shell.h"
-#include "eLab/common/elab_log.h"
-#include "eLab/edf/normal/elab_pin.h"
-#include "eLab/edf/driver/simulator/simu_driver_pin.h"
+#include "elab/3rd/Shell/shell.h"
+#include "elab/common/elab_log.h"
+#include "elab/edf/normal/elab_pin.h"
+#include "elab/edf/driver/simulator/simu_driver_pin.h"
 
 ELAB_TAG("BaseTest");
 
