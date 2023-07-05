@@ -11,7 +11,7 @@
 #include "elab_device.h"
 #include "elab_serial.h"
 #include "elab_pin.h"
-#include "../../RTOS/cmsis_os.h"
+#include "../../os/cmsis_os.h"
 #include "elab_def.h"
 #include "elab_rs485.h"
 #include "elab_log.h"

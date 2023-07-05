@@ -8,7 +8,7 @@
 #define MB_OS_MODULE
 
 #include "mb.h"
-#include "../../RTOS/cmsis_os.h"
+#include "../../os/cmsis_os.h"
 #include "../../common/elab_log.h"
 #include "../../common/elab_assert.h"
 

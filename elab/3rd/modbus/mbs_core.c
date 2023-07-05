@@ -32,7 +32,7 @@
 
 #define   MBS_MODULE
 
-#include "eLab/common/elab_assert.h"
+#include "elab/common/elab_assert.h"
 #include "mb.h"
 
 ELAB_TAG("ModbusSlaveCore");

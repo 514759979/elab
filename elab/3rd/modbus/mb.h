@@ -52,7 +52,7 @@
 
 #include  "mb_cfg.h"
 #include  "mb_def.h"
-#include "../../RTOS/cmsis_os.h"
+#include "../../os/cmsis_os.h"
 
 /*
 ********************************************************************************
