@@ -29,8 +29,8 @@
 #include <stdio.h>
 
 /* Scheduler includes. */
-#include "FreeRTOS.h"
-#include "task.h"
+#include "../../include/FreeRTOS.h"
+#include "../../include/task.h"
 
 #pragma comment(lib, "winmm.lib")
 
