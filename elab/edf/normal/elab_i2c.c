@@ -8,7 +8,7 @@
 #include "../elab_device.h"
 #include "../../common/elab_assert.h"
 #include "../../common/elab_log.h"
-#include "../../RTOS/cmsis_os.h"
+#include "../../os/cmsis_os.h"
 
 ELAB_TAG("Edf_I2C");
 

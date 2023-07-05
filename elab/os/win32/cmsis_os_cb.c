@@ -1,9 +1,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include <stdio.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "timers.h"
-#include "cmsis_os.h"
+#include "../../3rd/FreeRTOS/include/FreeRTOS.h"
+#include "../../3rd/FreeRTOS/include/task.h"
+#include "../../3rd/FreeRTOS/include/timers.h"
+#include "../cmsis_os.h"
 
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize )
 {

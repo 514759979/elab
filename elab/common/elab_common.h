@@ -11,8 +11,7 @@
 #include "elab_config.h"
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#include "../port/elab_port.h"
-#include "../RTOS/cmsis_os.h"
+#include "../os/cmsis_os.h"
 #endif
 
 #ifdef __cplusplus
@@ -37,17 +36,7 @@ void elab_mcu_reset(void);
 void elab_debug_uart_init(uint32_t baudrate);
 int16_t elab_debug_uart_send(void *buffer, uint16_t size);
 int16_t elab_debug_uart_receive(void *buffer, uint16_t size);
-void elab_debug_uart_buffer_clear(void);
 void elab_assert_func(void);
-
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
-/* thread related. */
-osThreadId_t elab_thread_init(elab_thread_t *const me,
-                                void (*entry)(void *parameter),
-                                const char *name, void *data,
-                                void *stack, uint32_t stack_size,
-                                uint8_t priority);
-#endif
 
 #ifdef __cplusplus
 }

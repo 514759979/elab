@@ -14,7 +14,7 @@
 
 #include <stdint.h>
 #include "shell_cfg.h"
-#include "eLab/common/elab_def.h"
+#include "../../common/elab_def.h"
 
 #define ESH_KEY_F1                      (0x1B4F5000)
 #define ESH_KEY_F2                      (0x1B4F5100)

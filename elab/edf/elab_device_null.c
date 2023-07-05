@@ -5,7 +5,7 @@
 
 /* includes ----------------------------------------------------------------- */
 #include "elab_device.h"
-#include "../RTOS/cmsis_os.h"
+#include "../os/cmsis_os.h"
 #include "../common/elab_assert.h"
 #include "../common/elab_export.h"
 

@@ -39,13 +39,13 @@
 */
 #define QP_IMPL           /* this is QP implementation */
 #include "qf_port.h"      /* QF port */
-#include "qf_pkg.h"
-#include "qassert.h"
+#include "../../src/qf_pkg.h"
+#include "../../include/qassert.h"
 #ifdef Q_SPY              /* QS software tracing enabled? */
     #include "qs_port.h"  /* QS port */
     #include "qs_pkg.h"   /* QS package-scope internal interface */
 #else
-    #include "qs_dummy.h" /* disable the QS software tracing */
+    #include "../../include/qs_dummy.h" /* disable the QS software tracing */
 #endif /* Q_SPY */
 
 Q_DEFINE_THIS_MODULE("qf_port")
@@ -75,8 +75,10 @@ int_t QF_run(void) {
     QS_BEGIN_PRE_(QS_QF_RUN, 0U)
     QS_END_PRE_()
 
+#if 0
     vTaskStartScheduler(); /* start the FreeRTOS scheduler */
     Q_ERROR_ID(110); /* the FreeRTOS scheduler should never return */
+#endif
     return 0; /* dummy return to make the compiler happy */
 }
 /*..........................................................................*/

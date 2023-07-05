@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "eLab/3rd/Shell/shell.h"
-#include "eLab/edf/normal/elab_pin.h"
+#include "elab/3rd/Shell/shell.h"
+#include "elab/edf/normal/elab_pin.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -6,11 +6,11 @@
 
 /* include ------------------------------------------------------------------ */
 #include <stdlib.h>
-#include "eLab/3rd/Shell/shell.h"
-#include "eLab/common/elab_assert.h"
-#include "eLab/common/elab_export.h"
-#include "eLab/common/elab_common.h"
-#include "eLab/RTOS/cmsis_os.h"
+#include "../3rd/Shell/shell.h"
+#include "../common/elab_assert.h"
+#include "../common/elab_export.h"
+#include "../common/elab_common.h"
+#include "../os/cmsis_os.h"
 
 ELAB_TAG("ShellExport");
 

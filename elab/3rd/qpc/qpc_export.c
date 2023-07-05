@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "event_def.h"
 #include "include/qpc.h"
-#include "eLab/elab.h"
+#include "elab/elab.h"
 
 ELAB_TAG("QpExport");
 
@@ -21,20 +21,7 @@ static uint32_t time_ms_backup;
 static elab_event_t event_poll[ELAB_EVENT_POOL_SIZE];
 #endif
 
-static const osThreadAttr_t thread_attr =
-{
-    .name = "qp_export",
-    .attr_bits = osThreadDetached,
-    .priority = osPriorityRealtime,
-    .stack_size = 2048,
-};
-
 /* Exported functions --------------------------------------------------------*/
-static void _thread_entry(void *para)
-{
-    QF_run();
-}
-
 static void qpc_export(void)
 {
 #if (ELAB_QPC_EN != 0)
@@ -48,11 +35,9 @@ static void qpc_export(void)
     /* Initialize event pool. */
     QF_poolInit(event_poll, sizeof(event_poll), sizeof(elab_event_t));
 
-    osThreadNew(_thread_entry, NULL, &thread_attr);
-    elog_debug("QPC export end.");
+    QF_run();
 #endif
 }
-
 INIT_EXPORT(qpc_export, 0);
 
 /* Exported functions --------------------------------------------------------*/

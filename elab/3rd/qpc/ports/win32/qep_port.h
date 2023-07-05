@@ -69,7 +69,7 @@
 
 #endif
 
-#include "qep.h"     /* QEP platform-independent public interface */
+#include "../../include/qep.h"  /* QEP platform-independent public interface */
 
 #if (defined __cplusplus) && (defined _MSC_VER)
     #pragma warning (default: 4510 4512 4610)

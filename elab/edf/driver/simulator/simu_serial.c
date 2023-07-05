@@ -7,7 +7,7 @@
 #include "simu_serial.h"
 #include "edf_simu_config.h"
 #include "../../../elib/elib_hash_table.h"
-#include "../../../RTOS/cmsis_os.h"
+#include "../../../os/cmsis_os.h"
 #include "../../../edf/normal/elab_serial.h"
 #include "../../../common/elab_common.h"
 #include "../../../common/elab_assert.h"

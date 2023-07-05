@@ -1,13 +1,15 @@
+
+
 /* Includes ------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
-#include "cmsis_os.h"
-#include "FreeRTOS.h"                   // ARM.FreeRTOS::RTOS:Core
-#include "task.h"                       // ARM.FreeRTOS::RTOS:Core
-#include "event_groups.h"               // ARM.FreeRTOS::RTOS:Event Groups
-#include "semphr.h"                     // ARM.FreeRTOS::RTOS:Core
-#include "timers.h"
+#include "../cmsis_os.h"
+#include "../../3rd/FreeRTOS/include/FreeRTOS.h"
+#include "../../3rd/FreeRTOS/include/task.h"
+#include "../../3rd/FreeRTOS/include/event_groups.h"
+#include "../../3rd/FreeRTOS/include/semphr.h"
+#include "../../3rd/FreeRTOS/include/timers.h"
 
 /* Limits */
 #define MAX_BITS_TASK_NOTIFY            31U
@@ -31,7 +33,10 @@ static osKernelState_t KernelState = osKernelInactive;
 /* -----------------------------------------------------------------------------
 OS Basic
 ----------------------------------------------------------------------------- */
-
+osStatus_t osKernelInitialize (void)
+{
+  return osOK;
+}
 int32_t osKernelLock (void) {
   int32_t lock;
 
@@ -1206,23 +1211,6 @@ osStatus_t osEventFlagsDelete (osEventFlagsId_t ef_id) {
 #endif
 
   return (stat);
-}
-
-
-/* -----------------------------------------------------------------------------
-Malloc & Free
------------------------------------------------------------------------------ */
-void * elab_malloc(uint32_t size)
-{
-    return pvPortMalloc(size);
-}
-
-void elab_free(void *data)
-{
-    if (NULL != data)
-    {
-        vPortFree(data);
-    }
 }
 
 /* -----------------------------------------------------------------------------

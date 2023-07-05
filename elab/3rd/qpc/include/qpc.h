@@ -51,7 +51,12 @@ extern "C" {
 #endif
 
 /****************************************************************************/
-#include "qf_port.h"      /* QF/C port from the port directory */
+/* QF/C port from the port directory */
+#if defined(__linux__)
+#include "../ports/posix/qf_port.h"
+#else
+#include "../ports/freertos/qf_port.h"
+#endif
 #include "qassert.h"      /* QP embedded systems-friendly assertions */
 
 #ifdef Q_SPY /* software tracing enabled? */

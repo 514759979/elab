@@ -11,7 +11,6 @@
 #include "common/elab_assert.h"
 #include "common/elab_export.h"
 #include "common/elab_common.h"
-#include "port/elab_port.h"
 
 #if (ELAB_QPC_EN != 0)
 #include "3rd/qpc/include/qpc.h"
@@ -19,7 +18,7 @@
 #endif
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#include "RTOS/cmsis_os.h"
+#include "os/cmsis_os.h"
 #endif
 
 #if (ELAB_RTOS_BASIC_OS_EN != 0)

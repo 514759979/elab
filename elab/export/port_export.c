@@ -11,7 +11,7 @@
 #include "../edf/driver/linux/driver_uart.h"
 #include "../common/elab_export.h"
 #include "../edf/driver/simulator/simu_serial.h"
-#include "eLab/midware/edb/edb.h"
+#include "elab/midware/edb/edb.h"
 
 #define PORT_EXPORT_BUFF_SIZE                       (256)
 #define PORT_SERIAL_NAME_SIZE                       (64)

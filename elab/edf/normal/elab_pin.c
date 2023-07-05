@@ -78,8 +78,11 @@ bool elab_pin_get_status(elab_device_t *const me)
 
     elab_pin_t *pin = (elab_pin_t *)me;
 
-    pin->status = pin->ops->get_status(pin);
-
+    if (pin->mode >= PIN_MODE_INPUT && pin->mode <= PIN_MODE_INPUT_PULLDOWN)
+    {
+        pin->status = pin->ops->get_status(pin);
+    }
+    
     return pin->status;
 }
 
@@ -99,8 +102,7 @@ void elab_pin_set_status(elab_device_t *const me, bool status)
     if (status != ELAB_PIN_CAST(me)->status)
     {
         ELAB_PIN_CAST(me)->ops->set_status(ELAB_PIN_CAST(me), status);
-        elab_pin_get_status(me);
-        assert_name(ELAB_PIN_CAST(me)->status == status, me->attr.name);
+        ELAB_PIN_CAST(me)->status = status;
     }
 }
 

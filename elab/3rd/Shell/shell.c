@@ -14,7 +14,7 @@
 #include <stdarg.h>
 #include "shell.h"
 #include "shell_ext.h"
-#include "eLab/common/elab_assert.h"
+#include "../../common/elab_assert.h"
 
 ELAB_TAG("LetterShell");
 

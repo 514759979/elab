@@ -1,9 +1,9 @@
 #include "oled.h"
-#include "eLab/edf/normal/elab_spi.h"
-#include "eLab/edf/normal/elab_pin.h"
-#include "eLab/RTOS/cmsis_os.h"
-#include "eLab/common/elab_assert.h"
-#include "eLab/common/elab_export.h"
+#include "elab/edf/normal/elab_spi.h"
+#include "elab/edf/normal/elab_pin.h"
+#include "elab/os/cmsis_os.h"
+#include "elab/common/elab_assert.h"
+#include "elab/common/elab_export.h"
 
 ELAB_TAG("OLED");
 

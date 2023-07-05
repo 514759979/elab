@@ -5,10 +5,10 @@
 
 /* include ------------------------------------------------------------------ */
 #include <stdio.h>
-#include "eLab/common/elab_common.h"
-#include "eLab/common/elab_export.h"
-#include "eLab/3rd/Shell/shell.h"
-#include "eLab/common/elab_log.h"
+#include "elab/common/elab_common.h"
+#include "elab/common/elab_export.h"
+#include "elab/3rd/Shell/shell.h"
+#include "elab/common/elab_log.h"
 
 ELAB_TAG("ShellExport");
 

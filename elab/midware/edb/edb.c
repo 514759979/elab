@@ -8,7 +8,7 @@
 #include "edb.h"
 #include "../../common/elab_assert.h"
 #include "../../3rd/ini/ini.h"
-#include "../../RTOS/cmsis_os.h"
+#include "../../os/cmsis_os.h"
 
 ELAB_TAG("edb");
 

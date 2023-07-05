@@ -37,24 +37,6 @@ typedef enum elab_err
     ELAB_ERR_BUS                        = -13,
 } elab_err_t;
 
-enum elab_export_level
-{
-    EXPORT_LEVEL_HW_INDEPNEDENT         = 0,
-    EXPORT_DRVIVER,
-    EXPORT_COM,
-    EXPORT_APP,
-    EXPORT_LEVEL_MAX,
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
-    EXPORT_THREAD = EXPORT_LEVEL_MAX,
-#endif
-#if (ELAB_QPC_EN != 0)
-    EXPORT_HSM,
-#endif
-    EXPORT_TEST,
-
-    EXPORT_MAX,
-};
-
 typedef struct elab_date
 {
     uint32_t year               : 16;
