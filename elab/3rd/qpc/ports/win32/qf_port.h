@@ -68,10 +68,10 @@
 
 /* QF_LOG2 not defined -- use the internal LOG2() implementation */
 
-#include "qep_port.h"  /* QEP port */
-#include "qequeue.h"   /* Win32 needs the native event-queue */
-#include "qmpool.h"    /* Win32 needs the native memory-pool */
-#include "qf.h"        /* QF platform-independent public interface */
+#include "qep_port.h"               /* QEP port */
+#include "../../include/qequeue.h"  /* Win32 needs the native event-queue */
+#include "../../include/qmpool.h"   /* Win32 needs the native memory-pool */
+#include "../../include/qf.h"       /* QF platform-independent public interface */
 
 /* internal functions for critical section management */
 void QF_enterCriticalSection_(void);

@@ -56,13 +56,15 @@
 #define QF_CRIT_ENTRY(stat_)  taskENTER_CRITICAL()
 #define QF_CRIT_EXIT(stat_)   taskEXIT_CRITICAL()
 
-#include "FreeRTOS.h"  /* FreeRTOS master include file, see NOTE4 */
-#include "task.h"      /* FreeRTOS task  management */
+/* FreeRTOS master include file, see NOTE4 */
+#include "../../../FreeRTOS/include/FreeRTOS.h"
+/* FreeRTOS task  management */
+#include "../../../FreeRTOS/include/task.h"
 
-#include "qep_port.h"  /* QEP port */
-#include "qequeue.h"   /* this QP port uses the native QF event queue */
-#include "qmpool.h"    /* this QP port uses the native QF memory pool */
-#include "qf.h"        /* QF platform-independent public interface */
+#include "qep_port.h"               /* QEP port */
+#include "../../include/qequeue.h"  /* this QP port uses the native QF event queue */
+#include "../../include/qmpool.h"   /* this QP port uses the native QF memory pool */
+#include "../../include/qf.h"       /* QF platform-independent public interface */
 
 /* the "FromISR" versions of the QF APIs, see NOTE3 */
 #ifdef Q_SPY

@@ -46,7 +46,11 @@
 * @endcond
 */
 #define QP_IMPL           /* this is QP implementation */
-#include "qf_port.h"      /* QF port */
+#if defined(__linux__)
+#include "../../ports/posix/qf_port.h"      /* QF port */
+#else
+#include "../../ports/freertos/qf_port.h"      /* QF port */
+#endif
 #include "../qf_pkg.h"       /* QF package-scope interface */
 
 /*Q_DEFINE_THIS_MODULE("qf_qmact")*/

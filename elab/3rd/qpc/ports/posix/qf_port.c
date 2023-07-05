@@ -99,10 +99,6 @@ void QF_init(void) {
     l_tick.tv_sec = 0;
     l_tick.tv_nsec = NANOSLEEP_NSEC_PER_SEC/100L; /* default clock tick */
     l_tickPrio = sched_get_priority_min(SCHED_FIFO); /* default tick prio */
-
-    /* install the SIGINT (Ctrl-C) signal handler */
-    // sig_act.sa_handler = &sigIntHandler;
-    // sigaction(SIGINT, &sig_act, NULL);
 }
 
 /****************************************************************************/
@@ -137,14 +133,7 @@ int_t QF_run(void) {
     * calling QF_run()
     */
     pthread_mutex_unlock(&l_startupMutex);
-
     l_isRunning = true;
-    while (l_isRunning) { /* the clock tick loop... */
-        QF_onClockTick(); /* clock tick callback (must call QF_TICK_X()) */
-
-        nanosleep(&l_tick, NULL); /* sleep for the number of ticks, NOTE05 */
-    }
-    QF_onCleanup(); /* invoke cleanup callback */
     pthread_mutex_destroy(&l_startupMutex);
     pthread_mutex_destroy(&QF_pThreadMutex_);
 

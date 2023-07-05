@@ -43,6 +43,6 @@
 #include <stdint.h>  /* Exact-width types. WG14/N843 C99 Standard */
 #include <stdbool.h> /* Boolean type.      WG14/N843 C99 Standard */
 
-#include "qep.h"     /* QEP platform-independent public interface */
+#include "../../include/qep.h"     /* QEP platform-independent public interface */
 
 #endif /* QEP_PORT_H */
