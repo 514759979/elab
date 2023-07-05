@@ -4,28 +4,25 @@
  * Copyright (c) 2023, EventOS Team, <event-os@outlook.com>
  */
 
+#if defined(__linux__)
+
 /* includes ----------------------------------------------------------------- */
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <sys/time.h>
 #include <errno.h>
 #include <string.h>
-#include <termios.h>
+#include <assert.h>
 #include "../cmsis_os.h"
-#include "../../common/elab_assert.h"
-
-ELAB_TAG("CmsisOSPosix");
 
 #define RTOS_TIMER_NUM_MAX                      (32)
 #define RTOS_TIMER_VALUE_MIN                    (5)
 
 static int get_pthread_priority(osPriority_t prio);
 static void _thread_entry_timer(void *para);
-static int getch(void);
 
 /* -----------------------------------------------------------------------------
 Data structure
@@ -54,6 +51,27 @@ static const osMutexAttr_t mutex_attr_event_flag =
     0U 
 };
 
+enum timer_state
+{
+    TIMER_STATE_IDLE = 0,
+    TIMER_STATE_RUN,
+    TIMER_STATE_UNUSED,
+};
+
+typedef struct os_timer_data
+{
+    osTimerFunc_t func;
+    osTimerType_t type;
+    osTimerAttr_t attr;
+    void *argument;
+    uint32_t timeout;
+    uint32_t ticks;
+    uint8_t state;
+} os_timer_data_t;
+
+static os_timer_data_t timer[RTOS_TIMER_NUM_MAX];
+static uint32_t timeout_min = 0;
+
 static osMutexId_t mutex_timer = NULL;
 
 /* -----------------------------------------------------------------------------
@@ -61,6 +79,11 @@ OS Basic
 ----------------------------------------------------------------------------- */
 osStatus_t osKernelInitialize(void)
 {
+    for (uint32_t i = 0; i < RTOS_TIMER_NUM_MAX; i ++)
+    {
+        timer[i].state = TIMER_STATE_UNUSED;
+    }
+
     /* Create one thread for mutex function. */
     mutex_timer = osMutexNew(&mutex_attr_timer);
     assert(mutex_timer != NULL);
@@ -145,16 +168,6 @@ osStatus_t osKernelStart(void)
     }
 
     return osOK;
-}
-
-int16_t elab_debug_uart_receive(void *buffer, uint16_t size)
-{
-    assert(size == 1);
-
-    uint8_t *buff = (uint8_t *)buffer;
-    buff[0] = (uint8_t)getch();
-
-    return 1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -318,10 +331,10 @@ osStatus_t osMessageQueuePut(osMessageQueueId_t mq_id,
 
     os_mq_t *mq = (os_mq_t *)mq_id;
     ret_os = osSemaphoreAcquire(mq->sem_full, timeout);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
 
     ret_os = osMutexAcquire(mq->mutex, osWaitForever);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
     assert(mq->full == false || mq->empty == false);
     memcpy(&mq->memory[mq->head * mq->msg_size], msg_ptr, mq->msg_size);
     mq->head = (mq->head + 1) % mq->capacity;
@@ -331,9 +344,9 @@ osStatus_t osMessageQueuePut(osMessageQueueId_t mq_id,
         mq->full = true;
     }
     ret_os = osMutexRelease(mq->mutex);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
     ret_os = osSemaphoreRelease(mq->sem_empty);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
 
     return osOK;
 }
@@ -360,7 +373,7 @@ osStatus_t osMessageQueueGet(osMessageQueueId_t mq_id,
     }
 
     ret_os = osMutexAcquire(mq->mutex, osWaitForever);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
     assert(mq->full == false || mq->empty == false);
     memcpy(msg_ptr, &mq->memory[mq->tail * mq->msg_size], mq->msg_size);
     mq->tail = (mq->tail + 1) % mq->capacity;
@@ -370,9 +383,9 @@ osStatus_t osMessageQueueGet(osMessageQueueId_t mq_id,
         mq->empty = true;
     }
     ret_os = osMutexRelease(mq->mutex);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
     ret_os = osSemaphoreRelease(mq->sem_full);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
 
     return osOK;
 }
@@ -418,7 +431,7 @@ osStatus_t osMutexAcquire(osMutexId_t mutex_id, uint32_t timeout)
     assert(mutex_id != NULL);
 
     os_mutex_data_t *data = (os_mutex_data_t *)mutex_id;
-    assert_name(timeout == osWaitForever, data->attr.name);
+    assert(timeout == osWaitForever);
 
     int ret = pthread_mutex_lock(&data->mutex);
     if (ret != 0)
@@ -531,27 +544,6 @@ osStatus_t osSemaphoreAcquire(osSemaphoreId_t semaphore_id, uint32_t timeout)
 /* -----------------------------------------------------------------------------
 Timer
 ----------------------------------------------------------------------------- */
-enum timer_state
-{
-    TIMER_STATE_IDLE = 0,
-    TIMER_STATE_RUN,
-    TIMER_STATE_UNUSED,
-};
-
-typedef struct os_timer_data
-{
-    osTimerFunc_t func;
-    osTimerType_t type;
-    osTimerAttr_t attr;
-    void *argument;
-    uint32_t timeout;
-    uint32_t ticks;
-    uint8_t state;
-} os_timer_data_t;
-
-static os_timer_data_t timer[RTOS_TIMER_NUM_MAX];
-static uint32_t timeout_min = 0;
-
 osTimerId_t osTimerNew(osTimerFunc_t func,
                         osTimerType_t type,
                         void *argument,
@@ -643,6 +635,7 @@ osStatus_t osTimerStart(osTimerId_t timer_id, uint32_t ticks)
     /* Start the timer. */
     timer->timeout = ticks + osKernelGetTickCount();
     timer->ticks = ticks;
+    timer->state = TIMER_STATE_RUN;
     timeout_min = timeout_min > timer->timeout ? timer->timeout : timeout_min;
 
     /* Unlock the mutex. */
@@ -734,12 +727,12 @@ typedef struct os_event_flags
 osEventFlagsId_t osEventFlagsNew(const osEventFlagsAttr_t *attr)
 {
     os_event_flags_t *evt_flags = malloc(sizeof(os_event_flags_t));
-    elab_assert(evt_flags != NULL);
+    assert(evt_flags != NULL);
 
     evt_flags->sem = osSemaphoreNew(1, 0, NULL);
-    elab_assert(evt_flags->sem != NULL);
+    assert(evt_flags->sem != NULL);
     evt_flags->mutex = osMutexNew(&mutex_attr_event_flag);
-    elab_assert(evt_flags->mutex != NULL);
+    assert(evt_flags->mutex != NULL);
 
     evt_flags->flags = 0;
     evt_flags->flags_set = 0;
@@ -783,7 +776,7 @@ uint32_t osEventFlagsWait (osEventFlagsId_t ef_id, uint32_t flags, uint32_t opti
 
             if (options & osFlagsWaitAll)
             {
-                if (evt_flags->flags_set != 0)
+                if (evt_flags->flags != 0)
                 {
                     if (timeout > 0U)
                     {
@@ -836,7 +829,7 @@ uint32_t osEventFlagsSet(osEventFlagsId_t ef_id, uint32_t flags)
     os_event_flags_t *evt_flags = (os_event_flags_t *)ef_id;
     evt_flags->flags_set = flags;
     ret_os = osSemaphoreRelease(evt_flags->sem);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
 
     return evt_flags->flags_set;
 }
@@ -861,7 +854,7 @@ osStatus_t osEventFlagsDelete (osEventFlagsId_t ef_id)
     osStatus_t ret_os = osOK;
     os_event_flags_t *evt_flags = (os_event_flags_t *)ef_id;
     ret_os = osSemaphoreDelete(evt_flags->sem);
-    elab_assert(ret_os == osOK);
+    assert(ret_os == osOK);
 
     free(evt_flags);
 
@@ -893,8 +886,12 @@ static void _thread_entry_timer(void *para)
         {
             for (uint32_t i = 0; i < RTOS_TIMER_NUM_MAX; i ++)
             {
-                if (timeout_min <= timer[i].timeout &&
-                    timer[i].state == TIMER_STATE_RUN)
+                if (timer[i].state != TIMER_STATE_RUN)
+                {
+                    continue;
+                }
+
+                if (osKernelGetTickCount() >= timer[i].timeout)
                 {
                     timer[i].func(timer[i].argument);
                     if (timer[i].type == osTimerPeriodic)
@@ -927,25 +924,6 @@ static void _thread_entry_timer(void *para)
     }
 }
 
-/* private function --------------------------------------------------------- */
-/**
-  * @brief  The original getch function for Linux which can get the input char
-  *         in the terminal.
-  * @retval Key id.
-  */
-static int getch(void)
-{
-    int ch;
-
-    struct termios tm, tm_old;
-    tcgetattr(STDIN_FILENO, &tm);
-    tm_old = tm;
-    tm.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &tm);
-    ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &tm_old);
-
-    return ch;
-}
+#endif
 
 /* ----------------------------- end of file -------------------------------- */
