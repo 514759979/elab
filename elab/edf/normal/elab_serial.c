@@ -73,7 +73,6 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
 
     /* The serial class data */
     serial->ops = ops;
-    serial->is_sending = false;
     if (attr == NULL)
     {
         serial->attr = (elab_serial_attr_t)ELAB_SERIAL_ATTR_DEFAULT;
@@ -87,7 +86,22 @@ void elab_serial_register(elab_serial_t *serial, const char *name,
 #if defined(__linux__) || defined(_WIN32)
     serial->queue_rx = osMessageQueueNew(serial->attr.rx_bufsz, 1, NULL);
     elab_assert(serial->queue_rx != NULL);
+#else
+    /* Newly create a semaphore for data sending. */
+    serial->sem_tx = osSemaphoreNew(1, 0, NULL);
+    elab_assert(serial->queue_rx != NULL);
 #endif
+
+    /* Newly create a semaphore for data xfering in half duplex mode. */
+    if (attr->mode == ELAB_SERIAL_MODE_HALF_DUPLEX)
+    {
+        serial->mutex = osMutexNew(&_mutex_attr);
+        elab_assert(serial->mutex != NULL);
+    }
+    else
+    {
+        serial->mutex = NULL;
+    }
 
     /* The super class data */
     elab_device_t *device = &(serial->super);
@@ -140,8 +154,8 @@ void elab_serial_isr_rx(elab_serial_t *serial, void *buffer, uint32_t size)
   */
 void elab_serial_isr_tx_end(elab_serial_t *serial)
 {
-    /* TODO not completed. */
-    elab_assert(false);
+    osStatus_t ret_os = osSemaphoreRelease(serial->sem_tx);
+    elab_assert(ret_os == osOK);
 }
 #endif
 
@@ -155,10 +169,16 @@ void elab_serial_isr_tx_end(elab_serial_t *serial)
 int32_t elab_serial_write(elab_device_t * const me, void *buff, uint32_t size)
 {
     elab_assert(me != NULL);
-    elab_assert(ELAB_SERAIL_CAST(me)->ops != NULL);
-    elab_assert(ELAB_SERAIL_CAST(me)->ops->write != NULL);
+    elab_serial_t *serial = ELAB_SERAIL_CAST(me);
 
-    return ELAB_SERAIL_CAST(me)->ops->write(ELAB_SERAIL_CAST(me), buff, size);
+    elab_assert(serial->ops != NULL);
+    elab_assert(serial->ops->write != NULL);
+
+    int32_t ret = serial->ops->write(serial, buff, size);
+    osStatus_t ret_os = osSemaphoreAcquire(serial->sem_tx, osWaitForever);
+    elab_assert(ret_os == osOK);
+
+    return ret;
 }
 
 /**
@@ -279,20 +299,21 @@ int32_t elab_serial_xfer(elab_device_t *me,
     elab_serial_t *serial = ELAB_SERAIL_CAST(me);
     elab_assert(serial->attr.mode == ELAB_SERIAL_MODE_HALF_DUPLEX);
 
-    elab_device_lock(serial);
-
     int32_t ret = 0;
+    osStatus_t ret_os = osOK;
 
-#if defined(__linux__) || defined(_WIN32)
-    serial->is_sending = true;
+    ret_os = osMutexAcquire(serial->mutex, osWaitForever);
+    elab_assert(ret_os == osOK);
+    serial->ops->set_tx(serial, true);
     serial->ops->write(serial, buff_tx, size_tx);
-    ret = serial->ops->read(serial, buff_rx, size_rx);
-#else
-    /* TODO Not completed. */
-    elab_assert(false);
+#if !defined(__linux__) && !defined(_WIN32)
+    osStatus_t ret_os = osSemaphoreAcquire(serial->sem_tx, osWaitForever);
+    elab_assert(ret_os == osOK);
 #endif
-
-    elab_device_unlock(serial);
+    serial->ops->set_tx(serial, false);
+    ret = serial->ops->read(serial, buff_rx, size_rx);
+    ret_os = osMutexRelease(serial->mutex);
+    elab_assert(ret_os == osOK);
 
     return ret;
 }

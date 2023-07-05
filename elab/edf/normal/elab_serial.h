@@ -83,8 +83,10 @@ typedef struct elab_serail
 #if defined(__linux__) || defined(_WIN32)
     osMessageQueueId_t queue_rx;
     osThreadId_t thread_rx;
+#else
+    osSemaphoreId_t sem_tx;
 #endif
-    bool is_sending;
+    osMutexId_t mutex;
 
     const struct elab_serial_ops *ops;
     elab_serial_attr_t attr;
