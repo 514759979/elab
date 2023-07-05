@@ -17,18 +17,10 @@
 ELAB_TAG("eLabExport");
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#include "../RTOS/cmsis_os.h"
+#include "../os/cmsis_os.h"
 #endif
 #if (ELAB_RTOS_BASIC_OS_EN != 0)
 #include "basic_os.h"
-#endif
-#if (ELAB_RTOS_BASIC_OS_EN != 0)
-#include "basic_os.h"
-#endif
-
-#if (ELAB_QPC_EN != 0)
-#include "../3rd/qpc/include/qpc.h"
-Q_DEFINE_THIS_FILE
 #endif
 
 #ifdef __cplusplus
@@ -40,6 +32,8 @@ extern "C" {
 #define ELAB_GLOBAL_STACK_SIZE                      (4096)
 #endif
 
+#define ELAB_POLL_PERIOD_MAX                        (2592000000)    /* 30 days */
+
 #if defined(__linux__)
 #define STR_ENTER                                   "\n"
 #else
@@ -48,7 +42,12 @@ extern "C" {
 
 /* private function prototype ----------------------------------------------- */
 static void module_null_init(void);
-static void _export_func_execute(int8_t level);
+static void _init_func_execute(int8_t level);
+static void _exit_func_execute(int8_t level);
+static void _get_poll_export_table(void);
+static void _get_init_export_table(void);
+static void elab_exit(void);
+
 #if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
 static void _entry_start_poll(void *para);
 #endif
@@ -58,13 +57,16 @@ INIT_EXPORT(module_null_init, 0);
 POLL_EXPORT(module_null_init, (1000 * 60 * 60));
 
 static elab_export_t *export_init_table = NULL;
+static uint32_t count_export_init = 0;
 static elab_export_t *export_poll_table = NULL;
+static uint32_t count_export_poll = 0;
+static int8_t export_level_max = INT8_MIN;
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
 /**
  * @brief  The thread attribute for testing.
  */
-static const osThreadAttr_t thread_attr_start_poll = 
+static const osThreadAttr_t thread_attr_export_poll = 
 {
     .name = "ThreadStartPoll",
     .attr_bits = osThreadDetached,
@@ -80,191 +82,247 @@ static const osThreadAttr_t thread_attr_start_poll =
   */
 void elab_unit_test(void)
 {
-    _export_func_execute(EXPORT_TEST);
+    _init_func_execute(EXPORT_UNIT_TEST);
 }
 
-#if (ELAB_RTOS_CMSIS_OS_EN == 0 && ELAB_RTOS_BASIC_OS_EN == 0)
-static bool app_exit = false;
-#endif
-#if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
-static bool app_exit_end = false;
-#endif
-
-#if defined(__linux__)
+#if defined(__linux__) || defined(_WIN32)
+/**
+  * @brief  Signal handler function on WIN32 or Linux.
+  * @retval None
+  */
 static void signal_handler(int sig)
 {
     printf("Elab Signal: %d.\n", sig);
 
     elab_exit();
+#if defined(__linux__)
     system("stty echo");
+#endif
     printf("\033[0;0m\n");
-
-    app_exit_end = true;
     exit(-1);
 }
 #endif
 
 /**
-  * @brief  eLab polling exporting function.
+  * @brief  eLab startup function.
   * @retval None
   */
 void elab_run(void)
 {
-#if defined(__linux__)
+#if defined(__linux__) || defined(_WIN32)
     signal(SIGINT, signal_handler);                 /* Ctrl + C*/
     signal(SIGTERM, signal_handler);                /* kill pid */
     signal(SIGABRT, signal_handler);
+#if defined(__linux__)
     signal(SIGKILL, signal_handler);                /* kill -9 pid */
     signal(SIGHUP, signal_handler);
+#endif
     signal(SIGSEGV, signal_handler);
 #endif
 
     /* Start polling function in metal eLab, or start the RTOS kernel in RTOS 
        eLab. */
+    _get_init_export_table();
+    _get_poll_export_table();
 #if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
     osKernelInitialize();
 #endif
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
     osKernelInitialize();
-    osThreadNew(_entry_start_poll, NULL, &thread_attr_start_poll);
+    osThreadNew(_entry_start_poll, NULL, &thread_attr_export_poll);
 #endif
 #if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
     osKernelStart();
-    
-    if (!app_exit_end)
-    {
-        elab_exit();
-    }
 #elif (ELAB_RTOS_BASIC_OS_EN != 0)
     static uint32_t stack[1024];
     eos_init(stack, 4096);
     eos_run();
 #else
     /* Initialize all module in eLab. */
-    for (uint8_t level = EXPORT_LEVEL_HW_INDEPNEDENT;
-            level <= EXPORT_APP; level ++)
+    for (uint8_t level = 0; level < export_level_max; level ++)
     {
-        _export_func_execute(level);
+        _init_func_execute(level);
     }
 
     /* Start polling function in metal eLab. */
-    while (!app_exit)
+    while (1)
     {
-        _export_func_execute(EXPORT_MAX);
+        _poll_func_execute();
     }
 #endif
 }
 
-void elab_exit(void)
+/* private function --------------------------------------------------------- */
+#if defined(__linux__) || defined(_WIN32)
+/**
+  * @brief  eLab exit function on WIN32 or Linux.
+  * @retval None
+  */
+static void elab_exit(void)
 {
     /* Initialize all module in eLab. */
-    for (int32_t level = -EXPORT_APP; level <= -EXPORT_LEVEL_HW_INDEPNEDENT; level ++)
+    for (int32_t level = export_level_max; level >= 0; level --)
     {
-        _export_func_execute(level - 1);
+        _exit_func_execute(level);
     }
 }
+#endif
 
-/* private function --------------------------------------------------------- */
 /**
-  * @brief  Get the export table.
+  * @brief  Get the init export table.
   */
-static elab_export_t * _get_export_table(uint8_t level)
+static void _get_init_export_table(void)
 {
-    elab_export_t *func_block = 
-                    level < EXPORT_MAX ?
-                    ((elab_export_t *)&init_module_null_init) :
-                    ((elab_export_t *)&poll_module_null_init);
+    elab_export_t *func_block = (elab_export_t *)&init_module_null_init;
     elab_pointer_t address_last;
-    uint32_t export_id = level == EXPORT_MAX ? EXPORT_ID_POLL : EXPORT_ID_INIT;
     
     while (1)
     {
         address_last = ((elab_pointer_t)func_block - sizeof(elab_export_t));
         elab_export_t *table = (elab_export_t *)address_last;
-        if (table->magic_head != export_id ||
-            table->magic_tail != export_id)
+        if (table->magic_head != EXPORT_ID_INIT ||
+            table->magic_tail != EXPORT_ID_INIT)
         {
             break;
         }
         func_block = table;
     }
+    export_init_table = func_block;
 
-    return func_block;
+    uint32_t i = 0;
+    while (1)
+    {
+        if (export_init_table[i].magic_head == EXPORT_ID_INIT &&
+            export_init_table[i].magic_tail == EXPORT_ID_INIT)
+        {
+            if (export_init_table[i].level > export_level_max)
+            {
+                export_level_max = export_init_table[i].level;
+            }
+            i ++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    count_export_init = i;
 }
 
 /**
-  * @brief  eLab exporting function executing.
-  * @param  level export level.
+  * @brief  Get the polling export table.
+  */
+static void _get_poll_export_table(void)
+{
+    elab_export_t *func_block = ((elab_export_t *)&poll_module_null_init);
+    elab_pointer_t address_last;
+
+    while (1)
+    {
+        address_last = ((elab_pointer_t)func_block - sizeof(elab_export_t));
+        elab_export_t *table = (elab_export_t *)address_last;
+        if (table->magic_head != EXPORT_ID_POLL ||
+            table->magic_tail != EXPORT_ID_POLL)
+        {
+            break;
+        }
+        func_block = table;
+    }
+    export_poll_table = func_block;
+
+    uint32_t i = 0;
+    while (1)
+    {
+        if (export_poll_table[i].magic_head == EXPORT_ID_POLL &&
+            export_poll_table[i].magic_tail == EXPORT_ID_POLL)
+        {
+            assert_name(export_poll_table[i].period_ms <= ELAB_POLL_PERIOD_MAX,
+                        export_poll_table[i].name);
+            elab_export_poll_data_t *data =
+                (elab_export_poll_data_t *)export_poll_table[i].data;
+            data->timeout_ms = elab_time_ms() + export_poll_table[i].period_ms;
+            i ++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    count_export_poll = i;
+}
+
+/**
+  * @brief  eLab init exporting function executing.
   * @retval None
   */
-static void _export_func_execute(int8_t level)
+static void _init_func_execute(int8_t level)
 {
-    bool is_init = level >= 0 ? true : false;
-    level = level < 0 ? (-level - 1) : level;
-    elab_assert(level <= EXPORT_MAX);
-    uint32_t export_id = level == EXPORT_MAX ? EXPORT_ID_POLL : EXPORT_ID_INIT;
-
-    /* Get the start address of exported poll table. */
-    if (export_init_table == NULL)
-    {
-        export_init_table = _get_export_table(EXPORT_LEVEL_HW_INDEPNEDENT);
-    }
-    if (export_poll_table == NULL)
-    {
-        export_poll_table = _get_export_table(EXPORT_MAX);
-    }
-
     /* Execute the poll function in the specific level. */
-    elab_export_t *export_table = level < EXPORT_MAX ?
-                                    export_init_table : export_poll_table;
+    for (uint32_t i = 0; i < count_export_init; i ++)
+    {
+        if (export_init_table[i].level == level)
+        {
+            if (!export_init_table[i].exit)
+            {
+                printf("Export init %s." STR_ENTER, export_init_table[i].name);
+                ((void (*)(void))export_init_table[i].func)();
+            }
+        }
+    }
+}
+
+/**
+  * @brief  eLab exit exporting function executing.
+  * @retval None
+  */
+static void _exit_func_execute(int8_t level)
+{
+    /* Execute the poll function in the specific level. */
+    for (uint32_t i = 0; i < count_export_init; i ++)
+    {
+        if (export_init_table[i].level == level)
+        {
+            if (export_init_table[i].exit)
+            {
+                printf("Export exit %s." STR_ENTER, export_init_table[i].name);
+                ((void (*)(void))export_init_table[i].func)();
+            }
+        }
+    }
+}
+
+/**
+  * @brief  eLab polling exporting function executing.
+  * @retval None
+  */
+static void _poll_func_execute(void)
+{
+    /* Execute the poll function in the specific level. */
     for (uint32_t i = 0; ; i ++)
     {
-        if (export_table[i].magic_head == export_id &&
-            export_table[i].magic_tail == export_id)
+        if (export_poll_table[i].magic_head == EXPORT_ID_POLL &&
+            export_poll_table[i].magic_tail == EXPORT_ID_POLL)
         {
-            if (export_table[i].level == level && level <= EXPORT_APP)
+            elab_export_poll_data_t *data = export_poll_table[i].data;
+
+            while (1)
             {
-                if (is_init && export_table[i].type == EXPORT_TYPE_INIT)
+                uint64_t _time = (uint64_t)elab_time_ms();
+                if (_time < (uint64_t)data->timeout_ms &&
+                    ((uint64_t)data->timeout_ms - _time) <=
+                        (UINT32_MAX - ELAB_POLL_PERIOD_MAX))
                 {
-                    printf("Export init %s." STR_ENTER, export_table[i].name);
-                    ((void (*)(void))export_table[i].func)();
+                    _time += (UINT32_MAX + 1);
                 }
-                if (!is_init && export_table[i].type == EXPORT_TYPE_EXIT)
+
+                if (_time >= (uint64_t)data->timeout_ms)
                 {
-                    printf("Export exit %s." STR_ENTER, export_table[i].name);
-                    ((void (*)(void))export_table[i].func)();
+                    data->timeout_ms += export_poll_table[i].period_ms;
+                    ((void (*)(void))export_poll_table[i].func)();
                 }
-            }
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
-            else if (export_table[i].level == level && level == EXPORT_THREAD)
-            {
-                elab_thread_init((elab_thread_t *)export_table[i].object,
-                                    (void (*)(void *))export_table[i].func,
-                                    export_table[i].name, export_table[i].data,
-                                    export_table[i].stack,
-                                    export_table[i].stack_size,
-                                    export_table[i].priority);
-            }
-#endif
-#if (ELAB_QPC_EN != 0)
-            else if (export_table[i].level == level && level == EXPORT_HSM)
-            {
-                QActive_ctor((QActive *)export_table[i].object,
-                                Q_STATE_CAST(export_table[i].func));
-                QACTIVE_START((QActive *)export_table[i].object,
-                                export_table[i].priority,
-                                export_table[i].data, export_table[i].queue_size,
-                                export_table[i].stack, export_table[i].stack_size,
-                                (QEvt *)0);
-            }
-#endif
-            else if (export_table[i].level == level && level == EXPORT_MAX)
-            {
-                elab_export_poll_data_t *data = export_table[i].data;
-                while (elab_time_ms() >= data->timeout_ms)
+                else
                 {
-                    data->timeout_ms += export_table[i].period_ms;
-                    ((void (*)(void))export_table[i].func)();
+                    break;
                 }
             }
         }
@@ -283,24 +341,15 @@ static void _export_func_execute(int8_t level)
 static void _entry_start_poll(void *para)
 {
     /* Initialize all module in eLab. */
-    for (uint8_t level = EXPORT_LEVEL_HW_INDEPNEDENT;
-            level < EXPORT_LEVEL_MAX; level ++)
+    for (uint8_t level = 0; level <= export_level_max; level ++)
     {
-        _export_func_execute(level);
+        _init_func_execute(level);
     }
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#if (ELAB_RTOS_CMSIS_OS_EN != 0)
-    _export_func_execute(EXPORT_THREAD);
-#endif
-#endif
-#if (ELAB_QPC_EN != 0)
-    _export_func_execute(EXPORT_HSM);
-#endif
 
     /* Start polling function in metal eLab. */
     while (1)
     {
-        _export_func_execute(EXPORT_MAX);
+        _poll_func_execute();
 #if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
         osDelay(10);
 #endif

@@ -10,7 +10,7 @@
 #include "assert.h"
 #endif
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
-#include "../RTOS/cmsis_os.h"
+#include "../os/cmsis_os.h"
 #endif
 #if (ELAB_RTOS_BASIC_OS_EN != 0)
 #include "basic_os.h"
