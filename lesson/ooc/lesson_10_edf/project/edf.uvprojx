@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32G070xx, __free_rtos__</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\eLab\port\FreeRTOS;..\..\..\..\eLab\3rd\FreeRTOS\portable\RVDS\ARM_CM0;..\..\..\..;..\..\..\..\eLab\3rd\FreeRTOS\include</IncludePath>
+              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\elab\port\FreeRTOS;..\..\..\..\elab\3rd\FreeRTOS\portable\RVDS\ARM_CM0;..\..\..\..;..\..\..\..\elab\3rd\FreeRTOS\include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -441,32 +441,27 @@
             <File>
               <FileName>elib_queue.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\elib\elib_queue.c</FilePath>
+              <FilePath>..\..\..\..\elab\elib\elib_queue.c</FilePath>
             </File>
             <File>
               <FileName>elab_export.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\common\elab_export.c</FilePath>
+              <FilePath>..\..\..\..\elab\common\elab_export.c</FilePath>
             </File>
             <File>
               <FileName>elab_common.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\common\elab_common.c</FilePath>
-            </File>
-            <File>
-              <FileName>elab_port.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\port\FreeRTOS\elab_port.c</FilePath>
+              <FilePath>..\..\..\..\elab\common\elab_common.c</FilePath>
             </File>
             <File>
               <FileName>elab_log.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\common\elab_log.c</FilePath>
+              <FilePath>..\..\..\..\elab\common\elab_log.c</FilePath>
             </File>
             <File>
               <FileName>elab_assert.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\common\elab_assert.c</FilePath>
+              <FilePath>..\..\..\..\elab\common\elab_assert.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -476,22 +471,32 @@
             <File>
               <FileName>shell.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\Shell\shell.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\Shell\shell.c</FilePath>
             </File>
             <File>
               <FileName>shell_cmd_list.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\Shell\shell_cmd_list.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\Shell\shell_cmd_list.c</FilePath>
             </File>
             <File>
               <FileName>shell_companion.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\Shell\shell_companion.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\Shell\shell_companion.c</FilePath>
             </File>
             <File>
               <FileName>shell_ext.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\Shell\shell_ext.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\Shell\shell_ext.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>eLab.midware</GroupName>
+          <Files>
+            <File>
+              <FileName>ebutton.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\midware\ebutton\ebutton.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -501,47 +506,47 @@
             <File>
               <FileName>elab_device.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\edf\elab_device.c</FilePath>
+              <FilePath>..\..\..\..\elab\edf\elab_device.c</FilePath>
             </File>
             <File>
               <FileName>elab_device_null.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\edf\elab_device_null.c</FilePath>
+              <FilePath>..\..\..\..\elab\edf\elab_device_null.c</FilePath>
             </File>
             <File>
               <FileName>elab_pin.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\edf\normal\elab_pin.c</FilePath>
+              <FilePath>..\..\..\..\elab\edf\normal\elab_pin.c</FilePath>
             </File>
             <File>
               <FileName>elab_pwm.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\edf\normal\elab_pwm.c</FilePath>
+              <FilePath>..\..\..\..\elab\edf\normal\elab_pwm.c</FilePath>
             </File>
             <File>
               <FileName>elab_adc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\edf\normal\elab_adc.c</FilePath>
+              <FilePath>..\..\..\..\elab\edf\normal\elab_adc.c</FilePath>
             </File>
             <File>
               <FileName>elab_spi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\edf\normal\elab_spi.c</FilePath>
+              <FilePath>..\..\..\..\elab\edf\normal\elab_spi.c</FilePath>
             </File>
             <File>
               <FileName>elab_i2c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\edf\normal\elab_i2c.c</FilePath>
+              <FilePath>..\..\..\..\elab\edf\normal\elab_i2c.c</FilePath>
             </File>
             <File>
               <FileName>elab_rtc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\edf\normal\elab_rtc.c</FilePath>
+              <FilePath>..\..\..\..\elab\edf\normal\elab_rtc.c</FilePath>
             </File>
             <File>
               <FileName>elab_watchdog.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\edf\normal\elab_watchdog.c</FilePath>
+              <FilePath>..\..\..\..\elab\edf\normal\elab_watchdog.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -561,7 +566,7 @@
             <File>
               <FileName>test_elog.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\test\test_elog.c</FilePath>
+              <FilePath>..\..\..\..\elab\test\test_elog.c</FilePath>
             </File>
             <File>
               <FileName>test_adc.c</FileName>
@@ -581,52 +586,52 @@
             <File>
               <FileName>port.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\portable\RVDS\ARM_CM0\port.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\FreeRTOS\portable\RVDS\ARM_CM0\port.c</FilePath>
             </File>
             <File>
               <FileName>croutine.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\croutine.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\FreeRTOS\croutine.c</FilePath>
             </File>
             <File>
               <FileName>event_groups.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\event_groups.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\FreeRTOS\event_groups.c</FilePath>
             </File>
             <File>
               <FileName>list.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\list.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\FreeRTOS\list.c</FilePath>
             </File>
             <File>
               <FileName>queue.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\queue.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\FreeRTOS\queue.c</FilePath>
             </File>
             <File>
               <FileName>stream_buffer.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\stream_buffer.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\FreeRTOS\stream_buffer.c</FilePath>
             </File>
             <File>
               <FileName>tasks.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\tasks.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\FreeRTOS\tasks.c</FilePath>
             </File>
             <File>
               <FileName>timers.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\timers.c</FilePath>
-            </File>
-            <File>
-              <FileName>cmsis_os2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\RTOS\CMSIS_OS_ARM\cmsis_os2.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\FreeRTOS\timers.c</FilePath>
             </File>
             <File>
               <FileName>heap_4.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\portable\MemMang\heap_4.c</FilePath>
+              <FilePath>..\..\..\..\elab\3rd\FreeRTOS\portable\MemMang\heap_4.c</FilePath>
+            </File>
+            <File>
+              <FileName>cmsis_os2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\os\mcu\cmsis_os2.c</FilePath>
             </File>
           </Files>
         </Group>
