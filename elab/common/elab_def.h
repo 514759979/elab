@@ -115,7 +115,7 @@ typedef struct elab_event
     #define ELAB_USED                   __attribute__((used))
     #define ELAB_ALIGN(n)               __attribute__((aligned(n)))
     #define ELAB_WEAK                   __attribute__((weak))
-    #define elab_inline                 static __inline
+    #define elab_inline                 static inline
 
 #else
     #error The current compiler is NOT supported!

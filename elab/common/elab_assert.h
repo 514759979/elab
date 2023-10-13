@@ -42,6 +42,8 @@ void elab_assert_func(void);
             _assert(#test_, id_, NULL, __LINE__);                              \
     } while (0)
 
+#define elab_assert_id                      assert_id
+
 /**
  * @brief  Assert function with name.
  * @param  test_   The given condition.
@@ -52,6 +54,8 @@ void elab_assert_func(void);
         if (!(test_))                                                          \
             _assert(name_, 0, TAG, __LINE__);                                  \
     } while (0)
+
+#define elab_assert_name                    assert_name
 
 /**
  * @brief  Assert function for checking the given pointer is not NULL.

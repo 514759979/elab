@@ -43,14 +43,18 @@ extern "C" {
 /* private function prototype ----------------------------------------------- */
 static void module_null_init(void);
 static void _init_func_execute(int8_t level);
-static void _exit_func_execute(int8_t level);
 static void _get_poll_export_table(void);
 static void _get_init_export_table(void);
+#if defined(__linux__) || defined(_WIN32)
 static void elab_exit(void);
+static void _exit_func_execute(int8_t level);
+#endif
 
 #if (ELAB_RTOS_CMSIS_OS_EN != 0 || ELAB_RTOS_BASIC_OS_EN != 0)
 static void _entry_start_poll(void *para);
 #endif
+
+static void _poll_func_execute(void);
 
 /* private variables -------------------------------------------------------- */
 INIT_EXPORT(module_null_init, 0);
@@ -92,8 +96,35 @@ void elab_unit_test(void)
   */
 static void signal_handler(int sig)
 {
-    printf("Elab Signal: %d.\n", sig);
-
+    if (sig == SIGSEGV)
+    {
+        printf("Elab Signal: SIGSEGV.\n");
+    }
+    else if (sig == SIGINT)
+    {
+        printf("Elab Signal: SIGINT.\n");
+    }
+    else if (sig == SIGTERM)
+    {
+        printf("Elab Signal: SIGTERM.\n");
+    }
+    else if (sig == SIGABRT)
+    {
+        printf("Elab Signal: SIGABRT.\n");
+    }
+    else if (sig == SIGKILL)
+    {
+        printf("Elab Signal: SIGKILL.\n");
+    }
+    else if (sig == SIGHUP)
+    {
+        printf("Elab Signal: SIGHUP.\n");
+    }
+    else
+    {
+        printf("Elab Signal: %d.\n", sig);
+    }
+    
     elab_exit();
 #if defined(__linux__)
     system("stty echo");
@@ -264,13 +295,17 @@ static void _init_func_execute(int8_t level)
         {
             if (!export_init_table[i].exit)
             {
-                printf("Export init %s." STR_ENTER, export_init_table[i].name);
+                if (level != EXPORT_UNIT_TEST)
+                {
+                    printf("Export init %s." STR_ENTER, export_init_table[i].name);
+                }
                 ((void (*)(void))export_init_table[i].func)();
             }
         }
     }
 }
 
+#if defined(__linux__) || defined(_WIN32)
 /**
   * @brief  eLab exit exporting function executing.
   * @retval None
@@ -290,6 +325,7 @@ static void _exit_func_execute(int8_t level)
         }
     }
 }
+#endif
 
 /**
   * @brief  eLab polling exporting function executing.
@@ -297,38 +333,32 @@ static void _exit_func_execute(int8_t level)
   */
 static void _poll_func_execute(void)
 {
+    elab_export_poll_data_t *data;
+    
     /* Execute the poll function in the specific level. */
-    for (uint32_t i = 0; ; i ++)
+    for (uint32_t i = 0; i < count_export_poll; i ++)
     {
-        if (export_poll_table[i].magic_head == EXPORT_ID_POLL &&
-            export_poll_table[i].magic_tail == EXPORT_ID_POLL)
-        {
-            elab_export_poll_data_t *data = export_poll_table[i].data;
+        data = export_poll_table[i].data;
 
-            while (1)
+        while (1)
+        {
+            uint64_t _time = (uint64_t)elab_time_ms();
+            if (_time < (uint64_t)data->timeout_ms &&
+                ((uint64_t)data->timeout_ms - _time) <=
+                    (UINT32_MAX - ELAB_POLL_PERIOD_MAX))
             {
-                uint64_t _time = (uint64_t)elab_time_ms();
-                if (_time < (uint64_t)data->timeout_ms &&
-                    ((uint64_t)data->timeout_ms - _time) <=
-                        (UINT32_MAX - ELAB_POLL_PERIOD_MAX))
-                {
-                    _time += (UINT32_MAX + 1);
-                }
-
-                if (_time >= (uint64_t)data->timeout_ms)
-                {
-                    data->timeout_ms += export_poll_table[i].period_ms;
-                    ((void (*)(void))export_poll_table[i].func)();
-                }
-                else
-                {
-                    break;
-                }
+                _time += (UINT32_MAX + 1);
             }
-        }
-        else
-        {
-            break;
+
+            if (_time >= (uint64_t)data->timeout_ms)
+            {
+                data->timeout_ms += export_poll_table[i].period_ms;
+                ((void (*)(void))export_poll_table[i].func)();
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }

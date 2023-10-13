@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include "elab_common.h"
+#include "elab_def.h"
 
 #if defined(__linux__)
 #include <unistd.h>
@@ -82,7 +83,7 @@ uint32_t elab_version(void)
   * @param  level       init level.
   * @retval None
   */
-uint32_t elab_time_ms(void)
+ELAB_WEAK uint32_t elab_time_ms(void)
 {
 #if !defined(__linux__)
 #if (ELAB_RTOS_CMSIS_OS_EN != 0)
