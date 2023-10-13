@@ -44,7 +44,7 @@ static uint8_t _func_key_parser(uint8_t *key, uint8_t count);
   * @param  None
   * @retval None
   */
-static void shell_init(void)
+static void shell_export(void)
 {
     shell.read = (int16_t (*)(char *, uint16_t))elab_debug_uart_receive;
     shell.write = (int16_t (*)(char *, uint16_t))elab_debug_uart_send;
@@ -58,6 +58,6 @@ static void shell_init(void)
 /**
   * @brief  Export pin device board level init and exit function
   */
-INIT_EXPORT(shell_init, 0);
+INIT_EXPORT(shell_export, EXPORT_LEVEL_HW_INDEPNEDENT);
 
 /* ----------------------------- end of file -------------------------------- */
