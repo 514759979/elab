@@ -14,7 +14,7 @@
 #include "elab/edf/normal/elab_pin.h"
 #include "elab/edf/driver/simulator/simu_driver_pin.h"
 
-ELAB_TAG("BaseTest");
+ELAB_TAG("GpioTest");
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,7 +32,6 @@ static int32_t test_gpio_read(int32_t argc, char *argv[])
 
     bool status;
     int32_t ret = 0;
-    elab_err_t ret_pin = ELAB_OK;
     elab_device_t *pin = NULL;
 
     if (argc != 2)
@@ -68,7 +67,6 @@ static int32_t test_gpio_write(int32_t argc, char *argv[])
 
     bool status;
     int32_t ret = 0;
-    elab_err_t ret_pin = ELAB_OK;
     elab_device_t *pin = NULL;
 
     if (argc != 3)

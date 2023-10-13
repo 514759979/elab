@@ -12,7 +12,7 @@
 #include "../3rd/ini/ini.h"
 #include "../common/elab_log.h"
 
-ELAB_TAG("eLogTest");
+ELAB_TAG("IniTest");
 
 #ifdef __cplusplus
 extern "C" {

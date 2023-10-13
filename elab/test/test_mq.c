@@ -14,7 +14,7 @@
 #include "elab/common/elab_assert.h"
 #include "elab/edf/elab_device.h"
 
-ELAB_TAG("MotorTest");
+ELAB_TAG("MqTest");
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,7 +62,6 @@ static void _thread_func(void *para)
             {
                 elog_error("Error data %u %u");
             }
-            
         }
         data_bkp = data;
         if (data_bkp == 0xff)

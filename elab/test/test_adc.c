@@ -8,12 +8,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include "elab/3rd/Shell/shell.h"
-#include "elab/common/elab_log.h"
-#include "elab/edf/normal/elab_spi.h"
+#include "../edf/normal/elab_adc.h"
+#include "../3rd/Shell/shell.h"
+#include "../common/elab_log.h"
 
-ELAB_TAG("SpiTest");
+ELAB_TAG("AdcTest");
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,35 +20,35 @@ extern "C" {
 
 /* private functions -------------------------------------------------------- */
 /**
-  * @brief Testing function for base vw function.
+  * @brief Testing function for eLog module.
   * @retval None
   */
-static int32_t test_spi(int32_t argc, char *argv[])
+static int32_t test_adc_read(int32_t argc, char *argv[])
 {
     (void)argc;
     (void)argv;
-
+    
     int32_t ret = 0;
-    elab_err_t ret_spi = ELAB_OK;
-    static uint8_t buff_tx[32];
-    static uint8_t buff_rx[32];
-    uint32_t size = 32;
+    elab_device_t *dev = NULL;
+    float value = 0.0;
 
-    elab_device_t *spi = elab_device_find("spi");
-    if (spi == NULL)
+    if (argc != 2)
     {
-        elog_error("spi device not found.");
+        elog_error("Not right argument number: %u. It should be 2.", argc);
         ret = -1;
         goto exit;
     }
 
-    ret_spi = elab_spi_xfer(spi, buff_tx, buff_rx, size, 100);
-    if (ret_spi != ELAB_OK)
+    if (!elab_device_valid(argv[1]))
     {
-        elog_error("elab_spi_xfer error %d.", (int32_t)ret_spi);
+        elog_error("Not right device name: %s.", argv[1]);
         ret = -2;
         goto exit;
     }
+
+    dev = elab_device_find(argv[1]);
+    value = elab_adc_get_value(dev);
+    printf("ADC device %s value is %.3f.\n", argv[1], value);
 
 exit:
     return ret;
@@ -59,9 +58,9 @@ exit:
   * @brief  Test shell command export
   */
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN),
-                    test_spi,
-                    test_spi,
-                    spi testing function);
+                    test_adc_read,
+                    test_adc_read,
+                    ADC testing function);
 
 #ifdef __cplusplus
 }
