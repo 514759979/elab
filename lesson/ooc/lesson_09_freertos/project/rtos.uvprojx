@@ -459,14 +459,14 @@
               <FilePath>..\..\..\..\eLab\common\elab_common.c</FilePath>
             </File>
             <File>
-              <FileName>elab_port.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\port\FreeRTOS\elab_port.c</FilePath>
-            </File>
-            <File>
               <FileName>elab_assert.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\eLab\common\elab_assert.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_log.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\common\elab_log.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -549,14 +549,14 @@
               <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\timers.c</FilePath>
             </File>
             <File>
-              <FileName>cmsis_os2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\eLab\RTOS\CMSIS_OS_ARM\cmsis_os2.c</FilePath>
-            </File>
-            <File>
               <FileName>heap_4.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\eLab\3rd\FreeRTOS\portable\MemMang\heap_4.c</FilePath>
+            </File>
+            <File>
+              <FileName>cmsis_os2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\os\mcu\cmsis_os2.c</FilePath>
             </File>
           </Files>
         </Group>

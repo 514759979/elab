@@ -1,5 +1,5 @@
-#ifndef OLED_H
-#define OLED_H
+#ifndef OLED_H_
+#define OLED_H_
 
 #include <stdint.h>
 #include <stdbool.h>

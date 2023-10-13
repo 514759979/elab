@@ -158,8 +158,11 @@ static uint32_t _get_value(elab_adc_t * const me)
     elab_assert(ret == HAL_OK);
     ret = HAL_ADC_PollForConversion(&hadc1, 100);
     elab_assert(ret == HAL_OK);
+    uint32_t value = HAL_ADC_GetValue(&hadc1);
+    ret = HAL_ADC_Stop(&hadc1);
+    elab_assert(ret == HAL_OK);
 
-    return HAL_ADC_GetValue(&hadc1);
+    return value;
 }
 
 #ifdef __cplusplus

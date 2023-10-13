@@ -37,6 +37,10 @@ INIT_EXPORT(led_init, 1);
   */
 void led_poll(void)
 {
+    if (led == NULL)
+    {
+        return;
+    }
     if ((elab_time_ms() % 1000) < 500)
     {
         eio_pin_set_status(&pin_led, true);

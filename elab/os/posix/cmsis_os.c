@@ -9,17 +9,21 @@
 /* includes ----------------------------------------------------------------- */
 #include <pthread.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <time.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
+#include <termios.h>
+#include <semaphore.h>
 #include "../cmsis_os.h"
 
 #define RTOS_TIMER_NUM_MAX                      (32)
-#define RTOS_TIMER_VALUE_MIN                    (5)
+#define RTOS_TIMER_VALUE_MIN                    (1)
 
 static int get_pthread_priority(osPriority_t prio);
 static void _thread_entry_timer(void *para);
@@ -77,6 +81,13 @@ static osMutexId_t mutex_timer = NULL;
 /* -----------------------------------------------------------------------------
 OS Basic
 ----------------------------------------------------------------------------- */
+static const osThreadAttr_t thread_attr_timer =
+{
+    .name = "timer",
+    .stack_size = 2048,
+    .priority = (osPriority_t)osPriorityHigh7,
+};
+
 osStatus_t osKernelInitialize(void)
 {
     for (uint32_t i = 0; i < RTOS_TIMER_NUM_MAX; i ++)
@@ -205,6 +216,10 @@ osThreadId_t osThreadNew(osThreadFunc_t func, void *argument, const osThreadAttr
     assert(ret == 0);
     ret = pthread_attr_setschedparam(&thread_attr, &param);
     assert(ret == 0);
+    ret = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    assert(ret == 0);
+    ret = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+    assert(ret == 0);
     ret = pthread_create(&thread, &thread_attr, (os_pthread_func_t)func, argument);
     assert(ret == 0);
 
@@ -220,8 +235,21 @@ osThreadId_t osThreadGetId(void)
 
 osStatus_t osThreadTerminate(osThreadId_t thread_id)
 {
-    pthread_cancel((pthread_t)thread_id);
+    int ret = 0;
+    for (uint32_t i = 0; i < 100; i ++)
+    {
+        pthread_cancel((pthread_t)thread_id);
+        ret = pthread_kill((pthread_t)thread_id, 0);
+        if (ret != 0)
+        {
+            goto exit;
+        }
+        osDelay(1);
+    }
+    printf("pthread_kill ret: %d.\n", ret);
+    assert(false);
 
+exit:
     return osOK;
 }
 
@@ -494,7 +522,7 @@ osStatus_t osSemaphoreDelete(osSemaphoreId_t semaphore_id)
 osStatus_t osSemaphoreRelease(osSemaphoreId_t semaphore_id)
 {
     int ret = sem_post((sem_t *)semaphore_id);
-    // assert(ret == 0);
+    assert(ret == 0);
 
     return osOK;
 }
@@ -503,16 +531,19 @@ osStatus_t osSemaphoreAcquire(osSemaphoreId_t semaphore_id, uint32_t timeout)
 {
     assert(semaphore_id != NULL);
 
-    if (timeout != osWaitForever)
-    {
-        assert(timeout < (1000 * 60 * 60 * 24));
-    }
-
     int ret;
     if (timeout == osWaitForever)
     {
         ret = sem_wait((sem_t *)semaphore_id);
-        // assert(ret == 0);
+        assert(ret == 0);
+    }
+    else if (timeout == 0)
+    {
+        ret = sem_trywait((sem_t *)semaphore_id);
+        if (ret != 0)
+        {
+            return osErrorResource;
+        }
     }
     else
     {
