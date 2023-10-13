@@ -80,9 +80,9 @@ void QF_add_(QActive * const a) {
     * object must not be already in use. QF requires each active object to
     * have a __unique__ priority.
     */
-    Q_REQUIRE_ID(100, (0U < p)
-                       && (p <= QF_MAX_ACTIVE)
-                       && (QF_active_[p] == (QActive *)0));
+    Q_REQUIRE_ID(100, (0U < p));
+    Q_REQUIRE_ID(101, (p <= QF_MAX_ACTIVE));
+    Q_REQUIRE_ID(102, (QF_active_[p] == (QActive *)0));
 
     QF_CRIT_E_();
     QF_active_[p] = a; /* register the active object at this priority */

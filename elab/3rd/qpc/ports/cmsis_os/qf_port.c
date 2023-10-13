@@ -66,11 +66,17 @@
 Q_DEFINE_THIS_MODULE("qf_port")
 
 /* Global objects ==========================================================*/
-pthread_mutex_t QF_pThreadMutex_; /* mutex for QF critical section */
+osMutexId_t QF_pThreadMutex_; /* mutex for QF critical section */
+
+static const osMutexAttr_t mutex_attr_cmsis =
+{
+    "MutexCmsisOs",
+    osMutexRecursive | osMutexPrioInherit,
+    NULL,
+    0U
+};
 
 /* Local objects ===========================================================*/
-static pthread_mutex_t l_startupMutex;
-static bool l_isRunning;      /* flag indicating when QF is running */
 static struct termios l_tsav; /* structure with saved terminal attributes */
 static struct timespec l_tick;
 static int_t l_tickPrio;
@@ -86,28 +92,20 @@ void QF_init(void) {
     /*mlockall(MCL_CURRENT | MCL_FUTURE);  uncomment when supported */
 
     /* init the global mutex with the default non-recursive initializer */
-    pthread_mutex_init(&QF_pThreadMutex_, NULL);
-
-    /* init the startup mutex with the default non-recursive initializer */
-    pthread_mutex_init(&l_startupMutex, NULL);
-
-    /* lock the startup mutex to block any active objects started before
-    * calling QF_run()
-    */
-    pthread_mutex_lock(&l_startupMutex);
+    QF_pThreadMutex_ = osMutexNew(&mutex_attr_cmsis);
 
     l_tick.tv_sec = 0;
-    l_tick.tv_nsec = NANOSLEEP_NSEC_PER_SEC/100L; /* default clock tick */
+    l_tick.tv_nsec = NANOSLEEP_NSEC_PER_SEC / 100L;  /* default clock tick */
     l_tickPrio = sched_get_priority_min(SCHED_FIFO); /* default tick prio */
 }
 
 /****************************************************************************/
 void QF_enterCriticalSection_(void) {
-    pthread_mutex_lock(&QF_pThreadMutex_);
+    osMutexAcquire(&QF_pThreadMutex_, osWaitForever);
 }
 /****************************************************************************/
 void QF_leaveCriticalSection_(void) {
-    pthread_mutex_unlock(&QF_pThreadMutex_);
+    osMutexRelease(&QF_pThreadMutex_);
 }
 
 /****************************************************************************/
@@ -116,13 +114,9 @@ int_t QF_run(void) {
 
     QF_onStartup();  /* invoke startup callback */
 
-    /* produce the QS_QF_RUN trace record */
-    QS_BEGIN_NOCRIT_PRE_(QS_QF_RUN, 0U)
-    QS_END_NOCRIT_PRE_()
-
     /* try to set the priority of the ticker thread, see NOTE01 */
     sparam.sched_priority = l_tickPrio;
-    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &sparam) == 0) {
+    if (pthread_setschedparam(pthread_self(), SCHED_RR, &sparam) == 0) {
         /* success, this application has sufficient privileges */
     }
     else {
@@ -132,10 +126,7 @@ int_t QF_run(void) {
     /* unlock the startup mutex to unblock any active objects started before
     * calling QF_run()
     */
-    pthread_mutex_unlock(&l_startupMutex);
-    l_isRunning = true;
-    pthread_mutex_destroy(&l_startupMutex);
-    pthread_mutex_destroy(&QF_pThreadMutex_);
+    osMutexDelete(QF_pThreadMutex_);
 
     return 0; /* return success */
 }
@@ -147,7 +138,7 @@ void QF_setTickRate(uint32_t ticksPerSec, int_t tickPrio) {
 }
 /*..........................................................................*/
 void QF_stop(void) {
-    l_isRunning = false; /* stop the loop in QF_run() */
+
 }
 
 /*..........................................................................*/
@@ -180,12 +171,8 @@ int QF_consoleWaitForKey(void) {
 }
 
 /****************************************************************************/
-static void *thread_routine(void *arg) { /* the expected POSIX signature */
+static void thread_routine(void *arg) { /* the expected POSIX signature */
     QActive *act = (QActive *)arg;
-
-    /* block this thread until the startup mutex is unlocked from QF_run() */
-    pthread_mutex_lock(&l_startupMutex);
-    pthread_mutex_unlock(&l_startupMutex);
 
 #ifdef QF_ACTIVE_STOP
     act->thread = true;
@@ -198,10 +185,6 @@ static void *thread_routine(void *arg) { /* the expected POSIX signature */
         QHSM_DISPATCH(&act->super, e, act->prio); /* dispatch to the HSM */
         QF_gc(e); /* check if the event is garbage, and collect it if so */
     }
-#ifdef QF_ACTIVE_STOP
-    QF_remove_(act); /* remove this object from QF */
-#endif
-    return (void *)0; /* return success */
 }
 
 /****************************************************************************/
@@ -210,67 +193,37 @@ void QActive_start_(QActive * const me, uint_fast8_t prio,
                     void * const stkSto, uint_fast16_t const stkSize,
                     void const * const par)
 {
-    pthread_t thread;
-    pthread_attr_t attr;
-    struct sched_param param;
-    int err;
-
-    /* p-threads allocate stack internally */
-    // Q_REQUIRE_ID(600, stkSto == (void *)0);
-
-    QEQueue_init(&me->eQueue, qSto, qLen);
-    pthread_cond_init(&me->osObject, NULL);
-
     me->prio = (uint8_t)prio;
+    printf("=== me->prio: %u.\n", me->prio);
+    me->prio = 0x01020304;
+    printf("=== me->prio: 0x%08x.\n", me->prio);
     QF_add_(me); /* make QF aware of this active object */
+    // QHSM_INIT(&me->super, par, me->prio);
 
-    /* the top-most initial tran. (virtual) */
-    QHSM_INIT(&me->super, par, me->prio);
-    QS_FLUSH(); /* flush the trace buffer to the host */
+    // printf("=== me->prio: %u.\n", me->prio);
 
-    pthread_attr_init(&attr);
-
-    /* SCHED_FIFO corresponds to real-time preemptive priority-based scheduler
-    * NOTE: This scheduling policy requires the superuser privileges
-    */
-    pthread_attr_setschedpolicy (&attr, SCHED_FIFO);
-    pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-
-    /* priority of the p-thread, see NOTE04 */
-    param.sched_priority = prio
-                           + (sched_get_priority_max(SCHED_FIFO)
-                              - QF_MAX_ACTIVE - 3U);
-    pthread_attr_setschedparam(&attr, &param);
-
-    pthread_attr_setstacksize(&attr, (stkSize < PTHREAD_STACK_MIN
-                                      ? PTHREAD_STACK_MIN
-                                      : stkSize));
-
-    err = pthread_create(&thread, &attr, &thread_routine, me);
-    if (err != 0) {
-        /* Creating p-thread with the SCHED_FIFO policy failed. Most likely
-        * this application has no superuser privileges, so we just fall
-        * back to the default SCHED_OTHER policy and priority 0.
-        */
-        pthread_attr_setschedpolicy(&attr, SCHED_OTHER);
-        param.sched_priority = 0;
-        pthread_attr_setschedparam(&attr, &param);
-        err = pthread_create(&thread, &attr, &thread_routine, me);
-    }
-    Q_ASSERT_ID(610, err == 0); /* AO thread must be created */
-
-    //pthread_attr_getschedparam(&attr, &param);
-    //printf("param.sched_priority==%d\n", param.sched_priority);
-
-    pthread_attr_destroy(&attr);
+    // osThreadAttr_t attr = 
+    // {
+    //     .name = "Actor",
+    //     .attr_bits = osThreadDetached,
+    //     .priority = osPriorityNormal,
+    //     .stack_size = 2048,
+    // };
+    // me->osObject.thread = osThreadNew(thread_routine, me, &attr);
+    // Q_ASSERT_ID(610, me->osObject.thread != NULL);
+    // me->osObject.sem = osSemaphoreNew(1, 0, NULL);
+    // Q_ASSERT_ID(611, me->osObject.sem != NULL);
 }
 /*..........................................................................*/
 #ifdef QF_ACTIVE_STOP
 void QActive_stop(QActive * const me) {
     QActive_unsubscribeAll(me); /* unsubscribe this AO from all events */
-    printf("QActive_stop.\n");
     me->thread = false; /* stop the thread loop (see thread_routine()) */
+    osSemaphoreDelete(me->osObject.sem);
+    osThreadTerminate(me->osObject.thread);
+#ifdef QF_ACTIVE_STOP
+    QF_remove_(me); /* remove this object from QF */
+#endif
 }
 #endif
 /*..........................................................................*/
