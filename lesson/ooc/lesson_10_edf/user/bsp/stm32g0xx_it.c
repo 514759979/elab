@@ -30,12 +30,4 @@ void HardFault_Handler(void)
     }
 }
 
-/**
-  * @brief This function handles USART3 and USART4 interrupts.
-  */
-void USART3_4_IRQHandler(void)
-{
-    HAL_UART_IRQHandler(&huart);
-}
-
 /* ----------------------------- end of file -------------------------------- */

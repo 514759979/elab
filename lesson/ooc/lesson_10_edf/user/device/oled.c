@@ -4,25 +4,29 @@
 #include "elab/os/cmsis_os.h"
 #include "elab/common/elab_assert.h"
 #include "elab/common/elab_export.h"
+#include "export/export.h"
 
 ELAB_TAG("OLED");
 
 static void _write_byte(uint8_t byte, bool cmd);
+static void _oled_coordinate(int8_t x, int8_t y, bool status);
 
 static elab_device_t *spi = NULL;
 static elab_device_t *oled_dc = NULL;
 static elab_device_t *oled_rst = NULL;
+int8_t pos_x = 0;
+int8_t pos_y = 0;
 
 void oled_init(void)
 {
-    spi = elab_device_find("SPI_OLED");
+    spi = elab_device_find("spi_oled");
     elab_assert(spi != NULL);
 
-    oled_dc = elab_device_find("OLED_DC");
+    oled_dc = elab_device_find("pin_oled_dc");
     elab_assert(spi != NULL);
     elab_pin_set_mode(oled_dc, PIN_MODE_OUTPUT_OD);
 
-    oled_rst = elab_device_find("OLED_RST");
+    oled_rst = elab_device_find("pin_oled_rst");
     elab_assert(spi != NULL);
     elab_pin_set_mode(oled_rst, PIN_MODE_OUTPUT_OD);
 
@@ -63,8 +67,7 @@ void oled_init(void)
     
     oled_clear();
 }
-
-INIT_EXPORT(oled_init, 2);
+INIT_EXPORT(oled_init, EXPORT_LEVEL_OLED);
 
 void oled_open(void)
 {
@@ -105,6 +108,63 @@ void oled_set_value(uint8_t x, uint8_t y, uint8_t value)
 static void _write_byte(uint8_t byte, bool cmd)
 {
     elab_pin_set_status(oled_dc, cmd ? false : true);
-    elab_spi_send(spi, &byte, 1);
+    elab_spi_send(spi, &byte, 1, 100);
     elab_pin_set_status(oled_dc, true);
+}
+
+void oled_game_start(void)
+{
+    oled_clear();
+    _oled_coordinate(0, 0, true);
+}
+
+void oled_game_stop(void)
+{
+    oled_clear();
+}
+
+void oled_game_execute(uint8_t cmd)
+{
+    uint8_t pos_x_backup = pos_x;
+    uint8_t pos_y_backup = pos_y;
+    _oled_coordinate(pos_x, pos_y, false);
+
+    switch (cmd)
+    {
+        case OLED_CMD_UP:
+            pos_y += 8;
+            pos_y = pos_y > 32 ? 32 : pos_y;
+            break;
+
+        case OLED_CMD_DOWN:
+            pos_y -= 8;
+            pos_y = pos_y < -32 ? -32 : pos_y;
+            break;
+
+        case OLED_CMD_LEFT:
+            pos_x -= 8;
+            pos_x = pos_x < -64 ? -64 : pos_x;
+            break;
+
+        case OLED_CMD_RIGHT:
+            pos_x += 8;
+            pos_x = pos_x > 56 ? 56 : pos_x;
+            break;
+    }
+
+    if (pos_x_backup != pos_x || pos_y_backup != pos_y)
+    {
+        _oled_coordinate(pos_x, pos_y, true);
+    }
+}
+
+static void _oled_coordinate(int8_t x, int8_t y, bool status)
+{
+    x += 64;
+    y = 32 - y;
+
+    for (uint32_t i = 0; i < 8; i += 2)
+    {
+        oled_set_value(x + i, (y / 8), (status ? 0xff : 0x00));
+    }
 }

@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "elab/3rd/Shell/shell.h"
-#include "oled.h"
+#include "device/oled.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -107,6 +107,90 @@ exit:
 }
 
 /**
+  * @brief OLED closing testing function.
+  * @retval None
+  */
+static int32_t test_oled_start(int32_t argc, char *argv[])
+{
+    int32_t ret = 0;
+
+    if (argc != 1)
+    {
+        ret = -1;
+        goto exit;
+    }
+
+    oled_game_start();
+
+exit:
+    return ret;
+}
+
+/**
+  * @brief OLED closing testing function.
+  * @retval None
+  */
+static int32_t test_oled_stop(int32_t argc, char *argv[])
+{
+    int32_t ret = 0;
+
+    if (argc != 1)
+    {
+        ret = -1;
+        goto exit;
+    }
+
+    oled_game_stop();
+
+exit:
+    return ret;
+}
+
+/**
+  * @brief OLED closing testing function.
+  * @retval None
+  */
+static int32_t test_oled_cmd(int32_t argc, char *argv[])
+{
+    int32_t ret = 0;
+    uint8_t cmd = 0xff;
+
+    if (argc != 2)
+    {
+        ret = -1;
+        goto exit;
+    }
+
+    if (strcmp(argv[1], "u") == 0 || strcmp(argv[1], "up") == 0)
+    {
+        cmd = OLED_CMD_UP;
+    }
+    else if (strcmp(argv[1], "d") == 0 || strcmp(argv[1], "down") == 0)
+    {
+        cmd = OLED_CMD_DOWN;
+    }
+    else if (strcmp(argv[1], "r") == 0 || strcmp(argv[1], "right") == 0)
+    {
+        cmd = OLED_CMD_RIGHT;
+    }
+    else if (strcmp(argv[1], "l") == 0 || strcmp(argv[1], "left") == 0)
+    {
+        cmd = OLED_CMD_LEFT;
+    }
+    else
+    {
+        ret = -2;
+        goto exit;
+    }
+
+    oled_game_execute(cmd);
+
+exit:
+    return ret;
+}
+
+
+/**
   * @brief  Test shell command export
   */
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN),
@@ -137,6 +221,30 @@ SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN),
                     test_oled_set_value,
                     test_func_oled_set_value,
                     OLED set value testing);
+
+/**
+  * @brief  Test shell command export
+  */
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN),
+                    test_oled_start,
+                    test_oled_start,
+                    OLED game start testing);
+
+/**
+  * @brief  Test shell command export
+  */
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN),
+                    test_oled_stop,
+                    test_oled_stop,
+                    OLED game stop testing);
+
+/**
+  * @brief  Test shell command export
+  */
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN),
+                    test_oled_cmd,
+                    test_oled_cmd,
+                    OLED command executing testing);
 
 #ifdef __cplusplus
 }

@@ -9,7 +9,7 @@
 #include "stm32g0xx_hal.h"
 
 /* private config ----------------------------------------------------------- */
-#define ELAB_DEBUG_UART_ID                      (3)
+#define ELAB_DEBUG_UART_ID                      (4)
 
 #define ELAB_DEBUG_UART_BUFFER_TX               (512)
 #define ELAB_DEBUG_UART_BUFFER_RX               (16)
@@ -143,7 +143,7 @@ void elab_debug_uart_buffer_clear(void)
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
     uint8_t byte = 0;
-
+    
     if (UartHandle->Instance == USARTx)
     {
         elib_queue_pop(&queue_tx, 1);
@@ -202,6 +202,14 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
         HAL_NVIC_SetPriority(USART3_4_IRQn, 0, 0);
         HAL_NVIC_EnableIRQ(USART3_4_IRQn);
     }
+}
+
+/**
+  * @brief This function handles USART3 and USART4 interrupts.
+  */
+void USART3_4_IRQHandler(void)
+{
+    HAL_UART_IRQHandler(&huart);
 }
 
 /* ----------------------------- end of file -------------------------------- */

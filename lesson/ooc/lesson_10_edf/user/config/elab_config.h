@@ -12,9 +12,9 @@
 #define ELAB_RTOS_TICK_MS                       (1)
 
 /* QPC related ------------------------------------------- */
-#define ELAB_QPC_EN                             (0)
-#define ELAB_EVENT_DATA_SIZE                    (128)
-#define ELAB_EVENT_POOL_SIZE                    (64)
+#define ELAB_QPC_EN                             (1)
+#define ELAB_EVENT_DATA_SIZE                    (16)
+#define ELAB_EVENT_POOL_SIZE                    (8)
 
 #endif /* ELAB_CONFIG_H */
 

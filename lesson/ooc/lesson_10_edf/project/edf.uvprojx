@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32G070xx, __free_rtos__</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\elab\port\FreeRTOS;..\..\..\..\elab\3rd\FreeRTOS\portable\RVDS\ARM_CM0;..\..\..\..;..\..\..\..\elab\3rd\FreeRTOS\include</IncludePath>
+              <IncludePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Inc;..\..\..\..\mcu\stm32g070\STM32G070;..\..\..\..\mcu\stm32g070\CMSIS;..\user;..\..\..\..\elab\port\FreeRTOS;..\..\..\..\elab\3rd\FreeRTOS\portable\RVDS\ARM_CM0;..\..\..\..;..\..\..\..\elab\3rd\FreeRTOS\include;..\user\config</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -381,7 +381,7 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>User</GroupName>
+          <GroupName>User.App</GroupName>
           <Files>
             <File>
               <FileName>main.c</FileName>
@@ -389,55 +389,180 @@
               <FilePath>..\user\main.c</FilePath>
             </File>
             <File>
-              <FileName>bsp.c</FileName>
+              <FileName>app.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\bsp.c</FilePath>
-            </File>
-            <File>
-              <FileName>shell_export.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\shell_export.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\oled.c</FilePath>
+              <FilePath>..\user\app\app.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Driver</GroupName>
+          <GroupName>User.Device</GroupName>
           <Files>
             <File>
-              <FileName>drv_pin.c</FileName>
+              <FileName>oled.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\board\GoldenBoard\driver\drv_pin.c</FilePath>
+              <FilePath>..\user\device\oled.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User.Bsp</GroupName>
+          <Files>
+            <File>
+              <FileName>bsp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\bsp\bsp.c</FilePath>
             </File>
             <File>
-              <FileName>drv_pwm.c</FileName>
+              <FileName>elab_uart_debug.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\board\GoldenBoard\driver\drv_pwm.c</FilePath>
+              <FilePath>..\user\bsp\elab_uart_debug.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User.Export</GroupName>
+          <Files>
+            <File>
+              <FileName>shell_export.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\export\shell_export.c</FilePath>
             </File>
             <File>
-              <FileName>drv_adc.c</FileName>
+              <FileName>adc_export.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\board\GoldenBoard\driver\drv_adc.c</FilePath>
+              <FilePath>..\user\export\adc_export.c</FilePath>
             </File>
             <File>
-              <FileName>drv_spi.c</FileName>
+              <FileName>button_export.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\board\GoldenBoard\driver\drv_spi.c</FilePath>
+              <FilePath>..\user\export\button_export.c</FilePath>
+            </File>
+            <File>
+              <FileName>pin_export.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\export\pin_export.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_export.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\export\i2c_export.c</FilePath>
+            </File>
+            <File>
+              <FileName>led_export.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\export\led_export.c</FilePath>
+            </File>
+            <File>
+              <FileName>pwm_export.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\export\pwm_export.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi_export.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\export\spi_export.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User.Driver</GroupName>
+          <Files>
+            <File>
+              <FileName>drv_adc_mcu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver\drv_adc_mcu.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_button_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver\drv_button_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_button_pin.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver\drv_button_pin.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_pin_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver\drv_pin_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_pin_mcu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver\drv_pin_mcu.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_util.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver\drv_util.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_pwm_mcu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver\drv_pwm_mcu.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_i2c_bus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver\drv_i2c_bus.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_spi_bus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\driver\drv_spi_bus.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User.test</GroupName>
+          <Files>
+            <File>
+              <FileName>test_oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\test\test_oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_self.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\test\test_self.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Use.Config</GroupName>
+          <Files>
+            <File>
+              <FileName>elab_config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\config\elab_config.h</FilePath>
+            </File>
+            <File>
+              <FileName>event_def.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\config\event_def.h</FilePath>
+            </File>
+            <File>
+              <FileName>FreeRTOSConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\config\FreeRTOSConfig.h</FilePath>
+            </File>
+            <File>
+              <FileName>gb_export.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\config\gb_export.h</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_conf.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\user\config\stm32g0xx_hal_conf.h</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
           <GroupName>eLab.common</GroupName>
           <Files>
-            <File>
-              <FileName>elab_uart_debug.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\elab_uart_debug.c</FilePath>
-            </File>
             <File>
               <FileName>elib_queue.c</FileName>
               <FileType>1</FileType>
@@ -462,41 +587,6 @@
               <FileName>elab_assert.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\elab\common\elab_assert.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>eLab.Midware.3rd.Shell</GroupName>
-          <Files>
-            <File>
-              <FileName>shell.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\elab\3rd\Shell\shell.c</FilePath>
-            </File>
-            <File>
-              <FileName>shell_cmd_list.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\elab\3rd\Shell\shell_cmd_list.c</FilePath>
-            </File>
-            <File>
-              <FileName>shell_companion.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\elab\3rd\Shell\shell_companion.c</FilePath>
-            </File>
-            <File>
-              <FileName>shell_ext.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\elab\3rd\Shell\shell_ext.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>eLab.midware</GroupName>
-          <Files>
-            <File>
-              <FileName>ebutton.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\elab\midware\ebutton\ebutton.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -548,21 +638,21 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\elab\edf\normal\elab_watchdog.c</FilePath>
             </File>
+            <File>
+              <FileName>elab_button.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\edf\user\elab_button.c</FilePath>
+            </File>
+            <File>
+              <FileName>elab_led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\edf\user\elab_led.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>eLab.test</GroupName>
           <Files>
-            <File>
-              <FileName>test_led.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\board\GoldenBoard\test\test_led.c</FilePath>
-            </File>
-            <File>
-              <FileName>test_pwm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\board\GoldenBoard\test\test_pwm.c</FilePath>
-            </File>
             <File>
               <FileName>test_elog.c</FileName>
               <FileType>1</FileType>
@@ -571,12 +661,62 @@
             <File>
               <FileName>test_adc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\..\board\GoldenBoard\test\test_adc.c</FilePath>
+              <FilePath>..\..\..\..\elab\test\test_adc.c</FilePath>
             </File>
             <File>
-              <FileName>test_oled.c</FileName>
+              <FileName>test_pwm.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\test_oled.c</FilePath>
+              <FilePath>..\..\..\..\elab\test\test_pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_pin.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\test\test_pin.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_rs232.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\test\test_rs232.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\test\test_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>test_button.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\test\test_button.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>eLab.3rd.Shell</GroupName>
+          <Files>
+            <File>
+              <FileName>shell.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\Shell\shell.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell_cmd_list.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\Shell\shell_cmd_list.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell_companion.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\Shell\shell_companion.c</FilePath>
+            </File>
+            <File>
+              <FileName>app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user\app\app.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell_ext.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\Shell\shell_ext.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -636,22 +776,97 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>elab.3rd.QPC</GroupName>
+          <Files>
+            <File>
+              <FileName>qpc_export.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\qpc_export.c</FilePath>
+            </File>
+            <File>
+              <FileName>qep_hsm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qep_hsm.c</FilePath>
+            </File>
+            <File>
+              <FileName>qep_msm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qep_msm.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_act.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_act.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_actq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_actq.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_defer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_defer.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_dyn.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_dyn.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_mem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_mem.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_ps.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_ps.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_qact.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_qact.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_qeq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_qeq.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_qmact.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_qmact.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_time.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\src\qf\qf_time.c</FilePath>
+            </File>
+            <File>
+              <FileName>qf_port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\elab\3rd\qpc\ports\freertos\qf_port.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>MCU</GroupName>
           <Files>
             <File>
               <FileName>stm32g0xx_it.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\stm32g0xx_it.c</FilePath>
+              <FilePath>..\user\bsp\stm32g0xx_it.c</FilePath>
             </File>
             <File>
               <FileName>system_stm32g0xx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user\system_stm32g0xx.c</FilePath>
+              <FilePath>..\user\bsp\system_stm32g0xx.c</FilePath>
             </File>
             <File>
               <FileName>startup_stm32g070xx.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\user\startup_stm32g070xx.s</FilePath>
+              <FilePath>..\user\bsp\startup_stm32g070xx.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -752,6 +967,16 @@
               <FileName>stm32g0xx_hal_spi_ex.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_spi_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32g0xx_hal_i2c_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\mcu\stm32g070\STM32G0xx_HAL_Driver\Src\stm32g0xx_hal_i2c_ex.c</FilePath>
             </File>
           </Files>
         </Group>
