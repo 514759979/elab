@@ -29,14 +29,14 @@ extern "C" {
 
 #ifndef LIST_MALLOC
 #include <stdint.h>
-#include "platform_heap.h"
-#define LIST_MALLOC platform_malloc
+#include "elab_common.h"
+#define LIST_MALLOC elab_malloc
 #endif
 
 #ifndef LIST_FREE
 #include <stdint.h>
-#include "platform_heap.h"
-#define LIST_FREE platform_free
+#include "elab_common.h"
+#define LIST_FREE elab_free
 #endif
 
 /*

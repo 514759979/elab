@@ -1478,11 +1478,7 @@ void shellUp(Shell *shell)
 {
     shellHistory(shell, 1);
 }
-#if defined(__linux__)
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_HOME, shellUp, up);
-#else
 SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_UP, shellUp, up);
-#endif
 
 /**
  * @brief shell下方向键输入
@@ -1493,11 +1489,7 @@ void shellDown(Shell *shell)
 {
     shellHistory(shell, -1);
 }
-#if defined(__linux__)
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_END, shellDown, down);
-#else
-SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_DOWN, shellDown, up);
-#endif
+SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), ESH_KEY_DOWN, shellDown, down);
 #endif /** SHELL_HISTORY_MAX_NUMBER > 0 */
 
 

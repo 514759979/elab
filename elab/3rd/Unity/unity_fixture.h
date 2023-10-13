@@ -11,6 +11,7 @@
 #include "unity.h"
 #include "unity_fixture_internals.h"
 #include "unity_internals.h"
+#include "../../common/elab_export.h"
 
 #ifndef UNITY_FIXTURE_NO_EXTRAS
 #include "unity_memory.h"
@@ -27,7 +28,6 @@ int UnityMain(int argc, const char* argv[], void (*runAllTests)(void));
 
 #define TEST_TEAR_DOWN(group) void TEST_##group##_TEAR_DOWN(void);\
     void TEST_##group##_TEAR_DOWN(void)
-
 
 #define TEST(group, name) \
     void TEST_##group##_##name##_(void);\
@@ -59,7 +59,7 @@ int UnityMain(int argc, const char* argv[], void (*runAllTests)(void));
 
 #define TEST_GROUP_RUNNER(group)\
     void TEST_##group##_GROUP_RUNNER(void);\
-    INIT_TEST(TEST_##group##_GROUP_RUNNER, EXPORT_TEST);\
+    INIT_EXPORT(TEST_##group##_GROUP_RUNNER, EXPORT_UNIT_TEST);\
     void TEST_##group##_GROUP_RUNNER(void)
 
 /* Call this from main */
