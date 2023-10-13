@@ -17,21 +17,18 @@ extern "C" {
 typedef struct elab_led
 {
     elab_device_t super;
+
     osTimerId_t timer;
+    elab_device_t *pin;
     uint32_t period_ms;
     uint32_t time_out;
     uint8_t mode;
     uint8_t value;
     uint8_t value_count;
+    uint8_t value_count_max;
     bool status;
-
-    struct elab_led_ops *ops;
+    bool status_led_on;
 } elab_led_t;
-
-typedef struct elab_led_ops
-{
-    elab_err_t (* set_status)(elab_led_t *const me, bool status);
-} elab_led_ops_t;
 
 #define ELAB_LED_CAST(_dev)           ((elab_led_t *)_dev)
 
@@ -42,8 +39,8 @@ void elab_led_toggle(elab_device_t *const me, uint32_t period_ms);
 void elab_led_set_value(elab_device_t *const me, uint8_t value);
 
 /* LED exporting. */
-void elab_led_init(elab_led_t *const me, const char *name,
-                        elab_led_ops_t *ops, void *user_data);
+void elab_led_register(elab_led_t *const me, const char *name,
+                        const char *pin_name, bool status_led_on);
 
 #ifdef __cplusplus
 }

@@ -37,10 +37,10 @@ typedef struct elab_pin
 
 typedef struct elab_pin_ops
 {
-    void (* init)(elab_pin_t * const me);
-    void (* set_mode)(elab_pin_t * const me, uint8_t mode);
-    bool (* get_status)(elab_pin_t * const me);
-    void (* set_status)(elab_pin_t * const me, bool status);
+    elab_err_t (* init)(elab_pin_t * const me);
+    elab_err_t (* set_mode)(elab_pin_t * const me, uint8_t mode);
+    elab_err_t (* get_status)(elab_pin_t * const me, bool *status);
+    elab_err_t (* set_status)(elab_pin_t * const me, bool status);
 } elab_pin_ops_t;
 
 #define ELAB_PIN_CAST(_dev)             ((elab_pin_t *)_dev)

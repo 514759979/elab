@@ -3,7 +3,7 @@
 #include <string.h>
 #include "simu_driver_pin.h"
 #include "edf_simu_config.h"
-#include "../../../elib/elib_hash_table.h"
+#include "../../../elib/hash_table.h"
 #include "../../../edf/normal/elab_pin.h"
 #include "../../../common/elab_assert.h"
 #include "../../../common/elab_common.h"
@@ -30,7 +30,7 @@ static bool _get_status(elab_pin_t * const me);
 static void _set_status(elab_pin_t * const me, bool status);
 
 /* public variables --------------------------------------------------------- */
-extern elib_hash_table_t *ht_simu;
+extern hash_table_t *ht_simu;
 
 /* private variables -------------------------------------------------------- */
 static const elab_pin_ops_t pin_ops =
@@ -55,7 +55,7 @@ void simu_io_new(const char *name, bool is_out)
     /* Newly create one hash-table for the simulated PIN. */
     if (ht_simu == NULL)
     {
-        ht_simu = elib_hash_table_new(SIMU_HASH_TABLE_SIZE);
+        ht_simu = hash_table_new(SIMU_HASH_TABLE_SIZE);
         elab_assert(ht_simu != NULL);
     }
 
@@ -65,7 +65,7 @@ void simu_io_new(const char *name, bool is_out)
     /* Initialize the simulated PIN object. */
     simu_pin->mutex = osMutexNew(&mutex_attr_simu_pin);
     elab_assert(simu_pin->mutex != NULL);
-    elib_hash_table_add(ht_simu, (char *)name, (void *)simu_pin);
+    hash_table_add(ht_simu, (char *)name, (void *)simu_pin);
 
     /* Register the simulated PIN to edf. */
     elab_pin_register(&simu_pin->pin, name, &pin_ops, simu_pin);
@@ -75,7 +75,7 @@ void simu_in_set_status(const char *name, bool status)
 {
     osStatus_t ret = osOK;
 
-    simu_pin_t *simu_pin = elib_hash_table_get(ht_simu, (char *)name);
+    simu_pin_t *simu_pin = hash_table_get(ht_simu, (char *)name);
     ret = osMutexAcquire(simu_pin->mutex, osWaitForever);
     elab_assert(ret == osOK);
 
@@ -92,7 +92,7 @@ bool simu_out_get_status(const char *name)
 {
     osStatus_t ret = osOK;
 
-    simu_pin_t *simu_pin = elib_hash_table_get(ht_simu, (char *)name);
+    simu_pin_t *simu_pin = hash_table_get(ht_simu, (char *)name);
     ret = osMutexAcquire(simu_pin->mutex, osWaitForever);
     elab_assert(ret == osOK);
 
@@ -117,7 +117,7 @@ static void _set_mode(elab_pin_t *me, uint8_t mode)
     osStatus_t ret = osOK;
 
     simu_pin_t *simu_pin =
-        (simu_pin_t *)elib_hash_table_get(ht_simu, (char *)me->super.attr.name);
+        (simu_pin_t *)hash_table_get(ht_simu, (char *)me->super.attr.name);
 
     ret = osMutexAcquire(simu_pin->mutex, osWaitForever);
     elab_assert(ret == osOK);
@@ -131,7 +131,7 @@ static void _set_status(elab_pin_t * const me, bool status)
     osStatus_t ret = osOK;
 
     simu_pin_t *simu_pin =
-        (simu_pin_t *)elib_hash_table_get(ht_simu, (char *)me->super.attr.name);
+        (simu_pin_t *)hash_table_get(ht_simu, (char *)me->super.attr.name);
     simu_pin->status = status;
 
     ret = osMutexAcquire(simu_pin->mutex, osWaitForever);
@@ -147,7 +147,7 @@ static bool _get_status(elab_pin_t * const me)
     bool status = false;
 
     simu_pin_t *simu_pin =
-        (simu_pin_t *)elib_hash_table_get(ht_simu, (char *)me->super.attr.name);
+        (simu_pin_t *)hash_table_get(ht_simu, (char *)me->super.attr.name);
 
     ret = osMutexAcquire(simu_pin->mutex, osWaitForever);
     elab_assert(ret == osOK);
@@ -163,7 +163,7 @@ static int32_t _get_pin_from_name(char *name)
     /* For example, P3.4 P2.18 */
     elab_assert(_pin_name_valid(name));
 
-    return (int32_t)elib_hash_talbe_index(ht_simu, name);
+    return (int32_t)hash_table_index(ht_simu, name);
 }
 
 static bool _pin_name_valid(const char *name)

@@ -29,7 +29,7 @@ static const osMutexAttr_t _mutex_attr_edf =
     .name = "mutex_edf",
     .attr_bits = osMutexPrioInherit | osMutexRecursive,
     .cb_mem = NULL,
-    .cb_size = 0,
+    .cb_size = 0, 
 };
 
 /* public function ---------------------------------------------------------- */
@@ -66,6 +66,83 @@ void elab_device_register(elab_device_t *me, elab_device_attr_t *attr)
     /* Edf mutex unlocking. */
     ret = osMutexRelease(mutex);
     assert(ret == osOK);
+}
+
+/**
+ * @brief This function unregisters a device with the device handle.
+ * @param me   the pointer of device driver structure
+ * @retval None.
+ */
+void elab_device_unregister(elab_device_t *me)
+{
+    elab_assert(me != NULL);
+    elab_assert(!elab_device_is_enabled(me));
+
+    /* Edf mutex locking. */
+    osStatus_t ret = osOK;
+    osMutexId_t mutex = _edf_mutex();
+    ret = osMutexAcquire(mutex, osWaitForever);
+    assert(ret == osOK);
+
+    for (uint32_t i = 0; i < ELAB_DEV_NUM_MAX; i ++)
+    {
+        if (_edf_table[i] == me)
+        {
+            osStatus_t ret = osMutexDelete(me->mutex);
+            elab_assert(ret == osOK);
+            me->mutex = NULL;
+            _edf_table[i] = NULL;
+            _edf_device_count --;
+            break;
+        }
+    }
+
+    /* Edf mutex unlocking. */
+    ret = osMutexRelease(mutex);
+    assert(ret == osOK);
+}
+
+/**
+ * @brief Get the count number in device framework management.
+ * @retval Count number of devices.
+ */
+uint32_t elab_device_get_number(void)
+{
+    uint32_t num = 0;
+
+    /* Edf mutex locking. */
+    osStatus_t ret = osOK;
+    osMutexId_t mutex = _edf_mutex();
+    ret = osMutexAcquire(mutex, osWaitForever);
+    assert(ret == osOK);
+
+    num = _edf_device_count;
+
+    /* Edf mutex unlocking. */
+    ret = osMutexRelease(mutex);
+    assert(ret == osOK);
+
+    return num;
+}
+
+/**
+ * This function check the given name is the device's name or not.
+ * @param me    Device handle.
+ * @param name  Device name.
+ * @return True or false.
+ */
+bool elab_device_of_name(elab_device_t *me, const char *name)
+{
+    bool of_the_name = false;
+
+    elab_device_lock(me);
+    if (strcmp(me->attr.name, name) == 0)
+    {
+        of_the_name = true;
+    }
+    elab_device_unlock(me);
+
+    return of_the_name;
 }
 
 /**
@@ -121,6 +198,58 @@ bool elab_device_valid(const char *name)
 }
 
 /**
+ * @brief This function check one device name is sole or not.
+ * @param name  Device name.
+ * @return Valid if true and invalid if false.
+ */
+bool elab_device_is_sole(elab_device_t *me)
+{
+    elab_device_lock(me);
+    bool enable_status = me->attr.sole;
+    elab_device_unlock(me);
+
+    return enable_status;
+}
+
+/**
+ * @brief Check the device is in test mode or not.
+ * @param dev       the pointer of device driver structure
+ * @retval True or false.
+ */
+bool elab_device_is_test_mode(elab_device_t *dev)
+{
+    return (dev->thread_test != NULL) ? true : false;
+}
+
+/**
+ * @brief Set the test mode for the device.
+ * @param dev       The pointer of device driver structure
+ * @retval None.
+ */
+void elab_device_set_test_mode(elab_device_t *dev)
+{
+    elab_assert(dev != NULL);
+
+    elab_device_lock(dev);
+    dev->thread_test = osThreadGetId();
+    elab_device_unlock(dev);
+}
+
+/**
+ * @brief Set the normal mode for the device.
+ * @param dev       the pointer of device driver structure
+ * @retval None.
+ */
+void elab_device_set_normal_mode(elab_device_t *dev)
+{
+    elab_assert(dev != NULL);
+
+    elab_device_lock(dev);
+    dev->thread_test = NULL;
+    elab_device_unlock(dev);
+}
+
+/**
  * @brief This function check one device is enabled or not.
  * @param name  Device name.
  * @return Valid if true and invalid if false.
@@ -128,8 +257,6 @@ bool elab_device_valid(const char *name)
 bool elab_device_is_enabled(elab_device_t *me)
 {
     assert(me != NULL);
-    assert(me->ops != NULL);
-    assert(me->ops->enable != NULL);
 
     elab_device_lock(me);
     bool enable_status = me->enable_count > 0 ? true : false;
@@ -146,27 +273,20 @@ bool elab_device_is_enabled(elab_device_t *me)
  */
 void __device_mutex_lock(elab_device_t *me, bool status)
 {
+    elab_assert(me != NULL);
+    elab_assert(me->mutex != NULL);
+
     osStatus_t ret = osOK;
 
     if (status)
     {
-        if (me->lock_count == 0)
-        {
-            ret = osMutexAcquire(me->mutex, osWaitForever);
-            assert(ret == osOK);
-        }
-
-        me->lock_count ++;
+        ret = osMutexAcquire(me->mutex, osWaitForever);
     }
     else
     {
-        me->lock_count --;
-        if (me->lock_count == 0)
-        {
-            ret = osMutexRelease(me->mutex);
-            assert(ret == osOK);
-        }
+        ret = osMutexRelease(me->mutex);
     }
+    assert(ret == osOK);
 }
 
 /**
@@ -187,8 +307,7 @@ elab_err_t __device_enable(elab_device_t *me, bool status)
     {
         if (status)
         {
-            /* TODO */
-            // assert_name(me->enable_count == 0, me->attr.name);
+            assert_name(me->enable_count == 0, me->attr.name);
         }
         else
         {
@@ -200,16 +319,16 @@ elab_err_t __device_enable(elab_device_t *me, bool status)
         assert_name(me->enable_count < UINT8_MAX, me->attr.name);
     }
     
-    elab_err_t ret = me->ops->enable(me, status);
-    if (status)
+    elab_err_t ret = ELAB_OK;
+    if (status && me->enable_count == 0)
     {
-        me->enable_count ++;
+        ret = me->ops->enable(me, true);
     }
-    else
+    else if (!status && me->enable_count == 1)
     {
-        assert(me->enable_count > 0);
-        me->enable_count --;
+        ret = me->ops->enable(me, false);
     }
+    me->enable_count = status ? (me->enable_count + 1) : (me->enable_count - 1);
 
     elab_device_unlock(me);
 
@@ -234,7 +353,17 @@ int32_t elab_device_read(elab_device_t *me,
     assert(me->ops != NULL);
     assert(me->ops->read != NULL);
 
-    return me->ops->read(me, pos, buffer, size);
+    int32_t ret = 0;
+    if (elab_device_is_test_mode(me))
+    {
+        ret = ELAB_OK;
+        goto exit;
+    }
+
+    ret = me->ops->read(me, pos, buffer, size);
+
+exit:
+    return ret;
 }
 
 /**
@@ -255,7 +384,17 @@ int32_t elab_device_write(elab_device_t *me,
     assert(me->ops != NULL);
     assert(me->ops->write != NULL);
 
-    return me->ops->write(me, pos, buffer, size);
+    int32_t ret = 0;
+    if (elab_device_is_test_mode(me))
+    {
+        ret = ELAB_OK;
+        goto exit;
+    }
+
+    ret = me->ops->write(me, pos, buffer, size);
+
+exit:
+    return ret;
 }
 
 /* private functions -------------------------------------------------------- */

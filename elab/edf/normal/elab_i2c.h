@@ -47,6 +47,7 @@ typedef struct elab_i2c_bus
 
     const struct elab_i2c_bus_ops *ops;
     osMutexId_t mutex;
+    osSemaphoreId_t sem;
     elab_i2c_bus_config_t config;
 } elab_i2c_bus_t;
 
@@ -69,12 +70,20 @@ void elab_i2c_bus_register(elab_i2c_bus_t *bus,
                             const char *name, const elab_i2c_bus_ops_t *ops,
                             void *user_data);
 void elab_i2c_register(elab_i2c_t *device, const char *name, const char *bus_name,
-                            elab_i2c_config_t config,
-                            void *user_data);
+                            elab_i2c_config_t config);
+void elab_i2c_xfer_end(elab_i2c_bus_t *me);
 
-int32_t elab_i2c_xfer_msgs(elab_device_t *me, elab_i2c_msg_t msgs[], uint32_t num);
-elab_err_t elab_i2c_xfer(elab_device_t *me, elab_i2c_msg_t msg);
-
+void elab_i2c_recv(elab_device_t *me, uint8_t *buff, uint32_t size);
+int32_t elab_i2c_xfer_msgs(elab_device_t *me,
+                            elab_i2c_msg_t msgs[], uint32_t num,
+                            uint32_t timeout);
+elab_err_t elab_i2c_xfer(elab_device_t *me, elab_i2c_msg_t msg, uint32_t timeout);
+elab_err_t elab_i2c_read_memory(elab_device_t *me, uint8_t addr,
+                                uint8_t *buff, uint16_t size,
+                                uint32_t timeout);
+elab_err_t elab_i2c_write_memory(elab_device_t *me, uint8_t addr,
+                                    uint8_t *buff, uint16_t size,
+                                    uint32_t timeout);
 #ifdef __cplusplus
 }
 #endif

@@ -81,12 +81,11 @@ typedef struct elab_serail
     elab_device_t super;
 
 #if defined(__linux__) || defined(_WIN32)
-    osMessageQueueId_t queue_rx;
     osThreadId_t thread_rx;
-#else
-    osSemaphoreId_t sem_tx;
 #endif
-    osMutexId_t mutex;
+    osMutexId_t mutex_tx;
+    osSemaphoreId_t sem_tx;
+    osMessageQueueId_t queue_rx;
 
     const struct elab_serial_ops *ops;
     elab_serial_attr_t attr;
@@ -103,24 +102,24 @@ typedef struct elab_serial_ops
     elab_err_t (* config)(elab_serial_t *serial, elab_serial_config_t *config);
 } elab_serial_ops_t;
 
-#define ELAB_SERAIL_CAST(_dev)          ((elab_serial_t *)_dev)
+#define ELAB_SERIAL_CAST(_dev)          ((elab_serial_t *)_dev)
 
 /* public functions --------------------------------------------------------- */
 void elab_serial_register(elab_serial_t *serial, const char *name,
                             elab_serial_ops_t *ops,
                             elab_serial_attr_t *attr,
                             void *user_data);
+void elab_serial_unregister(elab_serial_t *serial);
+void elab_serial_tx_end(elab_serial_t *serial);
 
 #if !defined(__linux__) && !defined(_WIN32)
 void elab_serial_isr_rx(elab_serial_t *serial, void *buffer, uint32_t size);
-void elab_serial_isr_tx_end(elab_serial_t *serial);
 #endif
 
 /* For high level program. */
 int32_t elab_serial_write(elab_device_t * const me, void *buff, uint32_t size);
 int32_t elab_serial_read(elab_device_t * const me, void *buff,
                             uint32_t size, uint32_t timeout);
-void elab_serial_set_mode(elab_device_t * const me, uint8_t mode);
 void elab_serial_set_baudrate(elab_device_t * const me, uint32_t baudrate);
 void elab_serial_set_attr(elab_device_t * const me, elab_serial_attr_t *attr);
 elab_serial_attr_t elab_serial_get_attr(elab_device_t * const me);
@@ -128,7 +127,8 @@ elab_serial_attr_t elab_serial_get_attr(elab_device_t * const me);
 /* TODO Just for half duplex mode. */
 int32_t elab_serial_xfer(elab_device_t *me,
                             void *buff_tx, uint32_t size_tx,
-                            void *buff_rx, uint32_t size_rx);
+                            void *buff_rx, uint32_t size_rx,
+                            uint32_t timeout);
 
 #ifdef __cplusplus
 }

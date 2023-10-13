@@ -31,7 +31,6 @@ enum elab_device_type
     ELAB_DEVICE_ADC,
     ELAB_DEVICE_DAC,
     ELAB_DEVICE_UART,
-    ELAB_DEVICE_RS485,
     ELAB_DEVICE_I2C_BUS,
     ELAB_DEVICE_I2C,
     ELAB_DEVICE_SPI_BUS,
@@ -92,10 +91,10 @@ typedef struct elab_device
     uint8_t lock_count;
     osMutexId_t mutex;
 #endif
+    osThreadId_t thread_test;
 
     /* common device interface */
     const struct elab_dev_ops *ops;
-    elab_driver_t *drivers;
     void *user_data;
 } elab_device_t;
 
@@ -130,6 +129,14 @@ void elab_device_register(elab_device_t *me, elab_device_attr_t *attr);
 elab_device_t *elab_device_find(const char *name);
 
 /**
+ * This function check the given name is the device's name or not.
+ * @param me    Device handle.
+ * @param name  Device name.
+ * @return True or false.
+ */
+bool elab_device_of_name(elab_device_t *me, const char *name);
+
+/**
  * @brief This function check one device name is valid or not.
  * @param name  Device name.
  * @return Valid if true and invalid if false.
@@ -137,29 +144,39 @@ elab_device_t *elab_device_find(const char *name);
 bool elab_device_valid(const char *name);
 
 /**
+ * @brief This function check one device name is sole or not.
+ * @param name  Device name.
+ * @return Valid if true and invalid if false.
+ */
+bool elab_device_is_sole(elab_device_t *me);
+
+/**
+ * @brief Check the device is in test mode or not.
+ * @param dev       the pointer of device driver structure
+ * @retval True or false.
+ */
+bool elab_device_is_test_mode(elab_device_t *me);
+
+/**
+ * @brief Set the test mode for the device.
+ * @param dev       The pointer of device driver structure
+ * @retval None.
+ */
+void elab_device_set_test_mode(elab_device_t *me);
+
+/**
+ * @brief Set the normal mode for the device.
+ * @param dev       the pointer of device driver structure
+ * @retval None.
+ */
+void elab_device_set_normal_mode(elab_device_t *me);
+
+/**
  * @brief This function check one device is enabled or not.
  * @param name  Device name.
  * @return Valid if true and invalid if false.
  */
 bool elab_device_is_enabled(elab_device_t *me);
-
-/**
- * @brief Add a new driver to the existent device.
- * @param name      Device name.
- * @param driver    Device driver.
- * @return None.
- */
-/* TODO For EDF V2.0*/
-void elab_device_add_driver(const char *name, elab_driver_t *driver);
-
-/**
- * @brief Enable a driver of the given device.
- * @param name      Device name.
- * @param driver    driver name.
- * @return None.
- */
-/* TODO For EDF V2.0*/
-void elab_device_driver_enable(const char *name, const char *driver);
 
 /**
  * @brief Device general reading function.

@@ -10,6 +10,9 @@
 
 ELAB_TAG("Edf_ADC");
 
+/* private function prototype ----------------------------------------------- */
+static void _timer_cb(void *argument);
+
 /* private variables -------------------------------------------------------- */
 static const osTimerAttr_t timer_attr_adc =
 {
@@ -25,8 +28,6 @@ static elab_dev_ops_t _ops =
     .read = NULL,
     .write = NULL,
 };
-
-static void _timer_cb(void *argument);
 
 /* public functions --------------------------------------------------------- */
 /**
@@ -62,7 +63,7 @@ void elab_adc_register(elab_adc_t * const me, const char *name,
     me->en_cache = false;
     me->en_auto_read = false;
     
-    me->attr.factor = 0.805664;
+    me->attr.factor = (3.3 / 4096.0);
 }
 
 /**
@@ -162,6 +163,14 @@ void elab_adc_set_attr(elab_device_t *const me, elab_adc_attr_t *attr)
         assert(ret_os == osOK);
         (void)ret_os;
     }
+}
+
+void elab_adc_set_factor(elab_device_t *const me, float factor)
+{
+    elab_adc_attr_t attr;
+    elab_adc_get_attr(me, &attr);
+    attr.factor = factor;
+    elab_adc_set_attr(me, &attr);
 }
 
 /* private functions -------------------------------------------------------- */

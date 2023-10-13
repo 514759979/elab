@@ -45,7 +45,8 @@ void elab_pin_register(elab_pin_t * const me,
     me->ops = ops;
     me->ops->init(me);
     me->mode = PIN_MODE_MAX;
-    me->status = me->ops->get_status(me);
+    elab_err_t ret = me->ops->get_status(me, &me->status);
+    elab_assert(ret == ELAB_OK);
 }
 
 /**
@@ -74,13 +75,18 @@ void elab_pin_set_mode(elab_device_t * const me, uint8_t mode)
 bool elab_pin_get_status(elab_device_t *const me)
 {
     assert(me != NULL);
-    assert(ELAB_PIN_CAST(me)->mode != PIN_MODE_MAX);
+    assert(ELAB_PIN_CAST(me)->mode < PIN_MODE_MAX);
 
     elab_pin_t *pin = (elab_pin_t *)me;
 
-    if (pin->mode >= PIN_MODE_INPUT && pin->mode <= PIN_MODE_INPUT_PULLDOWN)
+    if (pin->mode <= PIN_MODE_INPUT_PULLDOWN)
     {
-        pin->status = pin->ops->get_status(pin);
+        bool status;
+        elab_err_t ret = pin->ops->get_status(pin, &status);
+        if (ret == ELAB_OK)
+        {
+            pin->status = status;
+        }
     }
     
     return pin->status;
@@ -99,10 +105,14 @@ void elab_pin_set_status(elab_device_t *const me, bool status)
                 ELAB_PIN_CAST(me)->mode == PIN_MODE_OUTPUT_OD,
                 me->attr.name);
 
-    if (status != ELAB_PIN_CAST(me)->status)
+    elab_pin_t *pin = ELAB_PIN_CAST(me);
+    if (status != pin->status)
     {
-        ELAB_PIN_CAST(me)->ops->set_status(ELAB_PIN_CAST(me), status);
-        ELAB_PIN_CAST(me)->status = status;
+        elab_err_t ret = pin->ops->set_status(pin, status);
+        if (ret == ELAB_OK)
+        {
+            pin->status = status;
+        }
     }
 }
 

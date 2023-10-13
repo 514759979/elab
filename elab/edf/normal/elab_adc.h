@@ -59,6 +59,7 @@ void elab_adc_cache_start(elab_device_t *const me,
                             elab_adc_cache_cb_t cb, float *buffer);
 void elab_adc_get_attr(elab_device_t *const me, elab_adc_attr_t *attr);
 void elab_adc_set_attr(elab_device_t *const me, elab_adc_attr_t *attr);
+void elab_adc_set_factor(elab_device_t *const me, float factor);
 
 #ifdef __cplusplus
 }

@@ -1,60 +1,20 @@
-# edf
+# 设备框架
 -----
-eLab Device Framework. eLab设备框架。
 
------
-EDF V2.0 应该如何实现。
+## 一、简介
 
-### 设备类与驱动类分开实现
-以串口举例说明，设备类和驱动类分开实现如下。
+**EDF**的全称，就是**eLab Device Framework**，也就是**eLab**平台上的设备框架。
 
-``` C
-typedef struct elab_serial
-{
-    elab_device_t super;
+绝大部分的嵌入式系统都包括一些外部设备，这些设备基本上可以分为三种：
 
-    osMessageQueueId_t queue_rx;
-    osMessageQueueId_t queue_tx;
-    bool is_sending;
-} elab_serial_t;
++ 片上外设
++ 板级设备
++ 系统设备
 
-typedef struct elab_serial_driver
-{
-    elab_driver_t super;
+在**eLab**平台上，将会统一使用一个设备框架，实现上述几种设备的抽象。**edf**框架，分为两种设备，一种**normal**类型的设备，也就是片上设备和板级设备，二是**user**类型的设备，也就是用户自定义的设备。
 
-    const struct elab_serial_ops *ops;
-    elab_serial_attr_t attr;
-} elab_serial_driver_t;
+## 二、架构
 
-typedef struct elab_serial_ops
-{
-    elab_err_t (* enable)(elab_serial_t *serial, bool status);
-    int32_t (* read)(elab_serial_t *serial, void *buffer, uint32_t size);
-    int32_t (* write)(elab_serial_t *serial, const void *buffer, uint32_t size);
-    void (* set_tx)(elab_serial_t *serial, bool status);
-    elab_err_t (* config)(elab_serial_t *serial, elab_serial_config_t *config);
-} elab_serial_ops_t;
-```
+跟大部分的设备框架是一样的，**eLab**提供了一套简洁的设备框架，如下图所示，它位于硬件和应用程序之间，共分成三层，从上到下分别是 I/O 设备管理层、设备驱动框架层、设备驱动层。
 
-### 设备类与驱动类分开注册
-
-
-``` C
-/* 注册设备，对设备进行初始化，并注册一下空驱动，使之在运行时不会崩溃。 */
-void elab_serial_register(elab_serial_t *serial, const char *name);
-void elab_serial_driver_register(elab_serial_driver_t *driver, elab_serial_ops_t *ops,
-                                    elab_serial_attr_t *attr,
-                                    void *user_data);
-```
-
-### 设备与驱动，如何产生联系？
-
-在设备框架的基类里，实现两个函数。
-
-``` C
-void elab_device_add_driver(const char *name, elab_driver_t *driver);
-void elab_device_driver_enable(const char *name, const char *driver);
-```
-
-好处是，一个设备可以有多个驱动，可以使用shell切换，可以使用脚本指定随意切换驱动。只要支持过的驱动，都可以编译在程序里，用脚本配置一下，底层的程序就可以不变。
-
+## 三、

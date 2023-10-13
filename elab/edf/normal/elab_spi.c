@@ -5,6 +5,7 @@
 
 /* includes ----------------------------------------------------------------- */
 #include "elab_spi.h"
+#include "elab_pin.h"
 #include "../../common/elab_assert.h"
 #include "../../common/elab_log.h"
 
@@ -59,7 +60,9 @@ void elab_spi_bus_register(elab_spi_bus_t *bus,
         0U
     };
     bus->mutex = osMutexNew(&mutex_attr);
-    assert(NULL != bus->mutex);
+    elab_assert(NULL != bus->mutex);
+    bus->sem = osSemaphoreNew(1, 0, NULL);
+    elab_assert(NULL != bus->sem);
 
     /* register to device manager */
     elab_device_attr_t attr_spi_bus =
@@ -79,22 +82,21 @@ void elab_spi_bus_register(elab_spi_bus_t *bus,
   */
 void elab_spi_register(elab_spi_t *device, const char *name,
                             const char *bus_name,
-                            const elab_spi_ops_t *ops,
-                            elab_spi_config_t config,
-                            void *user_data)
+                            const char *pin_name_cs,
+                            elab_spi_config_t config)
 {
     assert(device != NULL);
     assert(name != NULL);
     assert(bus_name != NULL);
-    assert(ops != NULL);
- 
-    elab_spi_bus_t *bus = (elab_spi_bus_t *)elab_device_find(bus_name);
-    assert(bus != NULL);
+    assert(pin_name_cs != NULL);
+    assert(!elab_device_valid(name));
+    assert(elab_device_valid(bus_name));
+    assert(elab_device_valid(pin_name_cs));
 
-    device->bus = bus;
+    device->bus = (elab_spi_bus_t *)elab_device_find(bus_name);
+    device->pin_cs = elab_device_find(pin_name_cs);
     device->config = config;
-    device->ops = ops;
-    device->super.user_data = user_data;
+    device->super.user_data = NULL;
 
     /* Register to device manager. */
     elab_device_attr_t attr_spi =
@@ -104,6 +106,20 @@ void elab_spi_register(elab_spi_t *device, const char *name,
         .type = ELAB_DEVICE_SPI,
     };
     elab_device_register(&device->super, &attr_spi);
+
+    elab_pin_set_mode(device->pin_cs, PIN_MODE_OUTPUT_PP);
+    elab_pin_set_status(device->pin_cs, true);
+}
+
+/**
+  * @brief  SPI bus device initialization and registering.
+  * @param  bus  The SPI bus handle
+  * @retval None.
+  */
+void elab_spi_bus_xfer_end(elab_spi_bus_t *bus)
+{
+    osStatus_t ret_os = osSemaphoreRelease(bus->sem);
+    assert(ret_os == osOK);
 }
 
 /**
@@ -117,13 +133,15 @@ void elab_spi_register(elab_spi_t *device, const char *name,
   */
 elab_err_t elab_spi_send_twice(elab_device_t *me,
                                 const void *buff1, uint32_t size1,
-                                const void *buff2, uint32_t size2)
+                                const void *buff2, uint32_t size2,
+                                uint32_t timeout)
 {
     assert(me != NULL);
     assert(buff1 != NULL);
     assert(buff2 != NULL);
     assert(size1 != 0);
     assert(size1 != 0);
+    assert(timeout != 0);
 
     elab_err_t ret = ELAB_OK;
     osStatus_t ret_os = osOK;
@@ -168,11 +186,19 @@ elab_err_t elab_spi_send_twice(elab_device_t *me,
     msg.size = size2;
 
     /* Enable the SPI device. */
-    spi->ops->enable(spi, true);
+    elab_pin_set_status(spi->pin_cs, false);
     /* Transfer msg */
     ret = spi->bus->ops->xfer(spi, &msg);
+    if (ret == ELAB_OK)
+    {
+        ret_os = osSemaphoreAcquire(spi->bus->sem, timeout);
+        if (ret_os == osErrorTimeout)
+        {
+            ret = ELAB_ERR_TIMEOUT;
+        }
+    }
     /* Disable the SPI device. */
-    spi->ops->enable(spi, false);
+    elab_pin_set_status(spi->pin_cs, true);
     
 exit_release_mutex:
     ret_os = osMutexRelease(spi->bus->mutex);
@@ -193,13 +219,15 @@ exit_release_mutex:
   */
 elab_err_t elab_spi_send_recv(elab_device_t *me,
                                 const void *buff_send, uint32_t size_send,
-                                void *buff_recv, uint32_t size_recv)
+                                void *buff_recv, uint32_t size_recv,
+                                uint32_t timeout)
 {
     assert(me != NULL);
     assert(buff_send != NULL);
     assert(buff_recv != NULL);
     assert(size_send != 0);
     assert(size_recv != 0);
+    assert(timeout != 0);
     
     elab_spi_t *spi = (elab_spi_t *)me;
     assert(spi->bus != NULL);
@@ -243,11 +271,19 @@ elab_err_t elab_spi_send_recv(elab_device_t *me,
     msg.size = size_recv;
 
     /* Enable the SPI device. */
-    spi->ops->enable(spi, true);
+    elab_pin_set_status(spi->pin_cs, false);
     /* Transfer msg */
     ret = spi->bus->ops->xfer(spi, &msg);
+    if (ret == ELAB_OK)
+    {
+        ret_os = osSemaphoreAcquire(spi->bus->sem, timeout);
+        if (ret_os == osErrorTimeout)
+        {
+            ret = ELAB_ERR_TIMEOUT;
+        }
+    }
     /* Disable the SPI device. */
-    spi->ops->enable(spi, false);
+    elab_pin_set_status(spi->pin_cs, true);
 
 exit_release_mutex:
     ret_os = osMutexRelease(spi->bus->mutex);
@@ -266,7 +302,8 @@ exit_release_mutex:
  *
  * @return See elab_err_t
  */
-elab_err_t elab_spi_xfer_msg(elab_device_t *me, elab_spi_msg_t *msg, uint32_t num)
+elab_err_t elab_spi_xfer_msg(elab_device_t *me, elab_spi_msg_t *msg, uint32_t num,
+                                uint32_t timeout)
 {
     assert(me != NULL);
     assert(msg != NULL);
@@ -275,6 +312,7 @@ elab_err_t elab_spi_xfer_msg(elab_device_t *me, elab_spi_msg_t *msg, uint32_t nu
     elab_err_t ret = ELAB_OK;
     osStatus_t ret_os = osOK;
     elab_spi_t *spi = (elab_spi_t *)me;
+    uint32_t time_start = 0;
 
     assert(spi->bus != NULL);
 
@@ -295,14 +333,35 @@ elab_err_t elab_spi_xfer_msg(elab_device_t *me, elab_spi_msg_t *msg, uint32_t nu
         spi->bus->config_owner = spi->config;
     }
 
+    time_start = osKernelGetTickCount();
     for (uint32_t i = 0; i < num; i ++)
     {
         /* Enable the SPI device. */
-        spi->ops->enable(spi, true);
+        elab_pin_set_status(spi->pin_cs, false);
         /* Transfer msg */
         ret = spi->bus->ops->xfer(spi, &msg[i]);
+        if (ret == ELAB_OK)
+        {
+            ret_os = osSemaphoreAcquire(spi->bus->sem, timeout);
+            if (ret_os == osErrorTimeout)
+            {
+                ret = ELAB_ERR_TIMEOUT;
+            }
+            else if (ret_os == osOK)
+            {
+                int32_t _timeout = timeout - (osKernelGetTickCount() - time_start);
+                if (_timeout <= 0)
+                {
+                    ret = ELAB_ERR_TIMEOUT;
+                }
+                else
+                {
+                    timeout = _timeout;
+                }
+            }
+        }
         /* Disable the SPI device. */
-        spi->ops->enable(spi, false);
+        elab_pin_set_status(spi->pin_cs, true);
         if (ret != ELAB_OK)
         {
             goto exit_release_mutex;
@@ -329,7 +388,7 @@ exit_release_mutex:
  */
 elab_err_t elab_spi_xfer(elab_device_t *me,
                             const void *buff_send, void *buff_recv,
-                            uint32_t size)
+                            uint32_t size, uint32_t timeout)
 {
     assert(me != NULL);
     assert(size != 0);
@@ -364,11 +423,19 @@ elab_err_t elab_spi_xfer(elab_device_t *me,
     msg.size = size;
 
     /* Disable the SPI device. */
-    spi->ops->enable(spi, true);
+    elab_pin_set_status(spi->pin_cs, false);
     /* Transfer message. */
     ret = spi->bus->ops->xfer(spi, &msg);
+    if (ret == ELAB_OK)
+    {
+        ret_os = osSemaphoreAcquire(spi->bus->sem, timeout);
+        if (ret_os == osErrorTimeout)
+        {
+            ret = ELAB_ERR_TIMEOUT;
+        }
+    }
     /* Disable the SPI device. */
-    spi->ops->enable(spi, false);
+    elab_pin_set_status(spi->pin_cs, true);
 
 exit:
     ret_os = osMutexRelease(spi->bus->mutex);
@@ -385,13 +452,15 @@ exit:
   * @param  size    receiving size.
   * @retval See elab_err_t
   */
-elab_err_t elab_spi_recv(elab_device_t *me, void *buff, uint32_t size)
+elab_err_t elab_spi_recv(elab_device_t *me,
+                            void *buff, uint32_t size, uint32_t timeout)
 {
     assert(me != NULL);
     assert(buff != NULL);
     assert(size != 0);
+    assert(timeout != 0);
 
-    return elab_spi_xfer(me, NULL, buff, size);
+    return elab_spi_xfer(me, NULL, buff, size, timeout);
 }
 
 /**
@@ -401,13 +470,15 @@ elab_err_t elab_spi_recv(elab_device_t *me, void *buff, uint32_t size)
   * @param  size    The sending buffer size.
   * @retval See elab_err_t
   */
-elab_err_t elab_spi_send(elab_device_t *me, const void *buffer, uint32_t size)
+elab_err_t elab_spi_send(elab_device_t *me,
+                            const void *buffer, uint32_t size, uint32_t timeout)
 {
     assert(me != NULL);
     assert(buffer != NULL);
     assert(size != 0);
+    assert(timeout != 0);
 
-    return elab_spi_xfer(me, buffer, NULL, size);
+    return elab_spi_xfer(me, buffer, NULL, size, timeout);
 }
 
 #ifdef __cplusplus

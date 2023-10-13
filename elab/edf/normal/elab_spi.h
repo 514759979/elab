@@ -59,6 +59,7 @@ typedef struct elab_spi_bus
     const struct elab_spi_bus_ops *ops;
 
     osMutexId_t mutex;
+    osSemaphoreId_t sem;
     elab_spi_config_t config_owner;
 } elab_spi_bus_t;
 
@@ -67,8 +68,8 @@ typedef struct elab_spi_device
     elab_device_t super;
 
     elab_spi_bus_t *bus;
+    elab_device_t *pin_cs;
     elab_spi_config_t config;
-    const struct elab_spi_ops *ops;
     void *user_data;
 } elab_spi_t;
 
@@ -81,14 +82,6 @@ typedef struct elab_spi_bus_ops
     elab_err_t (* xfer)(elab_spi_t * const me, elab_spi_msg_t *message);
 } elab_spi_bus_ops_t;
 
-/**
- * SPI operators
- */
-typedef struct elab_spi_ops
-{
-    void (* enable)(elab_spi_t * const me, bool status);
-} elab_spi_ops_t;
-
 #define ELAB_SPI_CAST(_dev)                 ((elab_spi_t *)_dev)
 #define ELAB_SPI_BUS_CAST(_dev)             ((elab_spi_bus_t *)_dev)
 
@@ -96,25 +89,31 @@ typedef struct elab_spi_ops
 void elab_spi_bus_register(elab_spi_bus_t *bus,
                             const char *name, const elab_spi_bus_ops_t *ops,
                             void *user_data);
-
-void elab_spi_register(elab_spi_t *device, const char *name, const char *bus_name,
-                            const elab_spi_ops_t *ops, elab_spi_config_t config,
-                            void *user_data);
+void elab_spi_register(elab_spi_t *device, const char *name,
+                            const char *bus_name,
+                            const char *pin_name_cs,
+                            elab_spi_config_t config);
+void elab_spi_bus_xfer_end(elab_spi_bus_t *bus);
 
 /* Before doing anything with the SPI device, you first need to call this
  * function to configure the bus. */
 elab_err_t elab_spi_send_recv(elab_device_t *me,
                                 const void *buff_send, uint32_t size_send,
-                                void *buff_recv, uint32_t size_recv);
+                                void *buff_recv, uint32_t size_recv,
+                                uint32_t timeout);
 elab_err_t elab_spi_send_twice(elab_device_t *me,
                                 const void *buff1, uint32_t size1,
-                                const void *buff2, uint32_t size2);
+                                const void *buff2, uint32_t size2,
+                                uint32_t timeout);
 elab_err_t elab_spi_xfer(elab_device_t *me,
                             const void *buff_send, void *buff_recv,
-                            uint32_t size);
-elab_err_t elab_spi_xfer_msg(elab_device_t *me, elab_spi_msg_t *msg, uint32_t num);
-elab_err_t elab_spi_recv(elab_device_t *me, void *buff, uint32_t size);
-elab_err_t elab_spi_send(elab_device_t *me, const void *buffer, uint32_t size);
+                            uint32_t size, uint32_t timeout);
+elab_err_t elab_spi_xfer_msg(elab_device_t *me, elab_spi_msg_t *msg, uint32_t num,
+                                uint32_t timeout);
+elab_err_t elab_spi_recv(elab_device_t *me,
+                            void *buff, uint32_t size, uint32_t timeout);
+elab_err_t elab_spi_send(elab_device_t *me,
+                            const void *buffer, uint32_t size, uint32_t timeout);
 
 #ifdef __cplusplus
 }
