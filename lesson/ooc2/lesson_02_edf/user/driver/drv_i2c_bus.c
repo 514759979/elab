@@ -95,8 +95,7 @@ static int32_t _xfer(elab_i2c_bus_t *me, uint16_t addr, elab_i2c_msg_t msg)
     {
         status = HAL_I2C_Master_Receive_IT(i2c, addr, msg.buffer, msg.len);
     }
-//    if (status != HAL_OK)
-//        elab_assert(status == HAL_OK);
+    (void)status;
 
     return (int32_t)msg.len;
 }

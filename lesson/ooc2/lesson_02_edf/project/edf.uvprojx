@@ -709,11 +709,6 @@
               <FilePath>..\..\..\..\elab\3rd\Shell\shell_companion.c</FilePath>
             </File>
             <File>
-              <FileName>app.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\user\app\app.c</FilePath>
-            </File>
-            <File>
               <FileName>shell_ext.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\elab\3rd\Shell\shell_ext.c</FilePath>

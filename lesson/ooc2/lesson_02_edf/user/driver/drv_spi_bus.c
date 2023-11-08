@@ -147,6 +147,7 @@ static elab_err_t _xfer(elab_spi_t * const me, elab_spi_msg_t *message)
     {
         elab_assert(false);
     }
+    (void)status;
     
     return ELAB_OK;
 }

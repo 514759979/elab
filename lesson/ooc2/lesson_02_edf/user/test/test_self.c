@@ -45,7 +45,6 @@ static bool button_left_en = false;
 static osSemaphoreId_t sem = NULL;
 static uint8_t buff_tx[TEST_SELF_BUFF_SIZE];
 static uint8_t buff_rx[TEST_SELF_BUFF_SIZE];
-static elab_i2c_msg_t i2c_msg[2];
 
 /* private functions -------------------------------------------------------- */
 /**
@@ -57,7 +56,6 @@ static int32_t test_self(int32_t argc, char *argv[])
     int32_t ret = 0;
     elab_device_t *dev = NULL;
     float voltage = 0.0;
-    osStatus_t ret_os = osOK;
     uint16_t flash_id;
     
     if (argc != 1)

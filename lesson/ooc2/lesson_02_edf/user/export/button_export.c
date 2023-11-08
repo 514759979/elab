@@ -10,7 +10,7 @@
 #include "export.h"
 
 /* private variables -------------------------------------------------------- */
-static elab_button_driver_t button_pin_starttest
+static elab_button_driver_t button_pin_start;
 static elab_button_driver_t button_pin_stop;
 static elab_button_driver_t button_adc_right;
 static elab_button_driver_t button_adc_left;
