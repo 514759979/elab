@@ -49,6 +49,8 @@ typedef struct elab_adc_ops
     uint32_t (* get_value)(elab_adc_t * const me);
 } elab_adc_ops_t;
 
+#define ELAB_ADC_CAST(_dev)             ((elab_adc_t *)_dev)
+
 /* public functions --------------------------------------------------------- */
 void elab_adc_register(elab_adc_t * const me, const char *name,
                         const elab_adc_ops_t *ops, void *user_data);

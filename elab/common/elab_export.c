@@ -342,20 +342,16 @@ static void _poll_func_execute(void)
 
         while (1)
         {
-            uint64_t _time = (uint64_t)elab_time_ms();
-            if (_time < (uint64_t)data->timeout_ms &&
-                ((uint64_t)data->timeout_ms - _time) <=
-                    (UINT32_MAX - ELAB_POLL_PERIOD_MAX))
-            {
-                _time += (UINT32_MAX + 1);
-            }
-
-            if (_time >= (uint64_t)data->timeout_ms)
+            uint32_t _time = elab_time_ms();
+            if (((_time >= data->timeout_ms) &&
+                 (_time - data->timeout_ms < ELAB_POLL_PERIOD_MAX)) ||
+                ((_time < data->timeout_ms) &&
+                 (data->timeout_ms - _time > ELAB_POLL_PERIOD_MAX)))
             {
                 data->timeout_ms += export_poll_table[i].period_ms;
                 ((void (*)(void))export_poll_table[i].func)();
             }
-            else
+            else 
             {
                 break;
             }

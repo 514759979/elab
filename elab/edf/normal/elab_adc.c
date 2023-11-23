@@ -130,7 +130,7 @@ void elab_adc_get_attr(elab_device_t *const me, elab_adc_attr_t *attr)
     assert(me != NULL);
     assert(attr != NULL);
 
-    memcpy(attr, &me->attr, sizeof(elab_adc_attr_t));
+    memcpy(attr, &ELAB_ADC_CAST(me)->attr, sizeof(elab_adc_attr_t));
 }
 
 /**
@@ -152,7 +152,7 @@ void elab_adc_set_attr(elab_device_t *const me, elab_adc_attr_t *attr)
         interval_changed = true;
     }
 
-    memcpy(&me->attr, attr, sizeof(elab_adc_attr_t));
+    memcpy(&adc->attr, attr, sizeof(elab_adc_attr_t));
 
     if (adc->en_auto_read && interval_changed)
     {
