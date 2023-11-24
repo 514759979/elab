@@ -42,6 +42,36 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#if defined(__linux__) || defined(ELAB_OS_POSIX)
+
+#include <pthread.h>
+typedef pthread_t                       osThreadBlock_t;
+
+#elif defined(ELAB_OS_FREERTOS)
+
+#include "3rd/FreeRTOS/include/FreeRTOS.h"
+#include "3rd/FreeRTOS/include/task.h"
+typedef StaticTask_t                    osThreadBlock_t;
+typedef StaticTimer_t                   osTimerBlock_t;
+typedef StaticQueue_t                   osMutexBlock_t;
+typedef StaticQueue_t                   osSemaphoreBlock_t;
+typedef StaticQueue_t                   osMessageQueueBlock_t;
+typedef StaticMemPool_t                 osMemoryPoolBlock_t;
+typedef StaticEventGroup_t              osEventFlagsBlock_t;
+
+#elif defined(ELAB_OS_RTTHREAD)
+
+#include "3rd/rtthread/include/rtthread.h"
+typedef struct rt_thread                osThreadBlock_t;
+typedef struct rt_timer                 osTimerBlock_t;
+typedef struct rt_mutex                 osMutexBlock_t;
+typedef struct rt_semaphore             osSemaphoreBlock_t;
+typedef struct rt_messagequeue          osMessageQueueBlock_t;
+typedef struct rt_mempool               osMemoryPoolBlock_t;
+typedef struct rt_event                 osEventFlagsBlock_t;
+
+#endif
+
 #ifdef  __cplusplus
 extern "C"
 {

@@ -7,7 +7,6 @@
 #if defined(__linux__)
 
 /* includes ----------------------------------------------------------------- */
-#include <pthread.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
