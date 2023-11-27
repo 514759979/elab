@@ -23,11 +23,11 @@ void oled_init(void)
     elab_assert(spi != NULL);
 
     oled_dc = elab_device_find("pin_oled_dc");
-    elab_assert(spi != NULL);
+    elab_assert(oled_dc != NULL);
     elab_pin_set_mode(oled_dc, PIN_MODE_OUTPUT_OD);
 
     oled_rst = elab_device_find("pin_oled_rst");
-    elab_assert(spi != NULL);
+    elab_assert(oled_rst != NULL);
     elab_pin_set_mode(oled_rst, PIN_MODE_OUTPUT_OD);
 
     osDelay(100);
@@ -115,6 +115,8 @@ static void _write_byte(uint8_t byte, bool cmd)
 void oled_game_start(void)
 {
     oled_clear();
+    pos_x = 0;
+    pos_y = 0;
     _oled_coordinate(0, 0, true);
 }
 
@@ -125,9 +127,8 @@ void oled_game_stop(void)
 
 void oled_game_execute(uint8_t cmd)
 {
-    uint8_t pos_x_backup = pos_x;
-    uint8_t pos_y_backup = pos_y;
-    _oled_coordinate(pos_x, pos_y, false);
+    int8_t pos_x_backup = pos_x;
+    int8_t pos_y_backup = pos_y;
 
     switch (cmd)
     {
@@ -154,6 +155,7 @@ void oled_game_execute(uint8_t cmd)
 
     if (pos_x_backup != pos_x || pos_y_backup != pos_y)
     {
+        _oled_coordinate(pos_x_backup, pos_y_backup, false);
         _oled_coordinate(pos_x, pos_y, true);
     }
 }
