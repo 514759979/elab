@@ -170,7 +170,7 @@ void elab_run(void)
     eos_run();
 #else
     /* Initialize all module in eLab. */
-    for (uint8_t level = 0; level < export_level_max; level ++)
+    for (uint8_t level = 0; level <= export_level_max; level ++)
     {
         _init_func_execute(level);
     }
