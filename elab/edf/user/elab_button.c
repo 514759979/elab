@@ -6,8 +6,12 @@
 /* include ------------------------------------------------------------------ */
 #include "elab_button.h"
 #include "../../common/elab_assert.h"
+#include "../../common/elab_log.h"
 
 ELAB_TAG("EdfButtton");
+
+/* private defines ---------------------------------------------------------- */
+#define BUTTON_LOG_EN                       (0)
 
 /* private defines ---------------------------------------------------------- */
 enum
@@ -184,6 +188,9 @@ static void _timer_func(void *para)
         if (me->pressed)
         {
             me->state = BUTTON_STATE_PRESSED;
+#if (BUTTON_LOG_EN != 0)
+            elog_debug("%s. State Idle to Pressed.", me->super.attr.name);
+#endif
         }
         break;
 
@@ -195,11 +202,19 @@ static void _timer_func(void *para)
             {
                 me->state = BUTTON_STATE_IDLE;
                 _event_publish(me, ELAB_BUTTON_EVT_LONGPRESS);
+#if (BUTTON_LOG_EN != 0)
+                elog_debug("%s. State Pressed to LongPress.",
+                            me->super.attr.name);
+#endif
             }
             else if (time_diff >= ELAB_BUTTON_CLICK_TIME_MIN &&
                         time_diff <= ELAB_BUTTON_CLICK_TIME_MAX)
             {
                 me->state = BUTTON_STATE_DOUBLE_CLICK_IDLE;
+#if (BUTTON_LOG_EN != 0)
+                elog_debug("%s. State Pressed to DoubleClickIdle.",
+                            me->super.attr.name);
+#endif
             }
         }
         break;
@@ -208,12 +223,20 @@ static void _timer_func(void *para)
         if (me->pressed)
         {
             me->state = BUTTON_STATE_DOUBLE_CLICK_PRESSED;
+#if (BUTTON_LOG_EN != 0)
+            elog_debug("%s. State DoubleClickIdle to DoubleClickPressed.",
+                        me->super.attr.name);
+#endif
         }
         if ((osKernelGetTickCount() - me->time_release)
             >= ELAB_BUTTON_DOUBLE_CLICK_IDLE_TIME_MAX)
         {
             _event_publish(me, ELAB_BUTTON_EVT_CLICK);
             me->state = BUTTON_STATE_IDLE;
+#if (BUTTON_LOG_EN != 0)
+            elog_debug("%s. State DoubleClickIdle to Idle.",
+                        me->super.attr.name);
+#endif
         }
         break;
 
@@ -226,6 +249,10 @@ static void _timer_func(void *para)
             {
                 me->state = BUTTON_STATE_IDLE;
                 _event_publish(me, ELAB_BUTTON_EVT_DOUBLE_CLICK);
+#if (BUTTON_LOG_EN != 0)
+                elog_debug("%s. State DoubleClickPressed to Idle.",
+                            me->super.attr.name);
+#endif
             }
         }
         break;

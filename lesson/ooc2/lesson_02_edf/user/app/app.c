@@ -23,9 +23,21 @@ extern "C" {
 
 /* private state function prototypes -----------------------------------------*/
 static QState _state_initial(QActive * const me, void const * const par);
+static QState _state_idle(QActive * const me, QEvt const * const e);
 static QState _state_work(QActive * const me, QEvt const * const e);
 
+/* Private variables ---------------------------------------------------------*/
 static QActive oled_game;
+
+static const char *str_info[] =
+{
+    "EVT_BUTTON_UP.",
+    "EVT_BUTTON_DOWN.",
+    "EVT_BUTTON_LEFT.",
+    "EVT_BUTTON_RIGHT.",
+    "EVT_BUTTON_START.",
+    "EVT_BUTTON_STOP.",
+};
 
 /* public functions --------------------------------------------------------- */
 static void oled_game_init(void)
@@ -53,6 +65,10 @@ static QState _state_initial(QActive * const me, void const * const par)
 
     QActive_subscribe(me, EVT_BUTTON_START);
     QActive_subscribe(me, EVT_BUTTON_STOP);
+    QActive_subscribe(me, EVT_BUTTON_UP);
+    QActive_subscribe(me, EVT_BUTTON_DOWN);
+    QActive_subscribe(me, EVT_BUTTON_LEFT);
+    QActive_subscribe(me, EVT_BUTTON_RIGHT);
 
     /* Button start click event. */
     dev = elab_device_find("button_start");
@@ -90,6 +106,30 @@ static QState _state_initial(QActive * const me, void const * const par)
     return Q_TRAN(&_state_work);
 }
 
+static QState _state_idle(QActive * const me, QEvt const * const e)
+{
+    QState ret = Q_SUPER(&QHsm_top);
+
+    switch (e->sig)
+    {
+    case EVT_BUTTON_START:
+        elog_debug(str_info[e->sig - EVT_BUTTON_UP]);
+        ret = Q_TRAN(&_state_work);
+        break;
+
+    case EVT_BUTTON_STOP:
+    case EVT_BUTTON_UP:
+    case EVT_BUTTON_DOWN:
+    case EVT_BUTTON_LEFT:
+    case EVT_BUTTON_RIGHT:
+        elog_debug(str_info[e->sig - EVT_BUTTON_UP]);
+        ret = Q_HANDLED();
+        break;
+    }
+    
+    return ret;
+}
+
 static QState _state_work(QActive * const me, QEvt const * const e)
 {
     QState ret = Q_SUPER(&QHsm_top);
@@ -99,21 +139,13 @@ static QState _state_work(QActive * const me, QEvt const * const e)
     case EVT_BUTTON_START:
         elog_debug("EVT_BUTTON_START.");
         oled_game_start();
-        QActive_subscribe(me, EVT_BUTTON_UP);
-        QActive_subscribe(me, EVT_BUTTON_DOWN);
-        QActive_subscribe(me, EVT_BUTTON_LEFT);
-        QActive_subscribe(me, EVT_BUTTON_RIGHT);
         ret = Q_HANDLED();
         break;
 
     case EVT_BUTTON_STOP:
         elog_debug("EVT_BUTTON_STOP.");
         oled_game_stop();
-        QActive_unsubscribe(me, EVT_BUTTON_UP);
-        QActive_unsubscribe(me, EVT_BUTTON_DOWN);
-        QActive_unsubscribe(me, EVT_BUTTON_LEFT);
-        QActive_unsubscribe(me, EVT_BUTTON_RIGHT);
-        ret = Q_HANDLED();
+        ret = Q_TRAN(&_state_idle);
         break;
 
     case EVT_BUTTON_UP:

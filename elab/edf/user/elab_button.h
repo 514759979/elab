@@ -15,9 +15,9 @@ extern "C" {
 #endif
 
 /* public config ------------------------------------------------------------ */
-#define ELAB_BUTTON_CLICK_TIME_MIN                  (200)
-#define ELAB_BUTTON_CLICK_TIME_MAX                  (1000)
-#define ELAB_BUTTON_DOUBLE_CLICK_IDLE_TIME_MAX      (300)
+#define ELAB_BUTTON_CLICK_TIME_MIN                  (100)
+#define ELAB_BUTTON_CLICK_TIME_MAX                  (500)
+#define ELAB_BUTTON_DOUBLE_CLICK_IDLE_TIME_MAX      (200)
 #define ELAB_BUTTON_LONGPRESS_TIME_MIN              ELAB_BUTTON_CLICK_TIME_MAX
 
 /* public define ------------------------------------------------------------ */

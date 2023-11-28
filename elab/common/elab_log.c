@@ -108,11 +108,20 @@ void _elog_printf(const char *name, uint8_t level, const char * s_format, ...)
 #if !defined(__x86_64__)
 
 #if defined(__CC_ARM) || defined(__CLANG_ARM)
-int fputc(int ch,FILE *p)
+#define BUFF_CH_SIZE                        (32)
+static uint8_t buff_ch[BUFF_CH_SIZE];
+static uint8_t count_ch = 0;
+int fputc(int ch, FILE *p)
 {
     char _ch = (char)ch;
-    elab_debug_uart_send(&_ch, 1);
-    
+
+    buff_ch[count_ch ++] = _ch;
+    if (count_ch >= BUFF_CH_SIZE || _ch == 0x0D || _ch == 0x0A)
+    {
+        elab_debug_uart_send(buff_ch, count_ch);
+        count_ch = 0;
+    }
+   
     return ch;
 }
 #else

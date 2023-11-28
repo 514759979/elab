@@ -46,7 +46,8 @@ static elib_queue_t queue_rx;
 static uint8_t buffer_rx[ELAB_DEBUG_UART_BUFFER_RX];
 static elib_queue_t queue_tx;
 static uint8_t buffer_tx[ELAB_DEBUG_UART_BUFFER_TX];
-static uint8_t byte_recv;
+static uint8_t byte_recv = 0;
+static uint8_t byte_send = 0;
 
 /* public functions --------------------------------------------------------- */
 /**
@@ -83,15 +84,14 @@ void elab_debug_uart_init(uint32_t baudrate)
 int16_t elab_debug_uart_send(void *buffer, uint16_t size)
 {
     int16_t ret = 0;
-    uint8_t byte = 0;
-
+    
     HAL_NVIC_DisableIRQ(USART3_4_IRQn);
     if (elib_queue_is_empty(&queue_tx))
     {
         ret = elib_queue_push(&queue_tx, buffer, size);
-        if (elib_queue_pull(&queue_tx, &byte, 1) == 1)
+        if (elib_queue_pull_pop(&queue_tx, &byte_send, 1) == 1)
         {
-            HAL_UART_Transmit_IT(&huart, &byte, 1);
+            HAL_UART_Transmit_IT(&huart, &byte_send, 1);
         }
     }
     else
@@ -146,8 +146,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
     
     if (UartHandle->Instance == USARTx)
     {
-        elib_queue_pop(&queue_tx, 1);
-        if (elib_queue_pull(&queue_tx, &byte, 1))
+        if (elib_queue_pull_pop(&queue_tx, &byte, 1))
         {
             HAL_UART_Transmit_IT(&huart, &byte, 1);
         }

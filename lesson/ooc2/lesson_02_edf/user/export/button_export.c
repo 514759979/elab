@@ -29,16 +29,16 @@ static void driver_button_export(void)
     /* Buttons based on ADC devices. */
     elab_driver_button_adc_init(&button_adc_right,
                                 "button_right", "adc_button",
-                                1.572, 1.592);
+                                1.500, 1.65);
     elab_driver_button_adc_init(&button_adc_left,
                                 "button_left", "adc_button",
-                                1.262, 1.282);
+                                1.00, 1.495);
     elab_driver_button_adc_init(&button_adc_up,
                                 "button_up", "adc_button",
-                                0.0, 0.02);
+                                0.0, 0.2);
     elab_driver_button_adc_init(&button_adc_down,
                                 "button_down", "adc_button",
-                                1.76, 1.78);
+                                1.66, 1.88);
 }
 INIT_EXPORT(driver_button_export, EXPORT_LEVEL_BUTTON);
 
