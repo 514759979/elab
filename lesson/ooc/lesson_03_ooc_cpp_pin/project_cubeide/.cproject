@@ -211,4 +211,5 @@
 			<resource resourceType="PROJECT" workspacePath="/Basic_cpp"/>
 		</configuration>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>
