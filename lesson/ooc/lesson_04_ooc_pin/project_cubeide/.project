@@ -32,27 +32,27 @@
 		<link>
 			<name>CMSIS</name>
 			<type>2</type>
-			<location>C:/Users/LeoLe/workspace/fireware/elab/mcu/stm32g070/CMSIS</location>
+			<locationURI>PARENT-4-PROJECT_LOC/mcu/stm32g070/CMSIS</locationURI>
 		</link>
 		<link>
 			<name>STM32G070</name>
 			<type>2</type>
-			<location>C:/Users/LeoLe/workspace/fireware/elab/mcu/stm32g070/STM32G070</location>
+			<locationURI>PARENT-4-PROJECT_LOC/mcu/stm32g070/STM32G070</locationURI>
 		</link>
 		<link>
 			<name>STM32G0xx_HAL_Driver</name>
 			<type>2</type>
-			<location>C:/Users/LeoLe/workspace/fireware/elab/mcu/stm32g070/STM32G0xx_HAL_Driver</location>
+			<locationURI>PARENT-4-PROJECT_LOC/mcu/stm32g070/STM32G0xx_HAL_Driver</locationURI>
 		</link>
 		<link>
 			<name>common</name>
 			<type>2</type>
-			<location>C:/Users/LeoLe/workspace/fireware/elab/elab/common</location>
+			<locationURI>PARENT-4-PROJECT_LOC/elab/common</locationURI>
 		</link>
 		<link>
 			<name>user</name>
 			<type>2</type>
-			<location>C:/Users/LeoLe/workspace/fireware/elab/lesson/ooc/lesson_04_ooc_pin/user</location>
+			<locationURI>PARENT-1-PROJECT_LOC/user</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
