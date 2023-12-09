@@ -33,12 +33,12 @@
 		<link>
 			<name>elab</name>
 			<type>2</type>
-			<location>C:/Users/LeoLe/workspace/fireware/elab/elab</location>
+			<locationURI>PARENT-4-PROJECT_LOC/elab</locationURI>
 		</link>
 		<link>
 			<name>stm32g070</name>
 			<type>2</type>
-			<location>C:/Users/LeoLe/workspace/fireware/elab/mcu/stm32g070</location>
+			<locationURI>PARENT-4-PROJECT_LOC/mcu/stm32g070</locationURI>
 		</link>
 		<link>
 			<name>user</name>
