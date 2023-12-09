@@ -31,24 +31,14 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>CMSIS</name>
+			<name>elab</name>
 			<type>2</type>
-			<locationURI>PARENT-4-PROJECT_LOC/mcu/stm32g070/CMSIS</locationURI>
+			<location>C:/Users/LeoLe/workspace/fireware/elab/elab</location>
 		</link>
 		<link>
-			<name>STM32G070</name>
+			<name>stm32g070</name>
 			<type>2</type>
-			<locationURI>PARENT-4-PROJECT_LOC/mcu/stm32g070/STM32G070</locationURI>
-		</link>
-		<link>
-			<name>STM32G0xx_HAL_Driver</name>
-			<type>2</type>
-			<locationURI>PARENT-4-PROJECT_LOC/mcu/stm32g070/STM32G0xx_HAL_Driver</locationURI>
-		</link>
-		<link>
-			<name>common</name>
-			<type>2</type>
-			<locationURI>PARENT-4-PROJECT_LOC/elab/common</locationURI>
+			<location>C:/Users/LeoLe/workspace/fireware/elab/mcu/stm32g070</location>
 		</link>
 		<link>
 			<name>user</name>
