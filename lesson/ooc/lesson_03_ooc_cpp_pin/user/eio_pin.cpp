@@ -120,9 +120,9 @@ static bool _check_pin_name_valid(const char *name)
         goto exit;
     }
     
-    if (!((name[0] < 'A' && name[0] > 'D') &&
-            (name[2] < '0' && name[2] > '1') &&
-            (name[3] < '0' && name[3] > '9')))
+    if ((name[0] < 'A' || name[0] > 'D') ||
+            (name[2] < '0' || name[2] > '1') ||
+            (name[3] < '0' || name[3] > '9'))
     {
         ret = false;
         goto exit;
