@@ -47,7 +47,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/elab/common}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/elab/elib}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/elab/3rd/Shell}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/elab/export}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/stm32g070/CMSIS}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/stm32g070/STM32G070}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/stm32g070/STM32G0xx_HAL_Driver/Inc}&quot;"/>
