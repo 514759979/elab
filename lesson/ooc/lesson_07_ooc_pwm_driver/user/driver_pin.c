@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-ELAB_TAG("Driver_PIN")
+ELAB_TAG("Driver_PIN");
 
 /* public typedef ----------------------------------------------------------- */
 typedef struct eio_pin_data

@@ -30,6 +30,7 @@ void led_init(void)
 {
     led = eio_find("LED1");
     elab_assert(led != NULL);
+    eio_pin_set_mode(led, PIN_MODE_OUTPUT_OD);
 }
 INIT_EXPORT(led_init, 2);
 
