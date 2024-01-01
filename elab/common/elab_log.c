@@ -128,11 +128,9 @@ int fputc(int ch, FILE *p)
 /* TODO Redirect printf. */
 int _write(int file, char *ptr, int len)
 {
-    (void)file;
-    (void)ptr;
-    (void)len;
+    elab_debug_uart_send(ptr, len);
 
-    return 0;
+    return len;
 }
 #endif
 
