@@ -81,7 +81,7 @@ static int32_t test_self(int32_t argc, char *argv[])
     elab_led_toggle(elab_device_find("led4"), 1000);
 
     /* PWM DAC output and measure the output volage. */
-    printf("Start the PWM setting and voltage measuring:\n");
+    printf("Start the PWM setting and voltage measuring:\r\n");
     for (uint32_t i = 1; i <= 100; i ++)
     {
         elab_pwm_set_duty(elab_device_find("pwm_dac"), i);
@@ -89,7 +89,7 @@ static int32_t test_self(int32_t argc, char *argv[])
         printf("%.3f ", voltage);
         if (i % 10 == 0)
         {
-            printf("\n");
+            printf("\r\n");
         }
         osDelay(10);
     }
@@ -109,13 +109,13 @@ static int32_t test_self(int32_t argc, char *argv[])
     
     if (memcmp(buff_tx, buff_rx, TEST_SELF_EEPROM_DATA_SIZE) == 0)
     {
-        printf("EEPROM testing passed.\n");
+        printf("EEPROM testing passed.\r\n");
     }
     for (uint32_t i = 0; i < TEST_SELF_EEPROM_DATA_SIZE; i ++)
     {
         printf("0x%02x ", buff_rx[i]);
     }
-    printf("\n");
+    printf("\r\n");
 
     /* SPI-Flash testing */
     buff_tx[0] = 0x90;                  /* Read Manufacturer / Device ID */
@@ -126,7 +126,7 @@ static int32_t test_self(int32_t argc, char *argv[])
     flash_id = (buff_rx[5] << 8) + buff_rx[4];
     if (flash_id == 0xef14)
     {
-        printf("Flash W25Q16 read ID: 0x%04x.\n", flash_id);
+        printf("Flash W25Q16 read ID: 0x%04x.\r\n", flash_id);
     }
     else
     {
@@ -134,40 +134,40 @@ static int32_t test_self(int32_t argc, char *argv[])
     }
 
     /* Button testing. */
-    printf("Buttons testing starts. --------------------------------\n");
+    printf("Buttons testing starts. --------------------------------\r\n");
     /* Start button */
     button_start_en = true;
-    printf("Please press the start button!\n");
+    printf("Please press the start button!\r\n");
     osSemaphoreAcquire(sem, osWaitForever);
     button_start_en = false;
 
     /* Up button */
     button_up_en = true;
-    printf("Please press the up button!\n");
+    printf("Please press the up button!\r\n");
     osSemaphoreAcquire(sem, osWaitForever);
     button_up_en = false;
 
     /* Down button */
     button_down_en = true;
-    printf("Please press the down button!\n");
+    printf("Please press the down button!\r\n");
     osSemaphoreAcquire(sem, osWaitForever);
     button_down_en = false;
 
     /* Left button */
     button_left_en = true;
-    printf("Please press the left button!\n");
+    printf("Please press the left button!\r\n");
     osSemaphoreAcquire(sem, osWaitForever);
     button_left_en = false;
 
     /* Right button */
     button_right_en = true;
-    printf("Please press the Right button!\n");
+    printf("Please press the Right button!\r\n");
     osSemaphoreAcquire(sem, osWaitForever);
     button_right_en = false;
 
     /* Stop button */
     button_stop_en = true;
-    printf("Please press the stop button!\n");
+    printf("Please press the stop button!\r\n");
     osSemaphoreAcquire(sem, osWaitForever);
     button_stop_en = false;
     
